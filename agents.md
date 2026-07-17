@@ -72,7 +72,28 @@ talosctl --talosconfig=infrastructure/kubernetes/clusterconfig/talosconfig get n
 
 ---
 
-## 5. Repository Structure Overview
+## 5. GitOps & FluxCD Enforcement (No Direct Applications)
+
+> [!IMPORTANT]
+> **Strict GitOps Workflow**: This cluster is fully managed by **FluxCD**. Direct imperative mutations to the cluster state are forbidden.
+
+- **No Imperative Cluster Mutations (`kubectl apply`)**: Agents and developers MUST NEVER apply manifests or Helm charts directly to the cluster (e.g., `kubectl apply -f ...`, `kubectl create ...`, `kubectl edit ...`, `kubectl patch ...`, `helm install ...`, `helm upgrade ...`) unless explicitly instructed by the user for temporary/emergency debugging.
+- **Declarative Changes via GitOps**: All Kubernetes resources, configurations, and application deployments MUST be modified declaratively inside the `cluster/` directory (`cluster/core`, `cluster/apps`, `cluster/base`).
+- **Triggering & Testing Changes via Flux Reconcile**: To apply or sync changes to the live cluster after modifying manifests or pushing commits to Git, agents MUST use FluxCD reconciliation commands (`flux reconcile`):
+  ```bash
+  # Reconcile Git source repository
+  flux --kubeconfig=infrastructure/kubernetes/clusterconfig/kubeconfig reconcile source git flux-system -n flux-system
+
+  # Reconcile specific Kustomization
+  flux --kubeconfig=infrastructure/kubernetes/clusterconfig/kubeconfig reconcile kustomization <kustomization-name> -n <namespace>
+
+  # Reconcile specific HelmRelease
+  flux --kubeconfig=infrastructure/kubernetes/clusterconfig/kubeconfig reconcile helmrelease <release-name> -n <namespace>
+  ```
+
+---
+
+## 6. Repository Structure Overview
 
 - **`infrastructure/kubernetes/`**: Contains the Talos Linux base node configuration (`talconfig.yaml`, `talsecret.sops.yaml`) processed by `talhelper`.
   - **`clusterconfig/`**: Generated cluster access artifacts (`kubeconfig` and `talosconfig`).
@@ -86,3 +107,4 @@ talosctl --talosconfig=infrastructure/kubernetes/clusterconfig/talosconfig get n
 2. [ ] Is any sensitive data or secret file properly named and encrypted with **SOPS/Age**?
 3. [ ] Are CLI commands (`kubectl`, `sops`, `talosctl`) executed within the **Nix** environment?
 4. [ ] Are explicit `--kubeconfig` or `--talosconfig` paths provided when connecting to the cluster?
+5. [ ] Are cluster changes managed declaratively via **GitOps / FluxCD (`flux reconcile`)** rather than direct `kubectl apply` commands?
