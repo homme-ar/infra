@@ -24,6 +24,7 @@ spec:
     secret:
       existingSecret: authelia-secret
     pod:
+      replicas: 1
       extraVolumes:
         - name: authelia-users
           secret:
