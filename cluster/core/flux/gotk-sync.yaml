@@ -10,6 +10,12 @@ spec:
   secretRef:
     name: flux-system
   url: ssh://git@github.com/homme-ar/infa.git
+  ignore: |
+    # exclude files not required for reconciliation
+    /.git/
+    /.github/
+    /.vscode/
+    /.idea/
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
