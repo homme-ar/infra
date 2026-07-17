@@ -26,7 +26,7 @@ spec:
     defaultSettings:
       # Use /var/lib/longhorn corresponding to the SKC3000 NVMe disk mounts on all Talos nodes
       defaultDataPath: "/var/lib/longhorn"
-      createDefaultDiskLabeledNodes: true
+      createDefaultDiskLabeledNodes: false
     csi:
       # Talos Linux stores kubelet state inside /var/lib/kubelet
       kubeletRootDir: "/var/lib/kubelet"
