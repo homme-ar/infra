@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - crds.yaml
   - gateway.yaml
+  - authelia-cec.yaml
