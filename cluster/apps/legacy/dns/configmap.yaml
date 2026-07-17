@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: legacy-dns-config
+  namespace: legacy
+data:
+  Corefile: |
+    .:53 {
+        errors
+        log
+        health {
+            lameduck 5s
+        }
+        ready
+        template IN A {
+            match "^(.*\\.)?homme\\.ar\\.$"
+            answer "{{ .Name }} 60 IN A 10.0.21.1"
+            fallthrough
+        }
+        template IN AAAA {
+            match "^(.*\\.)?homme\\.ar\\.$"
+            rcode NOERROR
+        }
+        forward . 1.1.1.1 8.8.8.8
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
