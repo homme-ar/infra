@@ -4,7 +4,7 @@ metadata:
   name: authelia-ext-authz
 spec:
   services:
-    - name: envoy-gateway
+    - name: cilium-gateway-envoy-gateway
       namespace: kube-system
   resources:
     - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
@@ -21,29 +21,47 @@ spec:
                     socket_address:
                       address: authelia.auth.svc.cluster.local
                       port_value: 80
-    - "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-      http_service:
-        server_uri:
-          uri: http://authelia.auth.svc.cluster.local/api/authz/ext-authz/
-          cluster: authelia_cluster
-          timeout: 0.25s
-        authorization_request:
-          allowed_headers:
-            patterns:
-              - exact: accept
-              - exact: authorization
-              - exact: cookie
-              - exact: proxy-authorization
-              - exact: x-forwarded-method
-              - exact: x-forwarded-proto
-              - exact: x-forwarded-host
-              - exact: x-forwarded-uri
-              - exact: x-original-url
-        authorization_response:
-          allowed_upstream_headers:
-            patterns:
-              - exact: authorization
-              - prefix: remote-user
-              - prefix: remote-groups
-              - prefix: remote-name
-              - prefix: remote-email
+    - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
+      name: listener
+      filter_chains:
+        - filter_chain_match:
+            transport_protocol: tls
+          filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: listener-secure
+                rds:
+                  route_config_name: listener-secure
+                http_filters:
+                  - name: envoy.filters.http.ext_authz
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      http_service:
+                        server_uri:
+                          uri: http://authelia.auth.svc.cluster.local/api/authz/ext-authz/
+                          cluster: authelia_cluster
+                          timeout: 0.25s
+                        authorization_request:
+                          allowed_headers:
+                            patterns:
+                              - exact: accept
+                              - exact: authorization
+                              - exact: cookie
+                              - exact: proxy-authorization
+                              - exact: x-forwarded-method
+                              - exact: x-forwarded-proto
+                              - exact: x-forwarded-host
+                              - exact: x-forwarded-uri
+                              - exact: x-original-url
+                        authorization_response:
+                          allowed_upstream_headers:
+                            patterns:
+                              - exact: authorization
+                              - prefix: remote-user
+                              - prefix: remote-groups
+                              - prefix: remote-name
+                              - prefix: remote-email
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
