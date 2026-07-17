@@ -1,6 +1,6 @@
 clusterName: homme-cluster
 talosVersion: v1.13.6
-kubernetesVersion: v1.32.0
+kubernetesVersion: v1.36.0
 endpoint: https://10.0.20.1:6443
 allowSchedulingOnMasters: true
 cniConfig:
