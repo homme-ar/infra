@@ -23,6 +23,8 @@ spec:
     remediation:
       retries: 3
   values:
+    gatewayAPI:
+      enabled: true
     ipam:
       mode: kubernetes
     kubeProxyReplacement: true
