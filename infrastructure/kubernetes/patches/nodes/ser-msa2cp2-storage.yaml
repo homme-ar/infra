@@ -1,0 +1,5 @@
+machine:
+  disks:
+    - device: /dev/disk/by-id/nvme-KINGSTON_SKC3000S1024G_50026B768776AF72
+      partitions:
+        - mountpoint: /var/lib/longhorn

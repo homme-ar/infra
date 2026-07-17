@@ -1,0 +1,5 @@
+# Ignore plaintext secrets (only commit talsecret.sops.yaml encrypted with SOPS)
+talsecret.yaml
+
+# Ignore generated cluster configuration files
+clusterconfig/

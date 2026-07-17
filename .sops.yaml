@@ -1,0 +1,13 @@
+creation_rules:
+  # Encrypt Talos secret files (talhelper)
+  - path_regex: .*\.sops\.yaml$
+    key_groups:
+      - age:
+          # Active Age public key generated with `age-keygen`
+          - "age1j6zlq24dlzd9as6gq835980ahzelmnuu7d8ydkz54t28kzhv0csse96epz"
+
+  # Encrypt Kubernetes and Flux secrets inside the cluster directory
+  - path_regex: cluster/.*secret.*\.yaml$
+    key_groups:
+      - age:
+          - "age1j6zlq24dlzd9as6gq835980ahzelmnuu7d8ydkz54t28kzhv0csse96epz"
