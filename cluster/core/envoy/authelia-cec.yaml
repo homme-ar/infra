@@ -3,9 +3,6 @@ kind: CiliumClusterwideEnvoyConfig
 metadata:
   name: authelia-ext-authz
 spec:
-  services:
-    - name: cilium-gateway-envoy-gateway
-      namespace: kube-system
   resources:
     - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
       name: authelia_cluster
