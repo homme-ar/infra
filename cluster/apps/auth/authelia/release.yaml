@@ -45,6 +45,7 @@ spec:
       default_2fa_method: totp
       authentication_backend:
         file:
+          enabled: true
           path: /config/users_database.yml
       access_control:
         default_policy: two_factor
@@ -57,10 +58,18 @@ spec:
             policy: two_factor
       session:
         name: authelia_session
-        domain: example.com
+        cookies:
+          - domain: example.com
+            authelia_url: https://auth.example.com
+            name: authelia_session
       storage:
         local:
+          enabled: true
           path: /config/db.sqlite3
+      notifier:
+        filesystem:
+          enabled: true
+          filename: /config/notification.txt
     persistence:
       enabled: true
       storageClass: longhorn
