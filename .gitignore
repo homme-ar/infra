@@ -1,0 +1,17 @@
+# Direnv & Nix
+.direnv/
+.envrc.private
+result
+result-*
+
+# SOPS / Secrets
+*.decrypted.*
+*.key
+*.pem
+
+# IDEs & OS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
