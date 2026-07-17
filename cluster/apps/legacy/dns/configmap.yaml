@@ -5,6 +5,34 @@ metadata:
   namespace: legacy
 data:
   Corefile: |
+    local.homme.ar:53 {
+        errors
+        log
+        hosts {
+            10.0.11.4 mqtt.local.homme.ar
+            10.0.11.10 mysql.local.homme.ar
+            10.0.11.2 postgres.local.homme.ar
+            10.0.11.3 redis.local.homme.ar
+            10.0.11.8 vpn.local.homme.ar
+            10.0.11.7 dns.local.homme.ar
+            10.0.11.6 frigate.local.homme.ar
+            10.0.11.5 ha.local.homme.ar
+            10.0.10.1 k8s.local.homme.ar
+            10.0.10.2 k8s.local.homme.ar
+            10.0.10.3 k8s.local.homme.ar
+            fallthrough
+        }
+    }
+
+    ntp.homme.ar:53 {
+        errors
+        log
+        hosts {
+            10.0.7.1 ntp.homme.ar
+            fallthrough
+        }
+    }
+
     homme.ar:53 {
         errors
         log
