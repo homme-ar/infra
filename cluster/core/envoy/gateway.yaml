@@ -12,11 +12,14 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
-    - name: https-passthrough
-      protocol: TLS
+    - name: https
+      protocol: HTTPS
       port: 443
       tls:
-        mode: Passthrough
+        mode: Terminate
+        certificateRefs:
+          - name: homme-ar-tls
+            namespace: kube-system
       allowedRoutes:
         namespaces:
           from: All

@@ -4,4 +4,5 @@ resources:
   - flux
   - cilium
   - envoy
+  - cert-manager
   - index
