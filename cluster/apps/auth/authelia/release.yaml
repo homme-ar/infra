@@ -26,6 +26,8 @@ spec:
     pod:
       kind: Deployment
       replicas: 1
+      strategy:
+        type: Recreate
       extraVolumes:
         - name: authelia-users
           secret:
