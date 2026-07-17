@@ -50,11 +50,11 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: cluster-apps
+  name: cluster-core-config
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./cluster/apps
+  path: ./cluster/core/cert-manager-config
   prune: true
   sourceRef:
     kind: GitRepository
@@ -66,6 +66,25 @@ spec:
       kind: HelmRelease
       name: cert-manager
       namespace: cert-manager
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-apps
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./cluster/apps
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: cluster-core
   decryption:
     provider: sops
     secretRef:
