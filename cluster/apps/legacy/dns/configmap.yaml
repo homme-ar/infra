@@ -5,6 +5,34 @@ metadata:
   namespace: legacy
 data:
   Corefile: |
+    local.example.com:53 {
+        errors
+        log
+        hosts {
+            192.0.2.104 mqtt.local.example.com
+            192.0.2.110 mysql.local.example.com
+            192.0.2.102 postgres.local.example.com
+            192.0.2.103 redis.local.example.com
+            192.0.2.108 vpn.local.example.com
+            192.0.2.107 dns.local.example.com
+            192.0.2.106 frigate.local.example.com
+            192.0.2.105 ha.local.example.com
+            192.0.2.11 k8s.local.example.com
+            192.0.2.12 k8s.local.example.com
+            192.0.2.13 k8s.local.example.com
+            fallthrough
+        }
+    }
+
+    ntp.example.com:53 {
+        errors
+        log
+        hosts {
+            192.0.2.7 ntp.example.com
+            fallthrough
+        }
+    }
+
     example.com:53 {
         errors
         log
