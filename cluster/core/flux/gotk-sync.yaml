@@ -9,7 +9,7 @@ spec:
     branch: main
   secretRef:
     name: flux-system
-  url: ssh://git@github.com/homme-ar/infa.git
+  url: ssh://git@github.com/homme-ar/infra.git
   ignore: |
     # exclude files not required for reconciliation
     /.git/
