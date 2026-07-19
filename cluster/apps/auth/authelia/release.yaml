@@ -42,6 +42,20 @@ spec:
       server:
         host: 0.0.0.0
         port: 9091
+        buffers:
+          authz:
+            read: 8192
+            write: 8192
+        endpoints:
+          authz:
+            ext-authz:
+              implementation: ExtAuthz
+              authn_strategies:
+                - name: HeaderAuthorization
+                  schemes:
+                    - Basic
+                    - Bearer
+                - name: CookieSession
       log:
         level: info
       default_2fa_method: totp
