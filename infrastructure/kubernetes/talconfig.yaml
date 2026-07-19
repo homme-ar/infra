@@ -100,5 +100,6 @@ controlPlane:
           modules:
             - name: nvme_tcp
             - name: vfio_pci
+            - name: vfio_iommu_type1
             - name: uio_pci_generic
             - name: ublk_drv
