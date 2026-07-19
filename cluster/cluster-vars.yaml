@@ -1,0 +1,13 @@
+# Flux cluster-wide variables
+# Used by Flux post-build variable substitution (spec.postBuild.substituteFrom)
+# Reference in manifests with: ${VARIABLE_NAME}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-vars
+  namespace: flux-system
+data:
+  # Cluster domain
+  CLUSTER_DOMAIN: "homme.ar"
+  # Default storage class
+  STORAGE_CLASS: "longhorn"

@@ -18,9 +18,9 @@ This document specifies **critical mandatory rules and operational standards** f
 > **This repository is public on GitHub.** Exposing plain-text secrets, API tokens, passwords, or private keys is a critical security violation.
 
 - **Never Commit Plain-Text Secrets**: Before creating or modifying any file containing sensitive data (passwords, certificates, keys, webhooks, or tokens), verify that it is properly encrypted using **SOPS** (`sops`) with **Age** (`age`).
-- **SOPS Configuration (`.sops.yaml`) Rules**:
-  - **Talos Secrets**: Files matching `.*\.sops\.yaml$` (such as `infrastructure/kubernetes/talsecret.sops.yaml`) are encrypted using the Age key defined in `.sops.yaml`.
-  - **Kubernetes / Flux Secrets**: Files inside `cluster/` **MUST** match the pattern `cluster/.*secret.*\.yaml$` to be recognized and encrypted by SOPS (e.g., `cluster/core/cilium/secret.yaml` or `my-app-secret.yaml`). Ensure your secret file names include `secret` and end in `.yaml`.
+  - **SOPS Configuration (`.sops.yaml`) Rules**:
+  - **Talos Secrets**: Files matching `.*\.sops\.yaml$` (such as `talos/talsecret.sops.yaml`) are encrypted using the Age key defined in `.sops.yaml`.
+  - **Kubernetes / Flux Secrets**: Files inside `cluster/` **MUST** match the pattern `cluster/.*secret.*\.yaml$` to be recognized and encrypted by SOPS (e.g., `cluster/infrastructure/security/cert-manager/secret.yaml` or `my-app-secret.yaml`). Ensure your secret file names include `secret` and end in `.yaml`.
 - **Age Key Location**: As configured in `.envrc`, the local SOPS Age private key path is set via `export SOPS_AGE_KEY_FILE=$HOME/.config/sops/age/keys.txt`.
 
 ---
@@ -43,31 +43,31 @@ When running commands to interact with the live cluster or nodes, you **MUST exp
 ### Kubernetes Cluster Access (`kubeconfig`)
 To interact with Kubernetes using `kubectl`, `helm`, `flux`, or `k9s`, always point to:
 ```bash
-infrastructure/kubernetes/clusterconfig/kubeconfig
+talos/clusterconfig/kubeconfig
 ```
 **Examples:**
 ```bash
 # Export environment variable
-export KUBECONFIG="infrastructure/kubernetes/clusterconfig/kubeconfig"
+export KUBECONFIG="talos/clusterconfig/kubeconfig"
 kubectl get nodes
 
 # Or pass explicitly via CLI flag
-kubectl --kubeconfig=infrastructure/kubernetes/clusterconfig/kubeconfig get pods -A
+kubectl --kubeconfig=talos/clusterconfig/kubeconfig get pods -A
 ```
 
 ### Talos Linux Node Administration (`talosconfig`)
 To administer Talos Linux nodes using `talosctl`, always point to:
 ```bash
-infrastructure/kubernetes/clusterconfig/talosconfig
+talos/clusterconfig/talosconfig
 ```
 **Examples:**
 ```bash
 # Export environment variable
-export TALOSCONFIG="infrastructure/kubernetes/clusterconfig/talosconfig"
+export TALOSCONFIG="talos/clusterconfig/talosconfig"
 talosctl health
 
 # Or pass explicitly via CLI flag
-talosctl --talosconfig=infrastructure/kubernetes/clusterconfig/talosconfig get nodes
+talosctl --talosconfig=talos/clusterconfig/talosconfig get nodes
 ```
 
 ---
@@ -82,22 +82,25 @@ talosctl --talosconfig=infrastructure/kubernetes/clusterconfig/talosconfig get n
 - **Triggering & Testing Changes via Flux Reconcile**: To apply or sync changes to the live cluster after modifying manifests or pushing commits to Git, agents MUST use FluxCD reconciliation commands (`flux reconcile`):
   ```bash
   # Reconcile Git source repository
-  flux --kubeconfig=infrastructure/kubernetes/clusterconfig/kubeconfig reconcile source git flux-system -n flux-system
+  flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile source git flux-system -n flux-system
 
   # Reconcile specific Kustomization
-  flux --kubeconfig=infrastructure/kubernetes/clusterconfig/kubeconfig reconcile kustomization <kustomization-name> -n <namespace>
+  flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile kustomization <kustomization-name> -n <namespace>
 
   # Reconcile specific HelmRelease
-  flux --kubeconfig=infrastructure/kubernetes/clusterconfig/kubeconfig reconcile helmrelease <release-name> -n <namespace>
+  flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile helmrelease <release-name> -n <namespace>
   ```
 
 ---
 
 ## 6. Repository Structure Overview
 
-- **`infrastructure/kubernetes/`**: Contains the Talos Linux base node configuration (`talconfig.yaml`, `talsecret.sops.yaml`) processed by `talhelper`.
+- **`talos/`**: Contains the Talos Linux base node configuration (`talconfig.yaml`, `talsecret.sops.yaml`) processed by `talhelper`.
   - **`clusterconfig/`**: Generated cluster access artifacts (`kubeconfig` and `talosconfig`).
-- **`cluster/`**: Contains GitOps definitions managed by **FluxCD** (`cluster/core`, `cluster/apps`, `cluster/base`), utilizing Kustomize and Helm releases.
+- **`cluster/`**: Contains GitOps definitions managed by **FluxCD**, utilizing Kustomize and Helm releases.
+  - **`flux-system/`**: Flux bootstrap components and sync configuration.
+  - **`infrastructure/`**: Core cluster infrastructure (`networking/`, `security/`, `storage/`).
+  - **`apps/`**: Application workloads (`platform/`, `legacy/`).
 
 ---
 

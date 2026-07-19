@@ -24,7 +24,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./cluster/core/flux
+  path: ./cluster/flux-system
   prune: true
   sourceRef:
     kind: GitRepository
@@ -33,11 +33,11 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: cluster-core
+  name: cluster-infrastructure
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./cluster/core
+  path: ./cluster/infrastructure
   prune: true
   sourceRef:
     kind: GitRepository
@@ -50,17 +50,17 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: cluster-core-config
+  name: cluster-infrastructure-security-config
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./cluster/core/cert-manager-config
+  path: ./cluster/infrastructure/security/cert-manager-config
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: cluster-core
+    - name: cluster-infrastructure
   healthChecks:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
@@ -84,7 +84,7 @@ spec:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: cluster-core
+    - name: cluster-infrastructure
   decryption:
     provider: sops
     secretRef:
