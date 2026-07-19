@@ -17,6 +17,7 @@ spec:
               group: ""
               kind: Service
               name: authelia
+              namespace: auth
               port: 80
             protocol: HTTP
             http:
