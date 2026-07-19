@@ -45,6 +45,7 @@ spec:
       log:
         level: info
       default_2fa_method: totp
+      default_redirection_url: https://auth.example.com
       authentication_backend:
         file:
           enabled: true
