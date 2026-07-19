@@ -9,6 +9,8 @@ data:
         errors
         log
         hosts {
+            129.151.125.247 llm.cloud.homme.ar
+            129.151.125.247 oci1.cloud.homme.ar
             10.0.11.4 mqtt.local.homme.ar
             10.0.11.10 mysql.local.homme.ar
             10.0.11.2 postgres.local.homme.ar
