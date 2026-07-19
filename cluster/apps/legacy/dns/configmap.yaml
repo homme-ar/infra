@@ -9,6 +9,8 @@ data:
         errors
         log
         hosts {
+            203.0.113.10 llm.cloud.example.com
+            203.0.113.10 oci1.cloud.example.com
             192.0.2.104 mqtt.local.example.com
             192.0.2.110 mysql.local.example.com
             192.0.2.102 postgres.local.example.com
