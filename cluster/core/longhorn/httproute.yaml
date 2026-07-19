@@ -16,7 +16,6 @@ spec:
             group: ""
             kind: Service
             name: authelia
-            port: 80
       matches:
         - path:
             type: PathPrefix
