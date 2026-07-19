@@ -76,6 +76,7 @@ spec:
         name: authelia_session
         cookies:
           - domain: example.com
+            subdomain: auth
             authelia_url: https://auth.example.com
             default_redirection_url: https://auth.example.com
             name: authelia_session
