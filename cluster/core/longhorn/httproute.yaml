@@ -21,7 +21,7 @@ spec:
               port: 80
             protocol: HTTP
             http:
-              path: /api/authz/ext-authz
+              path: /api/authz/ext-authz/
       matches:
         - path:
             type: PathPrefix
