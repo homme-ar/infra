@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: authelia
+  namespace: longhorn-system
+spec:
+  type: ExternalName
+  externalName: authelia.auth.svc.cluster.local
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
