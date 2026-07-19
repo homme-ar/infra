@@ -76,6 +76,7 @@ spec:
         name: authelia_session
         cookies:
           - domain: homme.ar
+            subdomain: auth
             authelia_url: https://auth.homme.ar
             default_redirection_url: https://auth.homme.ar
             name: authelia_session
