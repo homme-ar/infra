@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: esphome
+  namespace: esphome
+  labels:
+    app.kubernetes.io/name: esphome
+    app.kubernetes.io/component: dashboard
+spec:
+  replicas: 1
+  # Recreate ensures RWO PVCs are released before a new pod attaches them,
+  # preventing multi-attach errors during rollouts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: esphome
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: esphome
+    spec:
+      # esphome/esphome runs as root (compiles firmware, writes to /root/.platformio)
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+      containers:
+        - name: esphome
+          image: esphome/esphome:2026.5.3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 6052
+              protocol: TCP
+          env:
+            # Use ICMP ping instead of mDNS to check device online status.
+            # Required in Kubernetes where mDNS does not reach the IoT subnet.
+            - name: ESPHOME_DASHBOARD_USE_PING
+              value: "true"
+            - name: ESPHOME_DASHBOARD_RELATIVE_URL
+              value: "/"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: platformio
+              mountPath: /root/.platformio
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: esphome-config
+        - name: platformio
+          persistentVolumeClaim:
+            claimName: esphome-platformio
