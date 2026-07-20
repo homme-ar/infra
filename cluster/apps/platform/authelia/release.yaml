@@ -67,7 +67,8 @@ spec:
         rules:
           - domain:
               - "longhorn-adm.${CLUSTER_DOMAIN}"
-            policy: one_factor
+              - "headlamp-adm.${CLUSTER_DOMAIN}"
+            policy: two_factor
           - domain:
               - "*.${CLUSTER_DOMAIN}"
             policy: two_factor

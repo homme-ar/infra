@@ -1,0 +1,57 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: headlamp
+  namespace: headlamp
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: headlamp
+      version: "0.43.*"
+      sourceRef:
+        kind: HelmRepository
+        name: headlamp
+        namespace: flux-system
+      interval: 12h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    replicaCount: 1
+
+    serviceAccount:
+      create: true
+
+    clusterRoleBinding:
+      create: true
+      clusterRoleName: cluster-admin
+
+    config:
+      inCluster: true
+      inClusterContextName: "main"
+      # UNSAFE: authenticate every Headlamp user as the pod's service account.
+      # This is safe because the ingress is protected by Authelia (two_factor policy).
+      # Users are never prompted for a Kubernetes token — Authelia handles authentication.
+      unsafeUseServiceAccountToken: true
+      extraArgs:
+        # Enable identity-aware proxy mode so Headlamp reads user identity from
+        # Authelia's response headers and bypasses the internal login screen.
+        - "-proxy-auth=true"
+        # Authelia injects Remote-User, Remote-Email, Remote-Groups headers
+        - "-proxy-auth-username-header=Remote-User"
+        - "-proxy-auth-email-header=Remote-Email"
+        - "-proxy-auth-group-header=Remote-Groups"
+
+    service:
+      type: ClusterIP
+      port: 80
+
+    # Ingress and HTTPRoute managed as separate Gateway API HTTPRoute resource
+    ingress:
+      enabled: false
+    httpRoute:
+      enabled: false
