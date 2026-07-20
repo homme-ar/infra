@@ -1,6 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: home-assistant
+# Do NOT set `namespace:` here — it re-writes the metadata.namespace of the
+# SOPS-encrypted Secret and corrupts its MAC, causing Flux SOPS decryption
+# to fail. Every resource already declares its own namespace inline.
 resources:
   - namespace.yaml
   # Home Assistant recorder DB lives on the shared CNPG PG18 cluster in the
