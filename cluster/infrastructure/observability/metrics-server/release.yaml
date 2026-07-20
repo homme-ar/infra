@@ -1,0 +1,30 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: metrics-server
+      version: "3.13.*"
+      sourceRef:
+        kind: HelmRepository
+        name: metrics-server
+        namespace: flux-system
+      interval: 12h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    replicas: 1
+    args:
+      - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+    # NOTE: --kubelet-insecure-tls is intentionally NOT set.
+    # Talos kubelets rotate their serving certificates (rotate-server-certificates: true)
+    # and the CSRs are automatically approved by kubelet-serving-cert-approver,
+    # so metrics-server can validate kubelet TLS certs properly.

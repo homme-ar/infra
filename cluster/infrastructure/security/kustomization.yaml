@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - cert-manager
+  - kubelet-serving-cert-approver
   # cert-manager-config is intentionally excluded here.
   # It is managed exclusively by the Flux Kustomization `cluster-infrastructure-security-config`
   # (see flux-system/gotk-sync.yaml) which adds a dependsOn/health check on the cert-manager
