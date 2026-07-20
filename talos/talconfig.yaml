@@ -89,6 +89,9 @@ controlPlane:
           kubePrism:
             enabled: true
             port: 7445
+        kubelet:
+          extraArgs:
+            rotate-server-certificates: "true"
         sysctls:
           vm.nr_hugepages: "1024"
         kernel:
