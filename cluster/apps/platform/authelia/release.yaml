@@ -58,7 +58,7 @@ spec:
                 - name: CookieSession
       log:
         level: info
-      default_2fa_method: totp
+      default_2fa_method: webauthn
       authentication_backend:
         file:
           enabled: true
@@ -80,17 +80,41 @@ spec:
             authelia_url: https://auth.${CLUSTER_DOMAIN}
             name: authelia_session
       storage:
-        local:
-          enabled: true
-          path: /config/db.sqlite3
+        postgres:
+          address: 'tcp://postgres-rw.postgres.svc.cluster.local:5432'
+          database: authelia
+          schema: public
+          username: authelia
+          # password is read from existingSecret key: storage.postgres.password
       notifier:
-        filesystem:
-          enabled: true
-          filename: /config/notification.txt
-    persistence:
-      enabled: true
-      storageClass: ${STORAGE_CLASS}
-      accessMode: ReadWriteOnce
-      size: 1Gi
+        disable_startup_check: true
+        smtp:
+          # MailerSend — implicit TLS on port 465
+          address: 'submissions://smtp.mailersend.net:465'
+          timeout: 5s
+          username: MS_7lauQs@homme.ar
+          sender: '"Authelia" <mail@homme.ar>'
+          identifier: auth.${CLUSTER_DOMAIN}
+          subject: "[Authelia] {title}"
+          startup_check_address: mail@homme.ar
+          disable_require_tls: false
+          disable_html_emails: false
+          tls:
+            server_name: smtp.mailersend.net
+            skip_verify: false
+            minimum_version: TLS1.2
+      webauthn:
+        disable: false
+        display_name: Homme Authelia
+        attestation_conveyance_preference: indirect
+        timeout: 60s
+        selection_criteria:
+          # cross-platform covers USB/NFC/BLE hardware keys such as Trezor
+          attachment: cross-platform
+          discoverability: preferred
+          user_verification: preferred
+        metadata:
+          # Disable FIDO MDS lookup — not required for hardware key registration
+          enabled: false
     service:
       port: 80

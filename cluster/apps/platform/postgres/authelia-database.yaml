@@ -1,0 +1,13 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: authelia
+  namespace: postgres
+spec:
+  # Target CNPG cluster
+  cluster:
+    name: postgres
+  # Database name inside PostgreSQL
+  name: authelia
+  # Role that owns this database
+  owner: authelia

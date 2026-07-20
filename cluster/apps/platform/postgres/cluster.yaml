@@ -59,3 +59,12 @@ spec:
     limits:
       memory: "2Gi"
       cpu: "2000m"
+
+  # Managed roles — CNPG creates and maintains these PostgreSQL roles declaratively
+  managed:
+    roles:
+      - name: authelia
+        ensure: present
+        login: true
+        passwordSecret:
+          name: authelia-postgres-secret
