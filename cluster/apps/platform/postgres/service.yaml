@@ -17,5 +17,6 @@ spec:
       port: 5432
       targetPort: 5432
       protocol: TCP
-  # Preserve source IP for client identification / pg_hba rules
-  externalTrafficPolicy: Local
+  # Cluster policy allows any node to receive and forward traffic regardless of where
+  # the primary pod is scheduled (required for Cilium L2 VIP to work correctly)
+  externalTrafficPolicy: Cluster

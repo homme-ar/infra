@@ -14,6 +14,9 @@ spec:
   superuserSecret:
     name: postgres-superuser-secret
 
+  # Enable superuser (postgres) access — required for external tools like DBeaver
+  enableSuperuserAccess: true
+
   # Bootstrap an empty cluster (no pre-created databases or users beyond superuser)
   bootstrap:
     initdb:
