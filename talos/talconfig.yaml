@@ -29,8 +29,7 @@ nodes:
             - siderolabs/util-linux-tools
             # - siderolabs/nonfree-kmod-nvidia-lts
             # - siderolabs/nvidia-container-toolkit-lts
-    patches:
-      - "@./patches/nodes/ser-msa2cp1-storage.yaml"
+    # patches:
     #   - "@./patches/nodes/ser-msa2cp1-gpu.yaml"
 
   - hostname: ser-msa2cp2
@@ -53,8 +52,6 @@ nodes:
             - siderolabs/amdgpu
             - siderolabs/iscsi-tools
             - siderolabs/util-linux-tools
-    patches:
-      - "@./patches/nodes/ser-msa2cp2-storage.yaml"
 
   - hostname: ser-msa2cp3
     ipAddress: 192.0.2.4
@@ -76,12 +73,10 @@ nodes:
             - siderolabs/amdgpu
             - siderolabs/iscsi-tools
             - siderolabs/util-linux-tools
-    patches:
-      - "@./patches/nodes/ser-msa2cp3-storage.yaml"
 
 controlPlane:
   patches:
-    - "@./patches/global/longhorn-mounts.yaml"
+    - "@./patches/global/storage.yaml"
     - |-
       cluster:
         network:
