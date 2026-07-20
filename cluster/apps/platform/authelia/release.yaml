@@ -40,12 +40,7 @@ spec:
     configMap:
       theme: dark
       server:
-        host: 0.0.0.0
         port: 9091
-        buffers:
-          authz:
-            read: 8192
-            write: 8192
         endpoints:
           authz:
             ext-authz:
@@ -81,7 +76,6 @@ spec:
         cookies:
           - domain: ${CLUSTER_DOMAIN}
             subdomain: auth
-            authelia_url: https://auth.${CLUSTER_DOMAIN}
             name: authelia_session
       storage:
         postgres:
@@ -120,6 +114,7 @@ spec:
         display_name: Homme Authelia
         attestation_conveyance_preference: indirect
         timeout: '60 seconds'
-        user_verification: preferred
+        selection_criteria:
+          user_verification: preferred
     service:
       port: 80
