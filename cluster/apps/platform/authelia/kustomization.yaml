@@ -4,7 +4,6 @@ resources:
   - namespace.yaml
   - repository.yaml
   - secret.yaml
-  - extra-config.yaml
   - release.yaml
   - httproute.yaml
   - reference-grant.yaml
