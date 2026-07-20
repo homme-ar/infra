@@ -106,7 +106,7 @@ spec:
           subject: "[Authelia] {title}"
           startup_check_address: catrielmuller@gmail.com
           disable_require_tls: false
-          disable_html_emails: false
+          disable_html_emails: true
           tls:
             server_name: smtp.mailersend.net
             skip_verify: false
