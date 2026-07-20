@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: authelia
-      version: "0.9.*"
+      version: "0.10.*"
       sourceRef:
         kind: HelmRepository
         name: authelia
@@ -32,21 +32,12 @@ spec:
         - name: authelia-users
           secret:
             secretName: authelia-secret
-        - name: authelia-extra-config
-          configMap:
-            name: authelia-extra-config
       extraVolumeMounts:
         - name: authelia-users
           mountPath: /config/users_database.yml
           subPath: users_database.yml
           readOnly: true
-        - name: authelia-extra-config
-          mountPath: /config/configuration.passkey.yaml
-          subPath: configuration.passkey.yaml
-          readOnly: true
     configMap:
-      extraConfigs:
-        - /config/configuration.passkey.yaml
       theme: dark
       server:
         host: 0.0.0.0
@@ -125,6 +116,7 @@ spec:
             path: 'notifier.smtp.password'
       webauthn:
         disable: false
+        enable_passkey_login: true
         display_name: Homme Authelia
         attestation_conveyance_preference: indirect
         timeout: '60 seconds'
