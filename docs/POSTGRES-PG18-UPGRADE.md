@@ -34,6 +34,17 @@ already committed in this branch. **Do NOT push it until you are at
 Step 5** — otherwise Flux will try to recreate the cluster with PG18 while
 the PG17 data is still on the PVCs, which fails.
 
+> **Race gotcha observed during the real migration:** `flux reconcile
+> kustomization cluster-apps --with-source` **does not wait** for the
+> GitRepository fetch to finish before the Kustomization reconciliation
+> starts. If the source still reports the previous revision when the
+> reconcile begins, Flux re-applies the old manifest (creating a fresh
+> PG17 Cluster on the empty PVCs) and then the next attempt fails with
+> the CNPG admission webhook `can't upgrade between majors {17 0} and
+> {18 0}`. Recovery: `flux suspend`, `kubectl delete cluster + pvc`,
+> confirm `flux get source git flux-system` shows the new revision, then
+> `flux resume` + `flux reconcile kustomization` (without `--with-source`).
+
 ## Environment
 
 ```bash
@@ -339,3 +350,26 @@ If Step 5 or Step 6 fail beyond recovery:
 - After this upgrade, both CNPG Clusters in the fleet (`postgres` and
   `home-assistant-db`) run PG18, matching the legacy source and unblocking
   logical replication for future migrations.
+
+## Real-world observations from the July 2026 execution
+
+Recorded here so future major upgrades (PG18 → PG19) start from real data:
+
+- `authelia` DB size at cutover: 9.5 MB (25 tables).
+- Baseline row counts (kept for comparison): `authentication_logs=20`,
+  `encryption=3`, `migrations=24`, `one_time_code=5`, `user_preferences=1`,
+  `webauthn_credentials=1`, `webauthn_users=1`. All matched post-restore.
+- `pg_dump --format=custom` output: 92 KB, 235 TOC entries.
+- No local `pg_dump` client was available in the Nix shell; the dump was
+  streamed via `kubectl exec -i postgres-2 -c postgres -- pg_dump …
+  > local.dump`. The restore used the mirror pattern
+  `kubectl exec -i postgres-1 -c postgres -- pg_restore … < local.dump`.
+- CNPG spin-up of the fresh PG18 cluster (initdb + replica clone): ~3 min
+  for both instances to reach `Cluster in healthy state` on the 3-node
+  Talos cluster with `longhorn-singlenode` on NVMe.
+- Total Authelia downtime, `scale=0` to `Startup complete` in logs:
+  ~15 min (dominated by the two Cluster recreations after the source-fetch
+  race described above; the happy path would have been ~7 min).
+- Authelia's Go migrator logged `Storage schema is already up to date`
+  and started in 3 s — the WebAuthn passkey and TOTP secrets kept working
+  without re-enrollment.
