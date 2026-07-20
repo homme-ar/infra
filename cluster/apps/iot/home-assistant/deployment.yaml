@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-assistant
+  namespace: home-assistant
+  labels:
+    app.kubernetes.io/name: home-assistant
+    app.kubernetes.io/component: core
+spec:
+  # Starts at 0 during the migration window. Manually scale to 1 during
+  # the cutover once the recorder DB is fully synced (see
+  # docs/HOME-ASSISTANT-MIGRATION.md, Phase 3).
+  replicas: 0
+  # Recreate ensures the RWO Longhorn PVC is released before a new pod attaches
+  # it, preventing multi-attach errors during rollouts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: home-assistant
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: home-assistant
+    spec:
+      # The official homeassistant/home-assistant image runs as root and expects
+      # to manage /config permissions itself (installs pip deps, writes logs).
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+      containers:
+        - name: home-assistant
+          # Pinned to the same version as the legacy deployment to reduce
+          # variables during migration. Upgrade after the move is verified.
+          image: homeassistant/home-assistant:2026.6.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8123
+              protocol: TCP
+          env:
+            # Match legacy deployment: HACS and manually-installed Python
+            # packages are cached under /config/deps.
+            - name: PYTHONPATH
+              value: /config/deps
+            - name: TZ
+              value: America/Argentina/Buenos_Aires
+            # Recorder connection string. Reference it from configuration.yaml with:
+            #   recorder:
+            #     db_url: !env_var RECORDER_DB_URL
+            - name: RECORDER_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: home-assistant-recorder-secret
+                  key: RECORDER_DB_URL
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 4000m
+              memory: 4Gi
+          # HA can take a long time to start when it has many integrations and
+          # a large recorder history to catch up on. Generous startup budgets.
+          startupProbe:
+            httpGet:
+              path: /manifest.json
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 40
+          livenessProbe:
+            httpGet:
+              path: /manifest.json
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /manifest.json
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: home-assistant-config

@@ -4,6 +4,8 @@ resources:
   - namespace.yaml
   - secret.yaml
   - authelia-secret.yaml
+  - home-assistant-secret.yaml
   - cluster.yaml
   - authelia-database.yaml
+  - home-assistant-database.yaml
   - service.yaml

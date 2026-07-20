@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: homeassistant
+  namespace: postgres
+spec:
+  # Target CNPG cluster (shared with Authelia).
+  cluster:
+    name: postgres
+  # Database name inside PostgreSQL — consumed by the Home Assistant recorder
+  # integration in cluster/apps/iot/home-assistant/.
+  name: homeassistant
+  # Role that owns this database (declared in cluster.yaml under managed.roles).
+  owner: homeassistant
