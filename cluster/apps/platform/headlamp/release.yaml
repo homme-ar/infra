@@ -37,6 +37,8 @@ spec:
       # This is safe because the ingress is protected by Authelia (two_factor policy).
       # Users are never prompted for a Kubernetes token — Authelia handles authentication.
       unsafeUseServiceAccountToken: true
+      # Directory where init containers deposit plugin bundles
+      pluginsDir: /build/plugins
       extraArgs:
         # Enable identity-aware proxy mode so Headlamp reads user identity from
         # Authelia's response headers and bypasses the internal login screen.
@@ -55,3 +57,46 @@ spec:
       enabled: false
     httpRoute:
       enabled: false
+
+    # Plugins are loaded from an emptyDir volume populated by init containers at pod start
+    initContainers:
+      # Flux plugin: official container image copies files from /plugins/* into the shared volume
+      - name: headlamp-plugin-flux
+        image: ghcr.io/headlamp-k8s/headlamp-plugin-flux:v0.6.0
+        imagePullPolicy: Always
+        command:
+          - /bin/sh
+          - -c
+          - mkdir -p /build/plugins && cp -r /plugins/* /build/plugins/ && chown -R 100:101 /build
+        securityContext:
+          runAsNonRoot: false
+          privileged: false
+          runAsUser: 0
+          runAsGroup: 0
+        volumeMounts:
+          - mountPath: /build/plugins
+            name: headlamp-plugins
+      # cert-manager plugin: no container image available; download release tarball instead
+      - name: headlamp-plugin-cert-manager
+        image: alpine:latest
+        imagePullPolicy: Always
+        command:
+          - /bin/sh
+          - -c
+          - "wget -O /tmp/cert-manager.tar.gz https://github.com/headlamp-k8s/plugins/releases/download/cert-manager-0.1.1/headlamp-k8s-cert-manager-0.1.1.tar.gz && mkdir -p /build/plugins && tar -xzf /tmp/cert-manager.tar.gz -C /build/plugins/ && chown -R 100:101 /build"
+        securityContext:
+          runAsNonRoot: false
+          privileged: false
+          runAsUser: 0
+          runAsGroup: 0
+        volumeMounts:
+          - mountPath: /build/plugins
+            name: headlamp-plugins
+
+    volumeMounts:
+      - mountPath: /build/plugins
+        name: headlamp-plugins
+
+    volumes:
+      - name: headlamp-plugins
+        emptyDir: {}
