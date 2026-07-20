@@ -8,7 +8,7 @@ spec:
     - name: envoy-gateway
       namespace: kube-system
   hostnames:
-    - "homme.ar"
+    - "${CLUSTER_DOMAIN}"
   rules:
     - matches:
         - path:

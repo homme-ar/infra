@@ -1,13 +1,54 @@
-# Flux cluster-wide variables
-# Used by Flux post-build variable substitution (spec.postBuild.substituteFrom)
-# Reference in manifests with: ${VARIABLE_NAME}
+# Cluster-wide variables for Flux post-build variable substitution.
+# Add spec.postBuild.substituteFrom referencing this ConfigMap on every Kustomization
+# that needs substitution. Reference variables in manifests with ${VARIABLE_NAME}.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cluster-vars
   namespace: flux-system
 data:
-  # Cluster domain
+  # ── Domain ────────────────────────────────────────────────────────────────
   CLUSTER_DOMAIN: "homme.ar"
-  # Default storage class
+  # Domain with dots replaced by dashes; used for resource names (e.g. TLS secret)
+  CLUSTER_DOMAIN_SLUG: "homme-ar"
+
+  # ── ACME / Let's Encrypt ───────────────────────────────────────────────────
+  ACME_EMAIL: "catrielmuller@gmail.com"
+
+  # ── Network interface (physical NIC used for L2 announcements / Cilium) ───
+  NETWORK_INTERFACE: "enp5s0f0np0"
+
+  # ── Load-balancer IP pool ─────────────────────────────────────────────────
+  LB_POOL_START: "10.0.21.1"
+  LB_POOL_END: "10.0.25.254"
+
+  # ── Specific LB IPs reserved for well-known services ──────────────────────
+  # Wildcard DNS answer IP (same as pool start / gateway IP)
+  LB_WILDCARD_IP: "10.0.21.1"
+  # Dedicated LoadBalancer IP for the legacy CoreDNS service
+  LB_DNS_IP: "10.0.21.10"
+
+  # ── Legacy network (pre-k8s homelab hosts on 10.0.11.x) ──────────────────
+  LEGACY_INGRESS_IP: "10.0.11.1"
+  LEGACY_POSTGRES_IP: "10.0.11.2"
+  LEGACY_REDIS_IP: "10.0.11.3"
+  LEGACY_MQTT_IP: "10.0.11.4"
+  LEGACY_HA_IP: "10.0.11.5"
+  LEGACY_FRIGATE_IP: "10.0.11.6"
+  LEGACY_DNS_IP: "10.0.11.7"
+  LEGACY_VPN_IP: "10.0.11.8"
+  LEGACY_MYSQL_IP: "10.0.11.10"
+
+  # ── NTP server ────────────────────────────────────────────────────────────
+  NTP_SERVER_IP: "10.0.7.1"
+
+  # ── OCI cloud hosts ───────────────────────────────────────────────────────
+  OCI_CLOUD_IP: "129.151.125.247"
+
+  # ── Kubernetes node IPs (used by legacy CoreDNS for k8s.local.* records) ──
+  K8S_NODE1_IP: "10.0.10.1"
+  K8S_NODE2_IP: "10.0.10.2"
+  K8S_NODE3_IP: "10.0.10.3"
+
+  # ── Storage ───────────────────────────────────────────────────────────────
   STORAGE_CLASS: "longhorn"

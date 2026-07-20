@@ -18,7 +18,7 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - name: homme-ar-tls
+          - name: ${CLUSTER_DOMAIN_SLUG}-tls
             namespace: kube-system
       allowedRoutes:
         namespaces:

@@ -5,41 +5,41 @@ metadata:
   namespace: legacy
 data:
   Corefile: |
-    local.homme.ar:53 {
+    local.${CLUSTER_DOMAIN}:53 {
         errors
         log
         hosts {
-            129.151.125.247 llm.cloud.homme.ar
-            129.151.125.247 oci1.cloud.homme.ar
-            10.0.11.4 mqtt.local.homme.ar
-            10.0.11.10 mysql.local.homme.ar
-            10.0.11.2 postgres.local.homme.ar
-            10.0.11.3 redis.local.homme.ar
-            10.0.11.8 vpn.local.homme.ar
-            10.0.11.7 dns.local.homme.ar
-            10.0.11.6 frigate.local.homme.ar
-            10.0.11.5 ha.local.homme.ar
-            10.0.10.1 k8s.local.homme.ar
-            10.0.10.2 k8s.local.homme.ar
-            10.0.10.3 k8s.local.homme.ar
+            ${OCI_CLOUD_IP} llm.cloud.${CLUSTER_DOMAIN}
+            ${OCI_CLOUD_IP} oci1.cloud.${CLUSTER_DOMAIN}
+            ${LEGACY_MQTT_IP} mqtt.local.${CLUSTER_DOMAIN}
+            ${LEGACY_MYSQL_IP} mysql.local.${CLUSTER_DOMAIN}
+            ${LEGACY_POSTGRES_IP} postgres.local.${CLUSTER_DOMAIN}
+            ${LEGACY_REDIS_IP} redis.local.${CLUSTER_DOMAIN}
+            ${LEGACY_VPN_IP} vpn.local.${CLUSTER_DOMAIN}
+            ${LEGACY_DNS_IP} dns.local.${CLUSTER_DOMAIN}
+            ${LEGACY_FRIGATE_IP} frigate.local.${CLUSTER_DOMAIN}
+            ${LEGACY_HA_IP} ha.local.${CLUSTER_DOMAIN}
+            ${K8S_NODE1_IP} k8s.local.${CLUSTER_DOMAIN}
+            ${K8S_NODE2_IP} k8s.local.${CLUSTER_DOMAIN}
+            ${K8S_NODE3_IP} k8s.local.${CLUSTER_DOMAIN}
             fallthrough
         }
     }
 
-    ntp.homme.ar:53 {
+    ntp.${CLUSTER_DOMAIN}:53 {
         errors
         log
         hosts {
-            10.0.7.1 ntp.homme.ar
+            ${NTP_SERVER_IP} ntp.${CLUSTER_DOMAIN}
             fallthrough
         }
     }
 
-    homme.ar:53 {
+    ${CLUSTER_DOMAIN}:53 {
         errors
         log
         template IN A {
-            answer "{{ .Name }} 60 IN A 10.0.21.1"
+            answer "{{ .Name }} 60 IN A ${LB_WILDCARD_IP}"
         }
         template IN AAAA {
             rcode NOERROR
