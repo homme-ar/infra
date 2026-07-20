@@ -67,17 +67,17 @@ spec:
         default_policy: two_factor
         rules:
           - domain:
-              - "longhorn-adm.example.com"
+              - "longhorn-adm.${CLUSTER_DOMAIN}"
             policy: one_factor
           - domain:
-              - "*.example.com"
+              - "*.${CLUSTER_DOMAIN}"
             policy: two_factor
       session:
         name: authelia_session
         cookies:
-          - domain: example.com
+          - domain: ${CLUSTER_DOMAIN}
             subdomain: auth
-            authelia_url: https://auth.example.com
+            authelia_url: https://auth.${CLUSTER_DOMAIN}
             name: authelia_session
       storage:
         local:
@@ -89,7 +89,7 @@ spec:
           filename: /config/notification.txt
     persistence:
       enabled: true
-      storageClass: longhorn
+      storageClass: ${STORAGE_CLASS}
       accessMode: ReadWriteOnce
       size: 1Gi
     service:

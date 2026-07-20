@@ -8,7 +8,7 @@ spec:
     - name: envoy-gateway
       namespace: kube-system
   hostnames:
-    - "auth.example.com"
+    - "auth.${CLUSTER_DOMAIN}"
   rules:
     - matches:
         - path:

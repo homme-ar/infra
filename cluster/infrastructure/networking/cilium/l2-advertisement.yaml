@@ -4,6 +4,6 @@ metadata:
   name: l2-advertisement
 spec:
   interfaces:
-    - enp5s0f0np0
+    - ${NETWORK_INTERFACE}
   externalIPs: true
   loadBalancerIPs: true

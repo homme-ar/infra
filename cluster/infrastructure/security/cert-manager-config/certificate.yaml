@@ -1,13 +1,13 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: homme-ar-tls
+  name: ${CLUSTER_DOMAIN_SLUG}-tls
   namespace: kube-system
 spec:
-  secretName: homme-ar-tls
+  secretName: ${CLUSTER_DOMAIN_SLUG}-tls
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-    - example.com
-    - "*.example.com"
+    - ${CLUSTER_DOMAIN}
+    - "*.${CLUSTER_DOMAIN}"

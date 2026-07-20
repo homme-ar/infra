@@ -4,7 +4,7 @@ metadata:
   name: legacy-dns
   namespace: legacy
   annotations:
-    io.cilium/lb-ipam-ips: 198.51.100.10
+    io.cilium/lb-ipam-ips: ${LB_DNS_IP}
 spec:
   type: LoadBalancer
   selector:

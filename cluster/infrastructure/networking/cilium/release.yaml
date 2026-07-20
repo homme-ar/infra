@@ -32,7 +32,7 @@ spec:
       enabled: true
     externalIPs:
       enabled: true
-    devices: enp5s0f0np0
+    devices: ${NETWORK_INTERFACE}
     k8sClientRateLimit:
       qps: 50
       burst: 200

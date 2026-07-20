@@ -5,7 +5,7 @@ metadata:
   namespace: legacy
 subsets:
   - addresses:
-      - ip: 192.0.2.101
+      - ip: ${LEGACY_INGRESS_IP}
     ports:
       - name: http
         port: 80
