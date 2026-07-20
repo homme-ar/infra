@@ -59,6 +59,10 @@ spec:
       log:
         level: info
       default_2fa_method: webauthn
+      identity_validation:
+        elevated_session:
+          # Skip email OTP challenge when already authenticated — outbound SMTP (port 465) is blocked at cluster level
+          skip_second_factor: true
       authentication_backend:
         file:
           enabled: true
