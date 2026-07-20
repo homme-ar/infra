@@ -3,5 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - secret.yaml
+  - authelia-secret.yaml
   - cluster.yaml
+  - authelia-database.yaml
   - service.yaml
