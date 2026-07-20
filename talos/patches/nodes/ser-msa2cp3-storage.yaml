@@ -1,3 +1,0 @@
-# Kingston SKC3000 NVMe drive left raw/unpartitioned for Longhorn SPDK V2 block storage
-machine:
-  disks: []
