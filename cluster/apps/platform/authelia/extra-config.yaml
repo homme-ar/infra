@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authelia-extra-config
+  namespace: authelia
+data:
+  configuration.passkey.yaml: |
+    webauthn:
+      # Allow login directly with a passkey — no username/password required.
+      # The Trezor key acts as the sole authentication factor for one_factor
+      # policies, and satisfies two_factor when combined with its PIN (UV).
+      enable_passkey_login: true
+      # Experimental: treat passkeys that enforce user verification (PIN/biometric)
+      # as a two-factor method in a single touch — satisfies two_factor policies.
+      experimental_enable_passkey_uv_two_factors: true

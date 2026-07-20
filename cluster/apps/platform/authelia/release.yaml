@@ -32,12 +32,21 @@ spec:
         - name: authelia-users
           secret:
             secretName: authelia-secret
+        - name: authelia-extra-config
+          configMap:
+            name: authelia-extra-config
       extraVolumeMounts:
         - name: authelia-users
           mountPath: /config/users_database.yml
           subPath: users_database.yml
           readOnly: true
+        - name: authelia-extra-config
+          mountPath: /config/configuration.passkey.yaml
+          subPath: configuration.passkey.yaml
+          readOnly: true
     configMap:
+      extraConfigs:
+        - /config/configuration.passkey.yaml
       theme: dark
       server:
         host: 0.0.0.0
