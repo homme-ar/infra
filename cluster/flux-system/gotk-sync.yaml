@@ -79,6 +79,37 @@ spec:
       - kind: ConfigMap
         name: cluster-vars
 ---
+# Dedicated Kustomization for the CloudNativePG operator.
+# Runs after cluster-infrastructure and waits for the HelmRelease to be healthy
+# before cluster-apps attempts to create any CNPG Cluster resources (requires CRDs).
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-infrastructure-cnpg
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./cluster/infrastructure/storage/cloudnativepg
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: cluster-infrastructure
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: cloudnative-pg
+      namespace: cnpg-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-vars
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -93,6 +124,8 @@ spec:
     name: flux-system
   dependsOn:
     - name: cluster-infrastructure
+    # Wait for CNPG operator to be healthy before applying Cluster resources
+    - name: cluster-infrastructure-cnpg
   decryption:
     provider: sops
     secretRef:

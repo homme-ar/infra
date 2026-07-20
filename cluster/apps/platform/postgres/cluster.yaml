@@ -1,0 +1,58 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: postgres
+spec:
+  # PostgreSQL 17 — latest stable major version
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
+
+  # 2 instances: 1 primary + 1 hot standby (streaming replication)
+  instances: 2
+
+  # Superuser credentials secret (SOPS-encrypted)
+  superuserSecret:
+    name: postgres-superuser-secret
+
+  # Bootstrap an empty cluster (no pre-created databases or users beyond superuser)
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      secret:
+        name: postgres-superuser-secret
+
+  postgresql:
+    parameters:
+      # Performance tuning for NVMe storage with SPDK v2
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "768MB"
+      maintenance_work_mem: "64MB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "16MB"
+      default_statistics_target: "100"
+      random_page_cost: "1.1"
+      effective_io_concurrency: "200"
+      work_mem: "1310kB"
+      huge_pages: "off"
+
+  storage:
+    size: 250Gi
+    storageClass: longhorn-singlenode
+
+  # Rolling update strategy — standby updated first, then primary
+  primaryUpdateStrategy: unsupervised
+
+  # Affinity: spread instances across different nodes for HA
+  affinity:
+    podAntiAffinityType: preferred
+    topologyKey: kubernetes.io/hostname
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"

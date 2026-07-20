@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-lb
+  namespace: postgres
+  annotations:
+    # Reserve dedicated LB IP for PostgreSQL primary (Cilium L2 announcement)
+    io.cilium/lb-ipam-ips: "${LB_POSTGRES_IP}"
+spec:
+  type: LoadBalancer
+  # CNPG labels all primary pods with role=primary; this selector always follows the current primary
+  selector:
+    cnpg.io/cluster: postgres
+    role: primary
+  ports:
+    - name: postgresql
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  # Preserve source IP for client identification / pg_hba rules
+  externalTrafficPolicy: Local

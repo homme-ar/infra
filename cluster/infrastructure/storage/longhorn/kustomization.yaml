@@ -4,4 +4,5 @@ resources:
   - namespace.yaml
   - repository.yaml
   - release.yaml
+  - storage-class-singlenode.yaml
   - httproute.yaml

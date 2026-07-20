@@ -1,0 +1,23 @@
+# StorageClass for stateful workloads that manage their own replication (e.g. CloudNativePG).
+# Uses a single Longhorn replica to avoid double-write overhead; HA is handled at the
+# application layer (CNPG streaming replication between primary and standby instances).
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn-singlenode
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: driver.longhorn.io
+parameters:
+  # Single replica — no Longhorn-level replication
+  numberOfReplicas: "1"
+  # Keep volume data on the same node as the consuming pod to eliminate network I/O
+  dataLocality: "strict-local"
+  # SPDK v2 engine (matches cluster-wide Longhorn default)
+  dataEngine: "v2"
+  fsType: "ext4"
+# Retain the underlying Longhorn volume even if the PVC is deleted (prevents accidental data loss)
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+# Delay volume binding until the pod is scheduled so strict-local placement can be satisfied
+volumeBindingMode: WaitForFirstConsumer
