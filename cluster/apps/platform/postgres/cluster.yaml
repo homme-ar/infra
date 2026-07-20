@@ -71,3 +71,13 @@ spec:
         login: true
         passwordSecret:
           name: authelia-postgres-secret
+      - name: homeassistant
+        ensure: present
+        login: true
+        # REPLICATION lets this role create a SUBSCRIPTION during the
+        # migration from the legacy bitnami PG18 without needing to fall
+        # back to the superuser account. Safe to keep after the migration
+        # since Home Assistant does not use it for anything else.
+        replication: true
+        passwordSecret:
+          name: home-assistant-postgres-secret

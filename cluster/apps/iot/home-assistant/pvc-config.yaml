@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: home-assistant-config
+  namespace: home-assistant
+  labels:
+    app.kubernetes.io/name: home-assistant
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ${STORAGE_CLASS}
+  resources:
+    requests:
+      # Home Assistant /config directory. The legacy NFS volume was 50Gi but
+      # actual usage is ~5-10Gi (long history lives in Postgres, not here).
+      # Longhorn supports online expansion via allowVolumeExpansion=true.
+      storage: 30Gi

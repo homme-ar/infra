@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: home-assistant
+resources:
+  - namespace.yaml
+  # Home Assistant recorder DB lives on the shared CNPG PG18 cluster in the
+  # `postgres` namespace. The `homeassistant` role, DB and password secret
+  # are declared under cluster/apps/platform/postgres/.
+  - recorder-secret.yaml
+  - pvc-config.yaml
+  - deployment.yaml
+  - service.yaml
+  - httproute.yaml
