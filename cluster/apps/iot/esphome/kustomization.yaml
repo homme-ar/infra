@@ -4,7 +4,6 @@ namespace: esphome
 resources:
   - namespace.yaml
   - pvc-config.yaml
-  - pvc-platformio.yaml
   - deployment.yaml
   - service.yaml
   - httproute.yaml

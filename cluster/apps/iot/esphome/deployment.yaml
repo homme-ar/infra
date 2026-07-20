@@ -20,7 +20,7 @@ spec:
       labels:
         app.kubernetes.io/name: esphome
     spec:
-      # esphome/esphome runs as root (compiles firmware, writes to /root/.platformio)
+      # esphome/esphome runs as root (compiles firmware, manages device builds)
       securityContext:
         runAsNonRoot: false
         runAsUser: 0
@@ -63,12 +63,7 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-            - name: platformio
-              mountPath: /root/.platformio
       volumes:
         - name: config
           persistentVolumeClaim:
             claimName: esphome-config
-        - name: platformio
-          persistentVolumeClaim:
-            claimName: esphome-platformio
