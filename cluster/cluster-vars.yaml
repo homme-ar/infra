@@ -55,6 +55,8 @@ data:
   # Single-replica StorageClass for databases (CNPG handles HA via streaming replication)
   STORAGE_CLASS_SINGLENODE: "longhorn-singlenode"
 
-  # ── Database LoadBalancer IPs ─────────────────────────────────────────────
+  # ── Database / Broker LoadBalancer IPs ───────────────────────────────────
   # Dedicated LoadBalancer IP for the in-cluster PostgreSQL primary (CNPG)
   LB_POSTGRES_IP: "10.0.22.1"
+  # Dedicated LoadBalancer IP for the in-cluster Mosquitto MQTT broker
+  LB_MQTT_IP: "10.0.22.2"
