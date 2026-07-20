@@ -81,17 +81,21 @@ spec:
             name: authelia_session
       storage:
         postgres:
+          enabled: true
           address: 'tcp://postgres-rw.postgres.svc.cluster.local:5432'
           database: authelia
           schema: public
           username: authelia
-          # password is read from existingSecret key: storage.postgres.password
+          password:
+            # path must match the key name in existingSecret (authelia-secret)
+            path: 'storage.postgres.password'
       notifier:
         disable_startup_check: true
         smtp:
+          enabled: true
           # MailerSend — implicit TLS on port 465
           address: 'submissions://smtp.mailersend.net:465'
-          timeout: 5s
+          timeout: '5 seconds'
           username: MS_7lauQs@homme.ar
           sender: '"Authelia" <mail@homme.ar>'
           identifier: auth.${CLUSTER_DOMAIN}
@@ -103,18 +107,14 @@ spec:
             server_name: smtp.mailersend.net
             skip_verify: false
             minimum_version: TLS1.2
+          password:
+            # path must match the key name in existingSecret (authelia-secret)
+            path: 'notifier.smtp.password'
       webauthn:
         disable: false
         display_name: Homme Authelia
         attestation_conveyance_preference: indirect
-        timeout: 60s
-        selection_criteria:
-          # cross-platform covers USB/NFC/BLE hardware keys such as Trezor
-          attachment: cross-platform
-          discoverability: preferred
-          user_verification: preferred
-        metadata:
-          # Disable FIDO MDS lookup — not required for hardware key registration
-          enabled: false
+        timeout: '60 seconds'
+        user_verification: preferred
     service:
       port: 80
