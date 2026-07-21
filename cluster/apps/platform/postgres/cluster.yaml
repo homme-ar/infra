@@ -42,6 +42,11 @@ spec:
       effective_io_concurrency: "200"
       work_mem: "1310kB"
       huge_pages: "off"
+      # WAL retention: keep at least 8GB of WAL on primary so that a new
+      # replica has enough time to complete pg_basebackup and catch up via
+      # streaming replication even under heavy write load (e.g. logical
+      # replication initial data copy). CNPG default (512MB) is too low.
+      wal_keep_size: "8GB"
 
   storage:
     size: 250Gi
