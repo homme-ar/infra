@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zigbee2mqtt
+  namespace: zigbee2mqtt
+  labels:
+    app.kubernetes.io/name: zigbee2mqtt
+    app.kubernetes.io/component: bridge
+spec:
+  # Start at 0 so the PVC is provisioned but nothing attaches to /app/data
+  # until the initial rsync from the legacy NFS export has completed.
+  # The final commit that flips this to 1 is the cutover.
+  replicas: 0
+  # Recreate ensures the RWO Longhorn PVC is released before a new pod
+  # attaches it, preventing multi-attach errors during rollouts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zigbee2mqtt
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: zigbee2mqtt
+    spec:
+      # The upstream koenkk/zigbee2mqtt image runs as root and manages
+      # /app/data permissions itself.
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+      containers:
+        - name: zigbee2mqtt
+          # Pinned to the same version as the legacy deployment to reduce
+          # variables during the migration.
+          image: koenkk/zigbee2mqtt:2.11.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: TZ
+              value: America/Argentina/Buenos_Aires
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: zigbee2mqtt-data
