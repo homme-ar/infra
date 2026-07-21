@@ -40,11 +40,16 @@
               # JSON/YAML & General Utilities
               yq-go
               jq
+
+              # WireGuard peer config utilities
+              qrencode
             ];
 
             shellHook = ''
               echo "🛠️  Homme K8s development environment!"
-              echo "📦 Available binaries: kubectl, talosctl, talhelper, sops, age, flux, flux9s, k9s, helm, kustomize, yq, jq"
+              echo "📦 Available binaries: kubectl, talosctl, talhelper, sops, age, flux, flux9s, k9s, helm, kustomize, yq, jq, qrencode"
+              echo "🔑 WireGuard helpers: wireguard-config <peer>, wireguard-qrcode <peer>"
+              export PATH="$PWD/scripts:$PATH"
             '';
           };
         });

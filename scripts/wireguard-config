@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# wireguard-config: Print the WireGuard config for a given peer.
+#
+# Usage: wireguard-config <peer-name>
+# Example: wireguard-config catriel-phone
+#
+# The config is decoded from the vpn-peer-configs Secret managed by wireguard-operator.
+# You can pipe the output to a file or another command:
+#   wireguard-config catriel-phone > /tmp/catriel-phone.conf
+#   wireguard-config catriel-phone | qrencode -t ansiutf8
+
+set -euo pipefail
+
+KUBECONFIG_PATH="$(git -C "$(dirname "$0")/.." rev-parse --show-toplevel)/talos/clusterconfig/kubeconfig"
+NAMESPACE="wireguard-system"
+SECRET_NAME="vpn-peer-configs"
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: wireguard-config <peer-name>" >&2
+  echo "Example: wireguard-config catriel-phone" >&2
+  exit 1
+fi
+
+PEER="$1"
+
+# Verify the peer key exists in the secret before attempting to decode.
+if ! kubectl --kubeconfig="${KUBECONFIG_PATH}" \
+    -n "${NAMESPACE}" get secret "${SECRET_NAME}" \
+    -o jsonpath="{.data.${PEER}}" 2>/dev/null | grep -q .; then
+  echo "Error: peer '${PEER}' not found in secret '${SECRET_NAME}' (namespace: ${NAMESPACE})." >&2
+  echo "Available peers:" >&2
+  kubectl --kubeconfig="${KUBECONFIG_PATH}" \
+    -n "${NAMESPACE}" get secret "${SECRET_NAME}" \
+    -o jsonpath='{.data}' | jq -r 'keys[]' >&2
+  exit 1
+fi
+
+kubectl --kubeconfig="${KUBECONFIG_PATH}" \
+  -n "${NAMESPACE}" get secret "${SECRET_NAME}" \
+  -o jsonpath="{.data.${PEER}}" | base64 -d
