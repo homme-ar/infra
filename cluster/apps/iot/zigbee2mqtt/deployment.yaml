@@ -7,10 +7,7 @@ metadata:
     app.kubernetes.io/name: zigbee2mqtt
     app.kubernetes.io/component: bridge
 spec:
-  # Start at 0 so the PVC is provisioned but nothing attaches to /app/data
-  # until the initial rsync from the legacy NFS export has completed.
-  # The final commit that flips this to 1 is the cutover.
-  replicas: 0
+  replicas: 1
   # Recreate ensures the RWO Longhorn PVC is released before a new pod
   # attaches it, preventing multi-attach errors during rollouts.
   strategy:
