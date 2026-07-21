@@ -48,8 +48,12 @@ spec:
       # replication initial data copy). CNPG default (512MB) is too low.
       wal_keep_size: "8GB"
 
+  # Shrunk from 500Gi to 150Gi on 2026-07-21 after DB cleanup + VACUUM FULL brought
+  # the actual dataset down to ~11GB. Shrinking a CNPG Cluster in-place is not
+  # supported (webhook + Kubernetes both reject PVC size reduction), so this
+  # required destroy + logical restore of homeassistant/authelia DBs.
   storage:
-    size: 500Gi
+    size: 150Gi
     storageClass: longhorn-singlenode
 
   # Rolling update strategy — standby updated first, then primary
