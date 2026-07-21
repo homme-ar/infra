@@ -1,0 +1,29 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: wireguard-operator
+  namespace: wireguard-system
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: wireguard-operator
+      version: "0.3.0"
+      sourceRef:
+        kind: HelmRepository
+        name: nccloud
+        namespace: flux-system
+      interval: 12h
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  values:
+    replicaCount: 1
+    logLevel: info
+    serviceMonitor:
+      enabled: false

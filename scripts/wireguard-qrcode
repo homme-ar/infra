@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# wireguard-qrcode: Display the WireGuard config for a given peer as a QR code in the terminal.
+#
+# Usage: wireguard-qrcode <peer-name>
+# Example: wireguard-qrcode phone-1
+#
+# Scan the QR code with any WireGuard client app (iOS, Android, etc.)
+# to import the peer configuration directly.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: wireguard-qrcode <peer-name>" >&2
+  echo "Example: wireguard-qrcode phone-1" >&2
+  exit 1
+fi
+
+PEER="$1"
+
+echo "WireGuard config QR code for peer: ${PEER}"
+echo ""
+
+"${SCRIPT_DIR}/wireguard-config" "${PEER}" | qrencode -t ansiutf8
