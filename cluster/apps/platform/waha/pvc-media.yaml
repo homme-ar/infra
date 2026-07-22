@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: waha-media
+  namespace: waha
+  labels:
+    app.kubernetes.io/name: waha
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ${STORAGE_CLASS}
+  resources:
+    requests:
+      # Sized at 5Gi (legacy NFS PVC was 100Gi but actual usage is ~4Ki after
+      # ~20 months — WHATSAPP_FILES_LIFETIME=0 keeps files forever, so headroom
+      # is left for growth). Expandable via Longhorn.
+      storage: 5Gi

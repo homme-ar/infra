@@ -20,6 +20,9 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       namespace: observability
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: waha
   to:
     - group: ""
       kind: Service
