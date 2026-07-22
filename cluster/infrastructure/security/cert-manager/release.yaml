@@ -31,6 +31,8 @@ spec:
     prometheus:
       enabled: true
       servicemonitor:
-        enabled: false
+        # Enable ServiceMonitor so Prometheus scrapes cert-manager controller metrics.
+        # Requires Prometheus Operator CRDs (installed by kube-prometheus-stack).
+        enabled: true
     webhook:
       timeoutSeconds: 30

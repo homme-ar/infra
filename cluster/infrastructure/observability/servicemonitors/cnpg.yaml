@@ -1,0 +1,22 @@
+# PodMonitor for CloudNativePG Cluster instances.
+# CNPG exposes a /metrics endpoint on port 9187 on every PostgreSQL pod.
+# The selector matches all pods belonging to any CNPG Cluster CR via the
+# label that CNPG automatically stamps on every managed pod.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cnpg-clusters
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: cnpg-clusters
+spec:
+  # Match pods in all namespaces that have CNPG-managed pod labels
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      cnpg.io/cluster: postgres
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics

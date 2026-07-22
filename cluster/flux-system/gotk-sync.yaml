@@ -142,6 +142,38 @@ spec:
       - kind: ConfigMap
         name: cluster-vars
 ---
+# Dedicated Kustomization for kube-prometheus-stack.
+# Runs after cluster-infrastructure and waits for the HelmRelease to be healthy
+# before cluster-apps can rely on Prometheus Operator CRDs (ServiceMonitor,
+# PodMonitor, PrometheusRule) being available cluster-wide.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-infrastructure-observability-prometheus
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./cluster/infrastructure/observability/kube-prometheus-stack
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: cluster-infrastructure
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: kube-prometheus-stack
+      namespace: observability
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-vars
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -158,6 +190,9 @@ spec:
     - name: cluster-infrastructure
     # Wait for CNPG operator to be healthy before applying Cluster resources
     - name: cluster-infrastructure-cnpg
+    # Wait for Prometheus Operator CRDs to be installed before applying any
+    # resources that reference ServiceMonitor, PodMonitor, PrometheusRule.
+    - name: cluster-infrastructure-observability-prometheus
   decryption:
     provider: sops
     secretRef:
