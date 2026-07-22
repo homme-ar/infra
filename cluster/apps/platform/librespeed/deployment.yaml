@@ -22,7 +22,7 @@ spec:
           imagePullPolicy: Always
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
               protocol: TCP
           env:
             - name: MODE
@@ -55,20 +55,8 @@ spec:
             initialDelaySeconds: 2
             periodSeconds: 5
           volumeMounts:
-            - name: cache
-              mountPath: /var/cache/nginx
-            - name: run
-              mountPath: /var/run
-            - name: log
-              mountPath: /var/log/nginx
             - name: tmp
               mountPath: /tmp
       volumes:
-        - name: cache
-          emptyDir: {}
-        - name: run
-          emptyDir: {}
-        - name: log
-          emptyDir: {}
         - name: tmp
           emptyDir: {}
