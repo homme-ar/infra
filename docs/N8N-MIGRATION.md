@@ -178,7 +178,8 @@ spec:
         - name: src
           nfs:
             server: 10.0.4.1
-            path: /k8s/<apps-n8n-data-pvc-UID>   # from step 1.1
+            # Actual legacy export (found via step 1.1):
+            path: /k8s/apps-n8n-data-pvc-2f3b3cfe-8dc4-4ee4-beb8-fe0db44890d8
             readOnly: true
         - name: dst
           persistentVolumeClaim:
@@ -215,9 +216,19 @@ kubectl -n n8n run n8n-data-check --rm -it --image=alpine --restart=Never \
 
 ### 2.1 Stop the legacy n8n
 
+The legacy cluster (Talos on RPi4, nodes `10.0.10.1-3`) is reachable with
+the talosconfig stored in the old repo — no separate kubeconfig needed:
+
 ```bash
-kubectl --context="$LEGACY_CTX" -n apps-n8n scale deploy/main --replicas=0
-# (verify the actual deployment name first: kubectl --context="$LEGACY_CTX" -n apps-n8n get deploy)
+talosctl --talosconfig <infraestructura>/core/talos/config/talosconfig \
+  -n 10.0.10.1 kubeconfig /tmp/opencode/legacy-kubeconfig --force
+export LEGACY_KUBECONFIG=/tmp/opencode/legacy-kubeconfig
+
+# Deployment name on the legacy cluster is controller-main
+kubectl --kubeconfig="$LEGACY_KUBECONFIG" -n apps-n8n \
+  scale deploy/controller-main --replicas=0
+kubectl --kubeconfig="$LEGACY_KUBECONFIG" -n apps-n8n \
+  wait --for=delete pod -l app=main --timeout=120s
 ```
 
 Record the wall-clock time — workflow executions, webhooks and schedules
@@ -256,19 +267,48 @@ kubectl -n postgres exec -i postgres-1 -c postgres -- \
       psql -U postgres -d n8n -v ON_ERROR_STOP=1 --single-transaction
 ```
 
-Fix ownership so the `n8n` role fully owns every restored object:
+Fix ownership so the `n8n` role fully owns every restored object (n8n runs
+schema migrations on boot, which require table ownership). Because the
+restore runs as the `postgres` superuser — a pinned role — `REASSIGN OWNED`
+is rejected by PostgreSQL ("objects owned by role postgres ... required by
+the database system"), so ownership is transferred object by object.
+Sequences linked to a table column (serial/identity) cannot be altered
+directly; they follow their owning table:
 
 ```bash
 kubectl -n postgres exec postgres-1 -c postgres -- \
-  psql -U postgres -d n8n -c "
-    REASSIGN OWNED BY CURRENT_USER TO n8n;
-    ALTER SCHEMA public OWNER TO n8n;"
+  psql -U postgres -d n8n -v ON_ERROR_STOP=1 -c "
+DO \$\$
+DECLARE r RECORD;
+BEGIN
+  FOR r IN SELECT c.oid, c.relname, c.relkind FROM pg_class c
+           JOIN pg_namespace n ON n.oid=c.relnamespace
+           WHERE n.nspname='public' AND c.relkind IN ('r','v','m')
+              OR (n.nspname='public' AND c.relkind='S' AND NOT EXISTS
+                  (SELECT 1 FROM pg_depend d
+                   WHERE d.classid='pg_class'::regclass
+                     AND d.objid=c.oid AND d.deptype IN ('a','i')))
+           LOOP
+    EXECUTE format('ALTER %s %I OWNER TO n8n',
+      CASE r.relkind WHEN 'r' THEN 'TABLE' WHEN 'S' THEN 'SEQUENCE'
+           WHEN 'v' THEN 'VIEW' ELSE 'MATERIALIZED VIEW' END,
+      r.relname);
+  END LOOP;
+END \$\$;"
 ```
 
-(The dump was created by the legacy `n8n` role, so objects arrive owned by
-`n8n` already when names match; the statements above are a harmless
-safeguard. `REASSIGN OWNED BY CURRENT_USER` reassigns objects owned by the
-superuser running the session.)
+Verify every object is owned by `n8n` (second query prints nothing):
+
+```bash
+kubectl -n postgres exec postgres-1 -c postgres -- \
+  psql -U postgres -d n8n -tAc \
+  "SELECT distinct tableowner FROM pg_tables WHERE schemaname='public';"
+kubectl -n postgres exec postgres-1 -c postgres -- \
+  psql -U postgres -d n8n -tAc \
+  "SELECT c.relkind, count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+   WHERE n.nspname='public' AND c.relkind IN ('r','S','v','m')
+     AND pg_get_userbyid(c.relowner)<>'n8n' GROUP BY c.relkind;"
+```
 
 ### 2.4 Start n8n on the new cluster
 
