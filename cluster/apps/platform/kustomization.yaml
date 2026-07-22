@@ -8,4 +8,5 @@ resources:
   - ntfy
   - librespeed
   - vaultwarden
+  - ittools
   - n8n
