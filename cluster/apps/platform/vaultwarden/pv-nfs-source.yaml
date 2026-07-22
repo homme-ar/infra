@@ -1,0 +1,27 @@
+# MIGRATION ONLY — static PV pointing to the legacy NFS export.
+# Once the migration Job completes successfully, remove this file and
+# pvc-nfs-source.yaml from kustomization.yaml resources and reconcile.
+# The NFS export itself is NOT deleted (reclaimPolicy: Retain).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: vaultwarden-nfs-source
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: migration
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteMany
+  # Retain ensures the legacy NFS export survives PVC deletion (safety net).
+  persistentVolumeReclaimPolicy: Retain
+  # Empty storageClassName forces manual (static) binding to the PVC below.
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+    - intr
+  nfs:
+    server: "192.0.2.20"
+    path: "/k8s/apps-vaultwarden-data-pvc-33f07362-5cb3-4e3e-bfec-385679cff6b4"

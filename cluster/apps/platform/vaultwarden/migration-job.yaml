@@ -1,0 +1,97 @@
+# MIGRATION ONLY — one-shot rsync Job that copies data from the legacy NFS
+# export (read-only) into the new Longhorn PVC.
+#
+# Pre-requisites before letting this Job run:
+#   1. Stop the legacy vaultwarden instance (scale replicas to 0 or destroy
+#      via Pulumi) so that db.sqlite3 is not written to during the copy.
+#   2. Verify the new cluster nodes have IP connectivity to 192.0.2.20 (NFS server).
+#
+# Post-migration cleanup (after Job shows Completed):
+#   1. Remove migration-job.yaml, pv-nfs-source.yaml, pvc-nfs-source.yaml
+#      from kustomization.yaml resources and reconcile.
+#   2. Scale vaultwarden Deployment to replicas: 1 and reconcile.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vaultwarden-migrate
+  namespace: vaultwarden
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: migration
+spec:
+  # Allow up to 2 retries in case of transient NFS errors.
+  backoffLimit: 2
+  # Clean up the completed Job automatically after 1 hour so it does not
+  # block future reconciliation of the surrounding Kustomization.
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vaultwarden
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        # Run as root so that rsync --numeric-ids preserves original
+        # UID 0 ownership written by the legacy vaultwarden container.
+        runAsUser: 0
+        runAsGroup: 0
+      initContainers:
+        # Verify source is accessible and print a file listing before rsync.
+        - name: preflight
+          image: alpine:3.20
+          command:
+            - sh
+            - -c
+            - |
+              echo "=== Source contents ===" && ls -lah /nfs-source/ || true
+              echo "=== Target contents ===" && ls -lah /longhorn-target/ || true
+          volumeMounts:
+            - name: nfs-source
+              mountPath: /nfs-source
+              readOnly: true
+            - name: longhorn-target
+              mountPath: /longhorn-target
+      containers:
+        - name: rsync
+          image: alpine:3.20
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              apk add --no-cache rsync
+              echo "Starting rsync from NFS source to Longhorn target..."
+              rsync \
+                --archive \
+                --hard-links \
+                --acls \
+                --xattrs \
+                --numeric-ids \
+                --delete \
+                --progress \
+                --stats \
+                /nfs-source/ \
+                /longhorn-target/
+              echo "=== Rsync complete. Target contents ==="
+              ls -lah /longhorn-target/
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: nfs-source
+              mountPath: /nfs-source
+              readOnly: true
+            - name: longhorn-target
+              mountPath: /longhorn-target
+      volumes:
+        - name: nfs-source
+          persistentVolumeClaim:
+            claimName: vaultwarden-nfs-source
+        - name: longhorn-target
+          persistentVolumeClaim:
+            claimName: vaultwarden-data
