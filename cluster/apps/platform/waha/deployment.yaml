@@ -43,8 +43,18 @@ spec:
             # whole hostname is already gated by Authelia (2FA) at the
             # gateway via the ext-authz filter on the HTTPRoute. The REST
             # API still requires WHATSAPP_API_KEY (X-Api-Key header).
+            # (Without the NO_PASSWORD flags WAHA generates random
+            # credentials at every boot instead of disabling auth.)
             - name: WAHA_DASHBOARD_ENABLED
               value: "true"
+            - name: WAHA_DASHBOARD_NO_PASSWORD
+              value: "true"
+            - name: WHATSAPP_SWAGGER_NO_PASSWORD
+              value: "true"
+            # Auto-start the session on boot so it reconnects by itself
+            # after pod restarts (WAHA CORE leaves sessions STOPPED).
+            - name: WHATSAPP_START_SESSION
+              value: default
             - name: WAHA_MEDIA_STORAGE
               value: LOCAL
             - name: WHATSAPP_FILES_LIFETIME
