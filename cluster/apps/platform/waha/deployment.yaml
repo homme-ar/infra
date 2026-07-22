@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: waha
+  namespace: waha
+  labels:
+    app.kubernetes.io/name: waha
+    app.kubernetes.io/component: server
+spec:
+  # Starts at 0 for the data migration; scaled to 1 at cutover time
+  # (see docs/WAHA-MIGRATION.md, Phase 2).
+  replicas: 0
+  # Recreate ensures the RWO Longhorn PVCs are released before a new pod
+  # attaches them, preventing multi-attach errors.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: waha
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: waha
+    spec:
+      containers:
+        - name: waha
+          # amd64 build of the same WAHA version as the legacy deployment
+          # (legacy ran the arm-2026.5.1 tag on RPi4) to reduce variables
+          # during migration. Upgrade after the move is verified.
+          image: devlikeapro/waha:latest-2026.5.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: WHATSAPP_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: waha-secret
+                  key: WHATSAPP_API_KEY
+            - name: WAHA_DASHBOARD_ENABLED
+              value: "true"
+            - name: WAHA_DASHBOARD_USERNAME
+              value: admin
+            - name: WAHA_DASHBOARD_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: waha-secret
+                  key: WAHA_DASHBOARD_PASSWORD
+            - name: WHATSAPP_SWAGGER_USERNAME
+              value: admin
+            - name: WHATSAPP_SWAGGER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: waha-secret
+                  key: WHATSAPP_SWAGGER_PASSWORD
+            - name: WAHA_MEDIA_STORAGE
+              value: LOCAL
+            - name: WHATSAPP_FILES_LIFETIME
+              value: "0"
+            - name: WHATSAPP_FILES_FOLDER
+              value: /app/.media
+            - name: TZ
+              value: America/Argentina/Buenos_Aires
+          # The WAHA image runs as root and bundles Chromium under xvfb
+          # (WEBJS engine), so no restrictive securityContext is applied —
+          # parity with the legacy deployment. Candidate for hardening
+          # after the migration is verified.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          # /ping answers without authentication; /health requires the API
+          # key on this version.
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: sessions
+              mountPath: /app/.sessions
+            - name: media
+              mountPath: /app/.media
+      volumes:
+        - name: sessions
+          persistentVolumeClaim:
+            claimName: waha-sessions
+        - name: media
+          persistentVolumeClaim:
+            claimName: waha-media

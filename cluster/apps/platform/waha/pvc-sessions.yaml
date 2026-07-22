@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: waha-sessions
+  namespace: waha
+  labels:
+    app.kubernetes.io/name: waha
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ${STORAGE_CLASS}
+  resources:
+    requests:
+      # Sized at 1Gi (legacy NFS PVC was 10Gi but actual usage is ~150Ki —
+      # it only holds the WEBJS WhatsApp session). Expandable via Longhorn.
+      storage: 1Gi
