@@ -92,6 +92,23 @@ spec:
         volumeMounts:
           - mountPath: /build/plugins
             name: headlamp-plugins
+      # Prometheus plugin: provides metrics graphs and dashboards in Headlamp.
+      # Configured to point at the in-cluster kube-prometheus-stack Prometheus service.
+      - name: headlamp-plugin-prometheus
+        image: alpine:latest
+        imagePullPolicy: Always
+        command:
+          - /bin/sh
+          - -c
+          - "wget -O /tmp/prometheus.tar.gz https://github.com/headlamp-k8s/plugins/releases/download/prometheus-0.9.0/prometheus-0.9.0.tar.gz && mkdir -p /build/plugins && tar -xzf /tmp/prometheus.tar.gz -C /build/plugins/ && chown -R 100:101 /build"
+        securityContext:
+          runAsNonRoot: false
+          privileged: false
+          runAsUser: 0
+          runAsGroup: 0
+        volumeMounts:
+          - mountPath: /build/plugins
+            name: headlamp-plugins
 
     volumeMounts:
       - mountPath: /build/plugins

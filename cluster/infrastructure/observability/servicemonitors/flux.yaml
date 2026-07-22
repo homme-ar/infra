@@ -1,0 +1,23 @@
+# PodMonitor for Flux controllers (source-controller, kustomize-controller,
+# helm-controller, notification-controller, image-reflector-controller,
+# image-automation-controller).
+# Flux controllers expose Prometheus metrics on port 8080 (/metrics)
+# and are labeled with app.kubernetes.io/part-of=flux.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: flux-system
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: flux-system
+spec:
+  namespaceSelector:
+    matchNames:
+      - flux-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: flux
+  podMetricsEndpoints:
+    - port: http-prom
+      path: /metrics
+      interval: 30s
