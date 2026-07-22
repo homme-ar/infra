@@ -48,6 +48,18 @@ safe. If the session ever shows `SCAN_QR_CODE` after cutover, open the
 dashboard (`https://waha-adm.homme.ar/dashboard`) and re-scan — the API key
 and webhooks configuration survive regardless.
 
+> [!NOTE]
+> **Execution outcome (2026-07-22):** the migrated session came up
+> `SCAN_QR_CODE`, but the root cause predates the migration: the legacy
+> `session-default` profile held only ~150Ki (a live WEBJS LocalAuth
+> profile is tens of MB), its files dated from Oct 2025, and the final
+> rsync delta was 0 bytes while the legacy pod had been running for days —
+> i.e. WhatsApp had already logged the legacy session out months earlier.
+> A QR re-scan via the dashboard was required regardless of the move.
+> Also note: after the first boot on the new cluster the `default` session
+> stayed `STOPPED` and had to be started once via
+> `POST /api/sessions/default/start`.
+
 ## Prerequisites
 
 - `direnv` loaded (Nix shell → `kubectl`, `flux`, `sops`).
