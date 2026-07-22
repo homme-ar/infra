@@ -1,0 +1,20 @@
+# MIGRATION ONLY — PVC manually bound to the legacy NFS export (pv-nfs-source.yaml).
+# Remove both this file and pv-nfs-source.yaml from kustomization.yaml after
+# the migration Job completes successfully.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vaultwarden-nfs-source
+  namespace: vaultwarden
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: migration
+spec:
+  accessModes:
+    - ReadWriteMany
+  # Empty storageClassName forces static binding to the named PV.
+  storageClassName: ""
+  volumeName: vaultwarden-nfs-source
+  resources:
+    requests:
+      storage: 20Gi
