@@ -1,0 +1,13 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: n8n
+  namespace: postgres
+spec:
+  # Target CNPG cluster (shared with Authelia and Home Assistant).
+  cluster:
+    name: postgres
+  # Database name inside PostgreSQL — consumed by n8n in cluster/apps/platform/n8n/.
+  name: n8n
+  # Role that owns this database (declared in cluster.yaml under managed.roles).
+  owner: n8n

@@ -8,3 +8,4 @@ resources:
   - ntfy
   - librespeed
   - vaultwarden
+  - n8n

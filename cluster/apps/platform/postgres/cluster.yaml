@@ -90,3 +90,8 @@ spec:
         replication: true
         passwordSecret:
           name: home-assistant-postgres-secret
+      - name: n8n
+        ensure: present
+        login: true
+        passwordSecret:
+          name: n8n-postgres-secret
