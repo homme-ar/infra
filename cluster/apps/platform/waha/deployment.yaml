@@ -39,22 +39,12 @@ spec:
                 secretKeyRef:
                   name: waha-secret
                   key: WHATSAPP_API_KEY
+            # Dashboard and swagger run WITHOUT their own basic auth — the
+            # whole hostname is already gated by Authelia (2FA) at the
+            # gateway via the ext-authz filter on the HTTPRoute. The REST
+            # API still requires WHATSAPP_API_KEY (X-Api-Key header).
             - name: WAHA_DASHBOARD_ENABLED
               value: "true"
-            - name: WAHA_DASHBOARD_USERNAME
-              value: admin
-            - name: WAHA_DASHBOARD_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: waha-secret
-                  key: WAHA_DASHBOARD_PASSWORD
-            - name: WHATSAPP_SWAGGER_USERNAME
-              value: admin
-            - name: WHATSAPP_SWAGGER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: waha-secret
-                  key: WHATSAPP_SWAGGER_PASSWORD
             - name: WAHA_MEDIA_STORAGE
               value: LOCAL
             - name: WHATSAPP_FILES_LIFETIME
