@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  namespace: n8n
+  labels:
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/component: server
+spec:
+  # Ships at 0 so the data migration Job can attach the PVC first.
+  # Scale to 1 at cutover time (see docs/N8N-MIGRATION.md).
+  replicas: 0
+  # Recreate ensures the RWO Longhorn PVC is released before a new pod
+  # attaches it, preventing multi-attach errors and SQLite corruption.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: n8n
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: n8n
+    spec:
+      # The n8nio/n8n image runs as the `node` user (UID/GID 1000).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: n8n
+          # Pinned to the same version as the legacy deployment to reduce
+          # variables during migration. Upgrade after the move is verified.
+          image: n8nio/n8n:2.25.5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5678
+              protocol: TCP
+          env:
+            - name: DB_TYPE
+              value: postgresdb
+            - name: DB_POSTGRESDB_DATABASE
+              value: n8n
+            - name: DB_POSTGRESDB_HOST
+              value: postgres-rw.postgres.svc.cluster.local
+            - name: DB_POSTGRESDB_PORT
+              value: "5432"
+            - name: DB_POSTGRESDB_USER
+              value: n8n
+            - name: DB_POSTGRESDB_SCHEMA
+              value: public
+            - name: DB_POSTGRESDB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secret
+                  key: DB_POSTGRESDB_PASSWORD
+            - name: GENERIC_TIMEZONE
+              value: America/Argentina/Buenos_Aires
+            - name: TZ
+              value: America/Argentina/Buenos_Aires
+            - name: N8N_DEFAULT_LOCALE
+              value: es
+            # Explicit external URL so webhook/callback URLs render correctly
+            # behind envoy-gateway (legacy deployment inferred it via headers).
+            - name: N8N_HOST
+              value: "n8n-apps.${CLUSTER_DOMAIN}"
+            - name: N8N_PROTOCOL
+              value: https
+            - name: WEBHOOK_URL
+              value: "https://n8n-apps.${CLUSTER_DOMAIN}/"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /home/node/.n8n
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: n8n-data
