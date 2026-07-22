@@ -6,10 +6,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - pvc-data.yaml
-  # MIGRATION resources — remove after migration Job completes successfully
-  - pv-nfs-source.yaml
-  - pvc-nfs-source.yaml
-  - migration-job.yaml
   - secret.yaml
   - deployment.yaml
   - service.yaml
