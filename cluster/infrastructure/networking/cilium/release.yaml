@@ -64,6 +64,11 @@ spec:
     tunnelProtocol: vxlan
     operator:
       replicas: 1
+      # Expose Cilium operator metrics on port 9963 for Prometheus scraping.
+      prometheus:
+        enabled: true
+        serviceMonitor:
+          enabled: true
     hubble:
       enabled: true
       relay:
@@ -89,9 +94,3 @@ spec:
       enabled: true
       serviceMonitor:
         enabled: true
-    # Expose Cilium operator metrics on port 9963 for Prometheus scraping.
-    operator:
-      prometheus:
-        enabled: true
-        serviceMonitor:
-          enabled: true
