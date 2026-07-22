@@ -33,6 +33,12 @@ spec:
               value: "false"
             - name: PASSWORD
               value: ""
+            - name: TITLE
+              value: "Homme Speed Test"
+            - name: TAGLINE
+              value: "Testing how fast you can ignore your responsibilities"
+            - name: USE_NEW_DESIGN
+              value: "true"
           securityContext:
             allowPrivilegeEscalation: false
           resources:
