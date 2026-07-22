@@ -246,10 +246,10 @@ on the new pod. No DNS or route changes needed.
   Expect `"status": "WORKING"`. `SCAN_QR_CODE` means the session did not
   survive — re-scan via the dashboard (see "About the WhatsApp session").
 
-- Open `https://waha-adm.homme.ar` — Authelia login first (2FA), then the
-  WAHA swagger UI behind `admin` / swagger password (unchanged).
-- Dashboard at `https://waha-adm.homme.ar/dashboard` (same credentials as
-  legacy).
+- Open `https://waha-adm.homme.ar` — Authelia login (2FA) gates the whole
+  hostname; swagger and the dashboard at `/dashboard` have **no built-in
+  basic auth** (disabled post-migration — SSO-only access). The REST API
+  still requires the `X-Api-Key` header.
 - Send a test WhatsApp message to the linked number and confirm the
   configured webhook fires into n8n (check n8n execution history).
 
