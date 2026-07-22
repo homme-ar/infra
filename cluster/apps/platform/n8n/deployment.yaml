@@ -7,9 +7,9 @@ metadata:
     app.kubernetes.io/name: n8n
     app.kubernetes.io/component: server
 spec:
-  # Ships at 0 so the data migration Job can attach the PVC first.
-  # Scale to 1 at cutover time (see docs/N8N-MIGRATION.md).
-  replicas: 0
+  # Scaled to 1 after the data migration completed
+  # (see docs/N8N-MIGRATION.md, Phase 2).
+  replicas: 1
   # Recreate ensures the RWO Longhorn PVC is released before a new pod
   # attaches it, preventing multi-attach errors and SQLite corruption.
   strategy:
