@@ -20,12 +20,10 @@ spec:
       labels:
         app.kubernetes.io/name: prowlarr
     spec:
-      # LinuxServer image runs as the abc user; PUID/PGID map it to 1000,
-      # matching the ownership expected on the QNAP NFS share.
+      # LinuxServer images must start as root: their s6-overlay init applies
+      # the PUID/PGID mapping and then drops to the unprivileged abc user
+      # (UID/GID 1000), which is the owner used on the QNAP NFS share.
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
         fsGroup: 1000
       containers:
         - name: prowlarr
@@ -42,11 +40,9 @@ spec:
               value: "1000"
             - name: TZ
               value: America/Argentina/Buenos_Aires
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
+          # No capability drops here: the s6-overlay init needs CHOWN/SETUID/
+          # SETGID to fix /config ownership before dropping to the abc user.
+          # The app process itself ends up running unprivileged (PUID 1000).
           resources:
             requests:
               cpu: 50m

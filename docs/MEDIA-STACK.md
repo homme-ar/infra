@@ -14,6 +14,10 @@ Operational guide for the media stack: `bazarr`, `jellyfin`, `jellyseerr`, `lida
   mount point, useless for a shared library) were considered and rejected.
 - **App configs / internal databases** (SQLite): Longhorn RWO PVCs (`<app>-config`),
   `strategy: Recreate` to avoid multi-attach errors, same as the other stateful apps.
+- **Privilege model**: the LinuxServer images start as root (their s6-overlay init
+  requires it) and drop to the unprivileged `abc` user (PUID/PGID 1000) before launching
+  the app — do not add `runAsNonRoot` or capability drops to those pods, the init crashes
+  without CHOWN/SETUID/SETGID. jellyseerr (non-LSIO image) runs fully non-root.
 - **Ingress**: `HTTPRoute` per app on the shared `envoy-gateway`, hostname
   `<app>-apps.${CLUSTER_DOMAIN}` (covered by the existing wildcard DNS + TLS cert).
 - **Jellyfin transcode scratch**: `emptyDir` at `/config/data/transcodes` so transient
