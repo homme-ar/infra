@@ -21,6 +21,7 @@ This document specifies **critical mandatory rules and operational standards** f
   - **SOPS Configuration (`.sops.yaml`) Rules**:
   - **Talos Secrets**: Files matching `.*\.sops\.yaml$` (such as `talos/talsecret.sops.yaml`) are encrypted using the Age key defined in `.sops.yaml`.
   - **Kubernetes / Flux Secrets**: Files inside `cluster/` **MUST** match the pattern `cluster/.*secret.*\.yaml$` to be recognized and encrypted by SOPS (e.g., `cluster/infrastructure/security/cert-manager/secret.yaml` or `my-app-secret.yaml`). Ensure your secret file names include `secret` and end in `.yaml`.
+  - **NixOS Host Secrets**: Files inside `nixos/secrets/` matching `nixos/secrets/.*\.yaml$` (e.g., the comin GitHub deploy key in `secrets.yaml`). Per-host Age keys are added as recipients when host-consumed (sops-nix) secrets are introduced.
 - **Age Key Location**: As configured in `.envrc`, the local SOPS Age private key path is set via `export SOPS_AGE_KEY_FILE=$HOME/.config/sops/age/keys.txt`.
 
 ---
@@ -101,6 +102,12 @@ talosctl --talosconfig=talos/clusterconfig/talosconfig get nodes
   - **`flux-system/`**: Flux bootstrap components and sync configuration.
   - **`infrastructure/`**: Core cluster infrastructure (`networking/`, `security/`, `storage/`).
   - **`apps/`**: Application workloads (`platform/`, `legacy/`).
+- **`nixos/`**: Contains a standalone Nix Flake with NixOS configurations for the auxiliary Raspberry Pi 4 hosts, deployed via **comin** (pull-based GitOps: each host polls this repository and switches to the `nixosConfigurations` output matching its hostname). The flake lives in this subdirectory, referenced by comin through `services.comin.repositorySubdir = "nixos"`. While the repository is private, comin authenticates with a shared read-only GitHub deploy key stored sops-encrypted in `nixos/secrets/secrets.yaml` and baked into the SD images at build time (impure build, never committed in plain text); the GitHub SSH host key is pinned declaratively in `nixos/modules/common`.
+  - **`hosts/`**: Per-host entry points (`ntp` for the GPS-disciplined NTP stratum 1 server, `dns` for the AdGuard Home DNS server).
+  - **`modules/`**: Shared and per-service modules (`common`, `chrony-gps`, `adguard`).
+  - **`secrets/`**: SOPS-encrypted host secrets (comin deploy key, future sops-nix secrets).
+  - SD card images for initial provisioning: `nix build ./nixos#sd-image-<hostname>` (requires an aarch64 builder or binfmt emulation, plus `--impure` with `NIXOS_COMIN_DEPLOY_KEY` pointing to the decrypted deploy key — see the comments in `nixos/flake.nix`).
+  - Host secrets use **sops-nix** with a per-host Age key stored on each device at `/var/lib/sops-nix/key.txt`; host public keys must be added as recipients in the root `.sops.yaml`.
 
 ---
 
