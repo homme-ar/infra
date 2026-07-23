@@ -55,6 +55,12 @@ data:
   # Single-replica StorageClass for databases (CNPG handles HA via streaming replication)
   STORAGE_CLASS_SINGLENODE: "longhorn-singlenode"
 
+  # ── NAS (QNAP) ────────────────────────────────────────────────────────────
+  # IP of the QNAP NAS exporting the media share over NFS — set before commit
+  NAS_IP: "10.0.4.1"
+  # NFS export path on the QNAP (single share mounted as /data in media pods)
+  NAS_SHARE_PATH: "/homme"
+
   # ── VPN LoadBalancer IP ───────────────────────────────────────────────────
   # Dedicated LoadBalancer IP for the WireGuard VPN (managed by wireguard-operator)
   LB_VPN_IP: "10.0.21.2"
