@@ -11,3 +11,9 @@ creation_rules:
     key_groups:
       - age:
           - "age1j6zlq24dlzd9as6gq835980ahzelmnuu7d8ydkz54t28kzhv0csse96epz"
+
+  # Encrypt NixOS host secrets (sops-nix and SD image provisioning)
+  - path_regex: nixos/secrets/.*\.yaml$
+    key_groups:
+      - age:
+          - "age1j6zlq24dlzd9as6gq835980ahzelmnuu7d8ydkz54t28kzhv0csse96epz"
