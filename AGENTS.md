@@ -1,120 +1,166 @@
-# AI Agent & Developer Guidelines (agents.md)
+# AGENTS.md — Homme Kubernetes Infrastructure (`homme-ar/infra`)
 
-Welcome to the **Homme Kubernetes Infrastructure** (`homme-ar/infra`) repository. 
-This document specifies **critical mandatory rules and operational standards** for all AI agents, assistants, and developers contributing to this project. Any automated or manual modification to this codebase MUST strictly adhere to these guidelines.
+This file is the entry point for AI coding agents working in this repository. It assumes no prior knowledge of the project.
 
----
+## Project Overview
 
-## 1. Language Requirements: English Only
+This is **not an application codebase** — it is an Infrastructure-as-Code / GitOps repository for a homelab. There is no compiled code, no test suite, and no package manifest (`package.json`, `pyproject.toml`, etc.). The "build" is configuration generation (Nix, talhelper, Kustomize) and the "deployment" is reconciliation by FluxCD.
 
-- **All Documentation & Comments**: Every comment (`#`, `//`), docstring, commit message, pull request description, and markdown document MUST be written strictly in **English**.
-- **No Local Languages**: Do not use Spanish or any other language in code files, configuration files, or documentation.
+The repository manages three distinct things:
 
----
+1. **A 3-node Kubernetes cluster** running on Talos Linux (`homme-cluster`), defined in `talos/` and `cluster/`.
+2. **Two auxiliary NixOS hosts** (Raspberry Pi 4: an NTP server and a DNS server), defined as a standalone Nix flake in `nixos/`.
+3. **A reproducible dev environment** (Nix flake + direnv) providing all CLI tools, defined in the root `flake.nix`.
 
-## 2. Public Repository Security & SOPS Encryption
+### Hardware & topology
 
-> [!CAUTION]
-> **This repository is public on GitHub.** Exposing plain-text secrets, API tokens, passwords, or private keys is a critical security violation.
+- **Kubernetes nodes**: 3 × Minisforum MS-A2 (`ser-msa2cp1` `192.0.2.2`, `ser-msa2cp2` `192.0.2.3`, `ser-msa2cp3` `192.0.2.4`), all control-plane, with a shared VIP `192.0.2.1` (API endpoint `https://192.0.2.1:6443`). Scheduling on control planes is allowed.
+- **Versions**: Talos `v1.13.6`, Kubernetes `v1.36.0` (pinned in `talos/talconfig.yaml`).
+- **Auxiliary hosts**: `ntp` (GPS-disciplined NTP stratum 1 via chrony) and `dns` (AdGuard Home), both Raspberry Pi 4 running NixOS (see `nixos/`).
 
-- **Never Commit Plain-Text Secrets**: Before creating or modifying any file containing sensitive data (passwords, certificates, keys, webhooks, or tokens), verify that it is properly encrypted using **SOPS** (`sops`) with **Age** (`age`).
-  - **SOPS Configuration (`.sops.yaml`) Rules**:
-  - **Talos Secrets**: Files matching `.*\.sops\.yaml$` (such as `talos/talsecret.sops.yaml`) are encrypted using the Age key defined in `.sops.yaml`.
-  - **Kubernetes / Flux Secrets**: Files inside `cluster/` **MUST** match the pattern `cluster/.*secret.*\.yaml$` to be recognized and encrypted by SOPS (e.g., `cluster/infrastructure/security/cert-manager/secret.yaml` or `my-app-secret.yaml`). Ensure your secret file names include `secret` and end in `.yaml`.
-  - **NixOS Host Secrets**: Files inside `nixos/secrets/` matching `nixos/secrets/.*\.yaml$` (e.g., the comin GitHub deploy key in `secrets.yaml`). Per-host Age keys are added as recipients when host-consumed (sops-nix) secrets are introduced.
-- **Age Key Location**: As configured in `.envrc`, the local SOPS Age private key path is set via `export SOPS_AGE_KEY_FILE=$HOME/.config/sops/age/keys.txt`.
+## Repository Layout
 
----
-
-## 3. Nix & Direnv Development Environment
-
-This repository uses **Nix Flakes** (`flake.nix`) and **direnv** (`.envrc`) to guarantee a reproducible environment with pinned tool versions (`kubectl`, `talosctl`, `talhelper`, `sops`, `age`, `fluxcd`, `k9s`, `kubernetes-helm`, `kustomize`, `yq`, `jq`).
-
-- **Execute Commands Within Nix**: All CLI commands MUST be executed using the tools provided by the Nix environment.
-  - If `direnv` is loaded and active in your shell session, the binaries are directly in your `$PATH`.
-  - If running outside of an active `direnv` shell or when executing background subshells, ensure commands run within the Nix environment using `nix develop --command <command>` (or verify the Nix `$PATH` is preserved).
-- **Do Not Rely on System Binaries**: Avoid using global system-installed tools that might differ in version or behavior from the dependencies defined in `flake.nix`.
-
----
-
-## 4. Cluster & Talos Access Configuration
-
-When running commands to interact with the live cluster or nodes, you **MUST explicitly reference the cluster configuration files** stored in the repository:
-
-### Kubernetes Cluster Access (`kubeconfig`)
-To interact with Kubernetes using `kubectl`, `helm`, `flux`, or `k9s`, always point to:
-```bash
-talos/clusterconfig/kubeconfig
 ```
-**Examples:**
+├── flake.nix              # Root dev-shell flake (dev tools only, NOT the NixOS configs)
+├── .envrc                 # direnv: `use flake` + SOPS_AGE_KEY_FILE
+├── .sops.yaml             # SOPS encryption rules (Age recipients per path pattern)
+├── talos/                 # Talos Linux cluster definition (talhelper)
+│   ├── talconfig.yaml     #   Main cluster config: nodes, VIP, patches, versions
+│   ├── talsecret.sops.yaml#   SOPS-encrypted cluster PKI/secrets
+│   ├── patches/           #   Talos machine patches (global/, nodes/)
+│   └── clusterconfig/     #   Generated: kubeconfig, talosconfig, node manifests
+├── cluster/               # FluxCD GitOps state (the live cluster reconciles from here)
+│   ├── flux-system/       #   Flux bootstrap + Kustomizations that drive everything
+│   ├── cluster-vars.yaml  #   ConfigMap for Flux post-build variable substitution
+│   ├── infrastructure/    #   networking/, security/, storage/, observability/
+│   └── apps/              #   platform/, iot/, legacy/
+├── nixos/                 # Standalone Nix flake: NixOS configs for the RPi4 hosts
+│   ├── flake.nix          #   Own inputs (nixpkgs nixos-26.05, comin, sops-nix, ...)
+│   ├── hosts/             #   Per-host entry points: ntp/, dns/
+│   ├── modules/           #   Shared modules: common/, chrony-gps/, adguard/
+│   └── secrets/           #   SOPS-encrypted host secrets (comin deploy key, ...)
+├── scripts/               # Helper CLI scripts (added to PATH by the dev shell)
+│   ├── wireguard-config   #   Print a WireGuard peer config from the cluster secret
+│   └── wireguard-qrcode   #   Render a peer config as a QR code
+└── docs/                  # Operational runbooks (bootstrap, migrations, upgrades)
+```
+
+## Technology Stack
+
+- **Node OS**: Talos Linux, configured via `talhelper` from `talos/talconfig.yaml`. CNI is disabled in Talos (`cniConfig.name: none`) and kube-proxy is disabled; Cilium replaces both.
+- **GitOps engine**: FluxCD. The cluster syncs from `ssh://git@github.com/homme-ar/infra.git` branch `main` (see `cluster/flux-system/gotk-sync.yaml`). This is a **public repository** — see Security.
+- **CNI / networking**: Cilium (HelmRelease, kube-proxy replacement, L2 announcements, Hubble) + Gateway API (`gatewayClassName: cilium`, central `Gateway` named `envoy-gateway` in `kube-system`, TLS terminated with the `${CLUSTER_DOMAIN_SLUG}-tls` cert). Apps expose HTTP via `HTTPRoute` resources, not Ingress.
+- **Storage**: Longhorn (default `${STORAGE_CLASS}` = `longhorn`; `longhorn-singlenode` single-replica class for databases). A dedicated Kingston NVMe disk per node is reserved for Longhorn (see `talos/patches/global/storage.yaml`).
+- **Databases**: CloudNativePG (CNPG) operator; per-app `Cluster`/database manifests live in `cluster/apps/platform/postgres/`.
+- **Secrets**: SOPS + Age. Flux decrypts at reconcile time via the `sops-age` secret (`decryption.provider: sops` on the Kustomizations).
+- **TLS**: cert-manager with Let's Encrypt (Cloudflare DNS-01), issuers in `cluster/infrastructure/security/cert-manager-config/`.
+- **Observability**: kube-prometheus-stack, metrics-server, node-feature-discovery, plus ServiceMonitors for cilium/cnpg/flux/longhorn.
+- **VPN**: WireGuard via the wireguard-operator (CRs in `cluster/infrastructure/networking/wireguard/instance/`, one `WireguardPeer` per device).
+- **Auxiliary hosts**: NixOS (aarch64) managed by **comin** (pull-based GitOps — each host polls this repo and switches to the `nixosConfigurations` output matching its hostname).
+
+## Build & Run Commands
+
+All CLI tools come from the Nix dev shell. **Always run commands inside it**: either with direnv active (`direnv allow` once, then tools are on `PATH`) or via `nix develop --command <cmd>`. Do not rely on system-installed versions of `kubectl`, `talosctl`, `flux`, `sops`, etc. The dev shell also prepends `scripts/` to `PATH`.
+
+### Cluster access (always pass explicit config paths)
+
 ```bash
-# Export environment variable
-export KUBECONFIG="talos/clusterconfig/kubeconfig"
+export KUBECONFIG="talos/clusterconfig/kubeconfig"    # kubectl / helm / flux / k9s
+export TALOSCONFIG="talos/clusterconfig/talosconfig"  # talosctl
 kubectl get nodes
-
-# Or pass explicitly via CLI flag
-kubectl --kubeconfig=talos/clusterconfig/kubeconfig get pods -A
-```
-
-### Talos Linux Node Administration (`talosconfig`)
-To administer Talos Linux nodes using `talosctl`, always point to:
-```bash
-talos/clusterconfig/talosconfig
-```
-**Examples:**
-```bash
-# Export environment variable
-export TALOSCONFIG="talos/clusterconfig/talosconfig"
 talosctl health
-
-# Or pass explicitly via CLI flag
-talosctl --talosconfig=talos/clusterconfig/talosconfig get nodes
 ```
 
----
+### Talos (node-level) workflow
 
-## 5. GitOps & FluxCD Enforcement (No Direct Applications)
+```bash
+# Regenerate node manifests + talosconfig after editing talconfig.yaml
+talhelper genconfig                 # decrypts talsecret.sops.yaml in memory
 
-> [!IMPORTANT]
-> **Strict GitOps Workflow**: This cluster is fully managed by **FluxCD**. Direct imperative mutations to the cluster state are forbidden.
+# Regenerate cluster secrets (only when rotating/bootstrapping anew)
+talhelper gensecret | sops --encrypt --filename-override talsecret.sops.yaml /dev/stdin > talos/talsecret.sops.yaml
 
-- **No Imperative Cluster Mutations (`kubectl apply`)**: Agents and developers MUST NEVER apply manifests or Helm charts directly to the cluster (e.g., `kubectl apply -f ...`, `kubectl create ...`, `kubectl edit ...`, `kubectl patch ...`, `helm install ...`, `helm upgrade ...`) unless explicitly instructed by the user for temporary/emergency debugging.
-- **Declarative Changes via GitOps**: All Kubernetes resources, configurations, and application deployments MUST be modified declaratively inside the `cluster/` directory (`cluster/core`, `cluster/apps`, `cluster/base`).
-- **Triggering & Testing Changes via Flux Reconcile**: To apply or sync changes to the live cluster after modifying manifests or pushing commits to Git, agents MUST use FluxCD reconciliation commands (`flux reconcile`):
-  ```bash
-  # Reconcile Git source repository
-  flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile source git flux-system -n flux-system
+# Apply config to a node / bootstrap etcd (see docs/BOOTSTRAP.md for the full runbook)
+talosctl apply-config --insecure --nodes <node-ip> --file talos/clusterconfig/homme-cluster-<hostname>.yaml
+talosctl bootstrap --nodes 192.0.2.2 --endpoints 192.0.2.2
+```
 
-  # Reconcile specific Kustomization
-  flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile kustomization <kustomization-name> -n <namespace>
+### GitOps workflow (the ONLY way to change cluster state)
 
-  # Reconcile specific HelmRelease
-  flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile helmrelease <release-name> -n <namespace>
-  ```
+**Never** use `kubectl apply/create/edit/patch` or `helm install/upgrade` against the cluster. All changes are made declaratively under `cluster/` and committed to git; Flux reconciles them. To force a sync after pushing:
 
----
+```bash
+flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile source git flux-system -n flux-system
+flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile kustomization <name> -n <namespace>
+flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile helmrelease <name> -n <namespace>
+```
 
-## 6. Repository Structure Overview
+To validate manifests locally before committing, render them with Kustomize (client-side only):
 
-- **`talos/`**: Contains the Talos Linux base node configuration (`talconfig.yaml`, `talsecret.sops.yaml`) processed by `talhelper`.
-  - **`clusterconfig/`**: Generated cluster access artifacts (`kubeconfig` and `talosconfig`).
-- **`cluster/`**: Contains GitOps definitions managed by **FluxCD**, utilizing Kustomize and Helm releases.
-  - **`flux-system/`**: Flux bootstrap components and sync configuration.
-  - **`infrastructure/`**: Core cluster infrastructure (`networking/`, `security/`, `storage/`).
-  - **`apps/`**: Application workloads (`platform/`, `legacy/`).
-- **`nixos/`**: Contains a standalone Nix Flake with NixOS configurations for the auxiliary Raspberry Pi 4 hosts, deployed via **comin** (pull-based GitOps: each host polls this repository and switches to the `nixosConfigurations` output matching its hostname). The flake lives in this subdirectory, referenced by comin through `services.comin.repositorySubdir = "nixos"`. While the repository is private, comin authenticates with a shared read-only GitHub deploy key stored sops-encrypted in `nixos/secrets/secrets.yaml` and baked into the SD images at build time (impure build, never committed in plain text); the GitHub SSH host key is pinned declaratively in `nixos/modules/common`.
-  - **`hosts/`**: Per-host entry points (`ntp` for the GPS-disciplined NTP stratum 1 server, `dns` for the AdGuard Home DNS server).
-  - **`modules/`**: Shared and per-service modules (`common`, `chrony-gps`, `adguard`).
-  - **`secrets/`**: SOPS-encrypted host secrets (comin deploy key, future sops-nix secrets).
-  - SD card images for initial provisioning: `nix build ./nixos#sd-image-<hostname>` (requires an aarch64 builder or binfmt emulation, plus `--impure` with `NIXOS_COMIN_DEPLOY_KEY` pointing to the decrypted deploy key — see the comments in `nixos/flake.nix`).
-  - Host secrets use **sops-nix** with a per-host Age key stored on each device at `/var/lib/sops-nix/key.txt`; host public keys must be added as recipients in the root `.sops.yaml`.
+```bash
+kustomize build cluster/apps/platform/n8n
+```
 
----
+### NixOS auxiliary hosts (`nixos/` flake)
 
-## Summary Checklist for Agents Before Executing Tasks
+```bash
+# Build an SD image for initial provisioning (impure; needs the decrypted comin
+# deploy key and an aarch64 builder or binfmt emulation)
+sops -d --extract '["comin_deploy_key"]' nixos/secrets/secrets.yaml > /tmp/comin_deploy_key
+chmod 644 /tmp/comin_deploy_key
+NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#sd-image-ntp   # or sd-image-dns
+shred -u /tmp/comin_deploy_key
+zstd -d result/sd-image/*.img.zst -o rpi.img   # then flash to SD
 
-1. [ ] Are all newly added comments, docstrings, and docs in **English**?
-2. [ ] Is any sensitive data or secret file properly named and encrypted with **SOPS/Age**?
-3. [ ] Are CLI commands (`kubectl`, `sops`, `talosctl`) executed within the **Nix** environment?
-4. [ ] Are explicit `--kubeconfig` or `--talosconfig` paths provided when connecting to the cluster?
-5. [ ] Are cluster changes managed declaratively via **GitOps / FluxCD (`flux reconcile`)** rather than direct `kubectl apply` commands?
+# Check the flake evaluates (fast sanity check for Nix edits)
+nix flake check ./nixos --no-build   # or: nix eval ./nixos#nixosConfigurations.ntp.config.system.build.toplevel.drvPath
+```
+
+After first boot, hosts self-update via comin — changes are deployed by committing to this repo, not by SSHing in.
+
+### WireGuard helpers
+
+```bash
+wireguard-config <peer>        # print a peer's config (from the vpn-peer-configs secret)
+wireguard-qrcode <peer>        # same, rendered as a QR code
+```
+
+## Testing & Validation
+
+There is **no automated test suite**. Validation is:
+
+1. **Render locally**: `kustomize build <dir>` for Kubernetes manifests; `nix flake check`/`nix eval` for the `nixos/` flake.
+2. **Secret hygiene**: before committing, confirm new secret files match a `.sops.yaml` pattern and are actually encrypted (`sops` metadata present in the file).
+3. **Reconcile and observe**: after pushing, `flux reconcile ...` then check `flux get kustomizations -A`, `kubectl get pods -A`, and the app's HTTPRoute/Gateway status.
+
+## Code & Config Conventions
+
+- **Language**: everything (comments, docs, commit messages) is in **English only**.
+- **Manifest style**: plain YAML, two-space indent, one resource per file named after the kind (`deployment.yaml`, `service.yaml`, `httproute.yaml`, `pvc-<name>.yaml`, `namespace.yaml`, `kustomization.yaml`). Each app is a directory with its own namespace and a `kustomization.yaml` listing its files; parent directories aggregate children the same way.
+- **Labels**: `app.kubernetes.io/name` (plus `app.kubernetes.io/component` where useful).
+- **Images**: pinned to explicit versions (e.g. `n8nio/n8n:2.25.5`), `imagePullPolicy: IfNotPresent`.
+- **Pods**: non-root `securityContext`, dropped capabilities, resource requests/limits, liveness/readiness probes. Stateful apps use `strategy: Recreate` with RWO Longhorn PVCs to avoid multi-attach errors.
+- **Helm apps**: a `repository.yaml` (HelmRepository) + `release.yaml` (HelmRelease) pair per component; plain-manifest apps use Deployments directly.
+- **Variable substitution**: cluster-wide values (domain `example.com`, LB IPs, storage classes, legacy IPs) live in `cluster/cluster-vars.yaml` and are referenced as `${VARIABLE_NAME}`; every Flux Kustomization has `postBuild.substituteFrom` pointing at that ConfigMap. Use these variables instead of hardcoding IPs/domains.
+- **Flux ordering**: `gotk-sync.yaml` defines dedicated Kustomizations with `dependsOn`/`healthChecks` where CRDs must exist first (cert-manager-config after cert-manager, CNPG clusters after the operator, WireGuard CRs after wireguard-operator, ServiceMonitors after kube-prometheus-stack, all apps after infrastructure). When adding an operator + its CRs, follow this same two-phase pattern.
+- **Docs**: operational procedures go in `docs/` as Markdown runbooks (see `BOOTSTRAP.md`, the migration guides, `POSTGRES-PG18-UPGRADE.md`).
+
+## Security Considerations
+
+- **This repository is public on GitHub.** Never commit plain-text secrets, tokens, private keys, or certs.
+- **SOPS + Age rules** (`.sops.yaml`) — a secret file must match one of these patterns or it will NOT be encrypted:
+  - `.*\.sops\.yaml$` — Talos secrets (e.g. `talos/talsecret.sops.yaml`)
+  - `cluster/.*secret.*\.yaml$` — any Kubernetes/Flux secret under `cluster/` (filename must contain `secret` and end in `.yaml`, e.g. `secret.yaml`, `grafana-admin-secret.sops.yaml`)
+  - `nixos/secrets/.*\.yaml$` — NixOS host secrets (comin deploy key; per-host Age keys are added as recipients when sops-nix host secrets are introduced)
+- The local Age private key is expected at `$HOME/.config/sops/age/keys.txt` (exported by `.envrc`). Edit encrypted files with `sops <file>`; encrypt new ones with `sops --encrypt --in-place <file>`.
+- The comin GitHub deploy key is read from a local decrypted file only during impure SD-image builds (`NIXOS_COMIN_DEPLOY_KEY`); it never enters the Nix store or the repo in plain text. Delete the decrypted copy with `shred -u` after building.
+- `.gitignore` already excludes `*.key`, `*.pem`, `*.decrypted.*` — keep it that way.
+
+## Agent Checklist Before Executing a Task
+
+1. All comments/docs in **English**.
+2. New secret files match a `.sops.yaml` pattern and are SOPS-encrypted.
+3. Commands run inside the **Nix dev shell** (`direnv` or `nix develop --command`).
+4. Cluster commands use explicit `--kubeconfig talos/clusterconfig/kubeconfig` / `--talosconfig talos/clusterconfig/talosconfig`.
+5. Cluster changes are **declarative in `cluster/` + Flux reconcile** — never imperative `kubectl apply`/`helm install` (except explicitly authorized emergency debugging).
+6. New manifests use `${VARIABLES}` from `cluster/cluster-vars.yaml` where applicable and follow the one-resource-per-file + kustomization convention.
