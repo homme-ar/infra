@@ -49,7 +49,10 @@ spec:
               memory: 256Mi
             limits:
               cpu: "1"
-              memory: 1Gi
+              # 2Gi: SABnzbd 5.x defaults to a 1G article cache (cache_limit),
+              # so a 1Gi container limit was OOM-killing the pod on startup
+              # as soon as it resumed the download queue.
+              memory: 2Gi
           # SABnzbd has no unauthenticated health endpoint, so probe the TCP
           # port instead of an HTTP path.
           livenessProbe:
