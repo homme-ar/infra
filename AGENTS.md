@@ -33,7 +33,7 @@ The repository manages three distinct things:
 │   ├── flux-system/       #   Flux bootstrap + Kustomizations that drive everything
 │   ├── cluster-vars.yaml  #   ConfigMap for Flux post-build variable substitution
 │   ├── infrastructure/    #   networking/, security/, storage/, observability/
-│   └── apps/              #   platform/, iot/, legacy/
+│   └── apps/              #   platform/, iot/, legacy/, media/
 ├── nixos/                 # Standalone Nix flake: NixOS configs for the RPi4 hosts
 │   ├── flake.nix          #   Own inputs (nixpkgs nixos-26.05, comin, sops-nix, ...)
 │   ├── hosts/             #   Per-host entry points: ntp/, dns/

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nas-media
+  namespace: bazarr
+  labels:
+    app.kubernetes.io/name: bazarr
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: bazarr-nas
+  resources:
+    requests:
+      storage: 1Pi
