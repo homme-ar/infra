@@ -84,15 +84,23 @@ spec:
             operator: Exists
             effect: NoSchedule
         # External (non-k8s) targets: the auxiliary Raspberry Pi 4 hosts.
-        # ser-ntp1: node-exporter (9100), chrony exporter (9123), gpsd exporter (9015).
-        # ser-dns1: node-exporter (9100). AdGuard metrics come from the
-        # in-cluster adguard-exporter (see observability/adguard-exporter).
+        # node-exporter shares the in-cluster job name so the RPis show up in
+        # the standard Node Exporter dashboards; `instance` is set to the
+        # hostname for readability (default would be the IP:port).
+        # ser-ntp1 also runs chrony (:9123) and gpsd (:9015) exporters.
+        # AdGuard metrics come from the in-cluster adguard-exporter
+        # (see observability/adguard-exporter).
         additionalScrapeConfigs:
-          - job_name: rpi-node
+          - job_name: node-exporter
             static_configs:
               - targets:
                   - "${SER_NTP1_IP}:9100"
+                labels:
+                  instance: ser-ntp1
+              - targets:
                   - "${SER_DNS1_IP}:9100"
+                labels:
+                  instance: ser-dns1
           - job_name: ser-ntp1-chrony
             static_configs:
               - targets:
