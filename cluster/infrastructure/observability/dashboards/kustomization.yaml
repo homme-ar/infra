@@ -1,0 +1,31 @@
+# Grafana dashboards for the auxiliary hosts, imported automatically by the
+# kube-prometheus-stack dashboard sidecar (it watches ConfigMaps labeled
+# grafana_dashboard: "1" in all namespaces).
+# Sources:
+#   gpsd.json    https://github.com/brendanbank/gpsd-prometheus-exporter
+#   chrony.json  https://grafana.com/grafana/dashboards/19186 (chrony-exporter)
+#   adguard.json https://github.com/henrywhitaker3/adguard-exporter
+# Datasources in the JSON are normalized to {"type": "prometheus"} so they
+# resolve to the default Prometheus datasource at runtime.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: observability
+configMapGenerator:
+  - name: grafana-dashboard-gpsd
+    files:
+      - gpsd.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+  - name: grafana-dashboard-chrony
+    files:
+      - chrony.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+  - name: grafana-dashboard-adguard
+    files:
+      - adguard.json
+    options:
+      labels:
+        grafana_dashboard: "1"
