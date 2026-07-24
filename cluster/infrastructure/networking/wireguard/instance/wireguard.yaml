@@ -6,8 +6,8 @@ metadata:
 spec:
   # MTU tuned for typical homelab ISP tunnels.
   mtu: "1380"
-  # DNS servers pushed to all peers (legacy in-cluster DNS + public fallback).
-  dns: "${LEGACY_DNS_IP}, 1.1.1.1"
+  # DNS servers pushed to all peers (AdGuard Home + public fallback).
+  dns: "${SER_DNS1_IP}, 1.1.1.1"
   # Public hostname peers use as their endpoint.
   externalAddress: "vpn.${CLUSTER_DOMAIN}"
   serviceType: LoadBalancer

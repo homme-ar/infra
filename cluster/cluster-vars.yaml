@@ -25,22 +25,6 @@ data:
   # ── Specific LB IPs reserved for well-known services ──────────────────────
   # Wildcard DNS answer IP (same as pool start / gateway IP)
   LB_WILDCARD_IP: "198.51.100.1"
-  # Dedicated LoadBalancer IP for the legacy CoreDNS service
-  LB_DNS_IP: "198.51.100.10"
-
-  # ── Legacy network (pre-k8s homelab hosts on 10.0.11.x) ──────────────────
-  LEGACY_INGRESS_IP: "192.0.2.101"
-  LEGACY_POSTGRES_IP: "192.0.2.102"
-  LEGACY_REDIS_IP: "192.0.2.103"
-  LEGACY_MQTT_IP: "192.0.2.104"
-  LEGACY_HA_IP: "192.0.2.105"
-  LEGACY_FRIGATE_IP: "192.0.2.106"
-  LEGACY_DNS_IP: "192.0.2.107"
-  LEGACY_VPN_IP: "192.0.2.108"
-  LEGACY_MYSQL_IP: "192.0.2.110"
-
-  # ── NTP server ────────────────────────────────────────────────────────────
-  NTP_SERVER_IP: "192.0.2.7"
 
   # ── Auxiliary NixOS hosts (Raspberry Pi 4, DHCP reservations) ─────────────
   # AdGuard Home DNS server
@@ -50,11 +34,6 @@ data:
 
   # ── OCI cloud hosts ───────────────────────────────────────────────────────
   OCI_CLOUD_IP: "203.0.113.10"
-
-  # ── Kubernetes node IPs (used by legacy CoreDNS for k8s.local.* records) ──
-  K8S_NODE1_IP: "192.0.2.11"
-  K8S_NODE2_IP: "192.0.2.12"
-  K8S_NODE3_IP: "192.0.2.13"
 
   # ── Storage ───────────────────────────────────────────────────────────────
   STORAGE_CLASS: "longhorn"
