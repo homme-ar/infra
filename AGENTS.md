@@ -144,7 +144,7 @@ There is **no automated test suite**. Validation is:
 - **Helm apps**: a `repository.yaml` (HelmRepository) + `release.yaml` (HelmRelease) pair per component; plain-manifest apps use Deployments directly.
 - **Variable substitution**: cluster-wide values (domain `homme.ar`, LB IPs, storage classes, legacy IPs) live in `cluster/cluster-vars.yaml` and are referenced as `${VARIABLE_NAME}`; every Flux Kustomization has `postBuild.substituteFrom` pointing at that ConfigMap. Use these variables instead of hardcoding IPs/domains.
 - **Flux ordering**: `gotk-sync.yaml` defines dedicated Kustomizations with `dependsOn`/`healthChecks` where CRDs must exist first (cert-manager-config after cert-manager, CNPG clusters after the operator, WireGuard CRs after wireguard-operator, ServiceMonitors after kube-prometheus-stack, all apps after infrastructure). When adding an operator + its CRs, follow this same two-phase pattern.
-- **Docs**: operational procedures go in `docs/` as Markdown runbooks (see `BOOTSTRAP.md`, the migration guides, `POSTGRES-PG18-UPGRADE.md`).
+- **Docs**: operational procedures go in `docs/` as Markdown runbooks (see `BOOTSTRAP.md`, `MEDIA-STACK.md`).
 
 ## Security Considerations
 

@@ -7,8 +7,6 @@ metadata:
     app.kubernetes.io/name: waha
     app.kubernetes.io/component: server
 spec:
-  # Scaled to 1 after the data migration completed
-  # (see docs/WAHA-MIGRATION.md, Phase 2).
   replicas: 1
   # Recreate ensures the RWO Longhorn PVCs are released before a new pod
   # attaches them, preventing multi-attach errors.

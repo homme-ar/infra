@@ -4,10 +4,8 @@ metadata:
   name: postgres
   namespace: postgres
 spec:
-  # PostgreSQL 18 — matches the version used by home-assistant-db and the
-  # legacy bitnami PG (18.4). Upgrading from PG17 required recreating the
-  # Cluster because CNPG forbids in-place major version bumps.
-  # See: docs/POSTGRES-PG18-UPGRADE.md
+  # PostgreSQL 18. Note: CNPG forbids in-place major version bumps — a
+  # future major upgrade requires recreating the Cluster (dump/restore).
   imageName: ghcr.io/cloudnative-pg/postgresql:18
 
   # 2 instances: 1 primary + 1 hot standby (streaming replication)
