@@ -1,16 +1,34 @@
 # AdGuard Home DNS server.
 #
-# First boot: complete the setup wizard at http://<host>:3000 to create the
-# admin credentials. The declarative `settings` below are merged into
-# /var/lib/AdGuardHome/AdGuardHome.yaml on every service start and take
-# precedence over changes made in the web UI for the same keys; everything
-# else (users, stats, query log, extra rewrites) remains manageable from the UI.
+# NOTE — admin credentials: the setup wizard only runs when AdGuard Home
+# starts without a config file, but this module always generates one, so the
+# wizard never appears and `users` stays empty (panel without auth). Create
+# the admin user once, directly on the host:
+#
+#   mkpasswd -m bcrypt -R 10 '<password>'          # on your workstation
+#   ssh admin@<host>
+#   sudo systemctl stop adguardhome
+#   sudo vim /var/lib/AdGuardHome/AdGuardHome.yaml # replace `users: []` with:
+#     users:
+#       - name: admin
+#         password: <bcrypt hash>
+#   sudo systemctl start adguardhome
+#
+# `users` is not part of the declarative settings below, so it survives
+# service restarts and comin deployments. The declarative `settings` are
+# merged into /var/lib/AdGuardHome/AdGuardHome.yaml on every service start
+# and take precedence over changes made in the web UI for the same keys;
+# everything else (stats, query log, extra rewrites) remains manageable
+# from the UI.
 { ... }:
 
 {
   services.adguardhome = {
     enable = true;
-    # Open the web UI / setup wizard port (3000/TCP). Does not cover DNS.
+    # Admin web UI on the standard HTTP port. The panel itself is protected
+    # by the admin credentials (see the note at the top of this file).
+    port = 80;
+    # Open the web UI port (80/TCP) in the firewall. Does not cover DNS.
     openFirewall = true;
     # Keep UI-managed state persistent while enforcing the baseline below.
     mutableSettings = true;
@@ -51,7 +69,8 @@
     };
   };
 
-  # DNS resolver ports (openFirewall only covers the web UI).
+  # DNS resolver ports (openFirewall only covers the web UI). The host sits
+  # behind NAT on the local network, so no source filtering is applied.
   networking.firewall = {
     allowedTCPPorts = [ 53 ];
     allowedUDPPorts = [ 53 ];

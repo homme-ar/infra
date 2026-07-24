@@ -108,7 +108,8 @@ kustomize build cluster/apps/platform/n8n
 # deploy key and an aarch64 builder or binfmt emulation)
 sops -d --extract '["comin_deploy_key"]' nixos/secrets/secrets.yaml > /tmp/comin_deploy_key
 chmod 644 /tmp/comin_deploy_key
-NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#sd-image-ntp   # or sd-image-dns
+NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#packages.aarch64-linux.sd-image-ntp   # or sd-image-dns
+# (the full `packages.aarch64-linux.` path is required on x86_64 build machines)
 shred -u /tmp/comin_deploy_key
 zstd -d result/sd-image/*.img.zst -o rpi.img   # then flash to SD
 
