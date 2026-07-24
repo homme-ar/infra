@@ -33,7 +33,7 @@ The repository manages three distinct things:
 │   ├── flux-system/       #   Flux bootstrap + Kustomizations that drive everything
 │   ├── cluster-vars.yaml  #   ConfigMap for Flux post-build variable substitution
 │   ├── infrastructure/    #   networking/, security/, storage/, observability/
-│   └── apps/              #   platform/, iot/, legacy/, media/
+│   └── apps/              #   platform/, iot/, media/
 ├── nixos/                 # Standalone Nix flake: NixOS configs for the RPi4 hosts
 │   ├── flake.nix          #   Own inputs (nixpkgs nixos-26.05, comin, sops-nix, ...)
 │   ├── hosts/             #   Per-host entry points: ser-ntp1/, ser-dns1/
@@ -143,7 +143,7 @@ There is **no automated test suite**. Validation is:
 - **Images**: pinned to explicit versions (e.g. `n8nio/n8n:2.25.5`), `imagePullPolicy: IfNotPresent`.
 - **Pods**: non-root `securityContext`, dropped capabilities, resource requests/limits, liveness/readiness probes. Stateful apps use `strategy: Recreate` with RWO Longhorn PVCs to avoid multi-attach errors.
 - **Helm apps**: a `repository.yaml` (HelmRepository) + `release.yaml` (HelmRelease) pair per component; plain-manifest apps use Deployments directly.
-- **Variable substitution**: cluster-wide values (domain `homme.ar`, LB IPs, storage classes, legacy IPs) live in `cluster/cluster-vars.yaml` and are referenced as `${VARIABLE_NAME}`; every Flux Kustomization has `postBuild.substituteFrom` pointing at that ConfigMap. Use these variables instead of hardcoding IPs/domains.
+- **Variable substitution**: cluster-wide values (domain `homme.ar`, LB IPs, storage classes) live in `cluster/cluster-vars.yaml` and are referenced as `${VARIABLE_NAME}`; every Flux Kustomization has `postBuild.substituteFrom` pointing at that ConfigMap. Use these variables instead of hardcoding IPs/domains.
 - **Flux ordering**: `gotk-sync.yaml` defines dedicated Kustomizations with `dependsOn`/`healthChecks` where CRDs must exist first (cert-manager-config after cert-manager, CNPG clusters after the operator, WireGuard CRs after wireguard-operator, ServiceMonitors after kube-prometheus-stack, all apps after infrastructure). When adding an operator + its CRs, follow this same two-phase pattern.
 - **Docs**: operational procedures go in `docs/` as Markdown runbooks (see `BOOTSTRAP.md`, `MEDIA-STACK.md`).
 
