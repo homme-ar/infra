@@ -8,6 +8,8 @@
 let
   # GPIO pin carrying the PPS (pulse-per-second) signal.
   ppsGpioPin = 18;
+
+  gpsd-prometheus-exporter = pkgs.callPackage ../../pkgs/gpsd-prometheus-exporter.nix { };
 in
 {
   # --- Boot hardening against GPS UART chatter ---
@@ -54,7 +56,13 @@ in
   # --- GPS receiver (NMEA stream) ---
   services.gpsd = {
     enable = true;
-    devices = [ "/dev/ttyAMA0" ];
+    # /dev/pps0 makes gpsd emit PPS JSON messages (via KPPS), which the
+    # Prometheus exporter below turns into a PPS offset histogram. Multiple
+    # consumers of /dev/pps0 are fine (chrony reads it directly as well).
+    devices = [
+      "/dev/ttyAMA0"
+      "/dev/pps0"
+    ];
     # Poll the receiver even without clients: chrony reads the SHM segment.
     nowait = true;
     # Do not try to reconfigure the receiver (safe default).
@@ -89,6 +97,34 @@ in
 
   # NTP service port.
   networking.firewall.allowedUDPPorts = [ 123 ];
+
+  # --- Metrics (scraped by the cluster Prometheus) ---
+  services.prometheus.exporters.chrony = {
+    enable = true; # :9123
+    openFirewall = false;
+  };
+
+  systemd.services.gpsd-exporter = {
+    description = "Prometheus exporter for gpsd";
+    after = [ "gpsd.service" ];
+    requires = [ "gpsd.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = "${gpsd-prometheus-exporter}/bin/gpsd-exporter --pps-histogram";
+      DynamicUser = true;
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+  };
+
+  # chrony (:9123) and gpsd (:9015) exporter ports, reachable only from the
+  # Kubernetes nodes (10.0.20.0/24) and the office network (10.0.70.0/24).
+  networking.firewall.extraCommands = ''
+    for cidr in 10.0.20.0/24 10.0.70.0/24; do
+      iptables -A nixos-fw -p tcp -s "$cidr" --dport 9123 -j nixos-fw-accept
+      iptables -A nixos-fw -p tcp -s "$cidr" --dport 9015 -j nixos-fw-accept
+    done
+  '';
 
   # Diagnostic tools: ppstest, cgps, gpsmon, chronyc.
   environment.systemPackages = with pkgs; [

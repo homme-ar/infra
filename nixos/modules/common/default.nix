@@ -107,8 +107,10 @@
         branches.main.name = "main";
       }
     ];
-    # Prometheus metrics on :4243 (comin deployment status).
-    exporter.openFirewall = true;
+    # Prometheus metrics on :4243 (comin deployment status). Reachable only
+    # from the Kubernetes nodes and the office network (see the firewall
+    # rules in the monitoring section below).
+    exporter.openFirewall = false;
   };
 
   # GitHub SSH host key, pinned so comin can verify the remote
@@ -132,8 +134,18 @@
   # Node metrics on :9100, scraped by the cluster Prometheus.
   services.prometheus.exporters.node = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
   };
+
+  # Metrics ports (node-exporter :9100, comin :4243) are only reachable from
+  # the Kubernetes nodes (10.0.20.0/24) and the office network (10.0.70.0/24).
+  # Host-specific exporters add their own rules in their modules.
+  networking.firewall.extraCommands = ''
+    for cidr in 10.0.20.0/24 10.0.70.0/24; do
+      iptables -A nixos-fw -p tcp -s "$cidr" --dport 9100 -j nixos-fw-accept
+      iptables -A nixos-fw -p tcp -s "$cidr" --dport 4243 -j nixos-fw-accept
+    done
+  '';
 
   # --- Base tooling ---
   environment.systemPackages = with pkgs; [
