@@ -93,17 +93,6 @@
           hostname = "ser-dns1";
           hostModule = ./hosts/ser-dns1;
         };
-
-        # Temporary aliases for the rename ntp -> ser-ntp1 / dns -> ser-dns1.
-        # comin picks the nixosConfiguration named after the hostName of the
-        # *running* generation: the devices still run generations configured
-        # as ntp/dns (or ser_ntp1/ser_dns1, from the first rename attempt)
-        # until they deploy the new configuration. Remove these once every
-        # host runs under its final hostname.
-        ntp = self.nixosConfigurations.ser-ntp1;
-        dns = self.nixosConfigurations.ser-dns1;
-        ser_ntp1 = self.nixosConfigurations.ser-ntp1;
-        ser_dns1 = self.nixosConfigurations.ser-dns1;
       };
 
       # SD card images for the initial provisioning of each host. Each image
