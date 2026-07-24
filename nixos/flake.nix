@@ -83,16 +83,24 @@
     {
       nixosConfigurations = {
         # GPS-disciplined NTP stratum 1 server
-        ntp = mkHost {
-          hostname = "ntp";
-          hostModule = ./hosts/ntp;
+        ser_ntp1 = mkHost {
+          hostname = "ser_ntp1";
+          hostModule = ./hosts/ser_ntp1;
         };
 
         # AdGuard Home DNS server
-        dns = mkHost {
-          hostname = "dns";
-          hostModule = ./hosts/dns;
+        ser_dns1 = mkHost {
+          hostname = "ser_dns1";
+          hostModule = ./hosts/ser_dns1;
         };
+
+        # Temporary aliases for the rename ntp -> ser_ntp1 / dns -> ser_dns1.
+        # comin picks the nixosConfiguration matching the host's *current*
+        # hostname, and the devices still report their old names until they
+        # deploy the new configuration. Remove these once every host runs
+        # under its new hostname.
+        ntp = self.nixosConfigurations.ser_ntp1;
+        dns = self.nixosConfigurations.ser_dns1;
       };
 
       # SD card images for the initial provisioning of each host. Each image
@@ -102,7 +110,7 @@
       #
       #   sops -d --extract '["comin_deploy_key"]' nixos/secrets/secrets.yaml > /tmp/comin_deploy_key
       #   chmod 644 /tmp/comin_deploy_key  # readable by the Nix build user
-      #   NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#packages.aarch64-linux.sd-image-ntp
+      #   NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#packages.aarch64-linux.sd-image-ser_ntp1
       #   (the full `packages.aarch64-linux.` path is required on x86_64 build machines)
       #   shred -u /tmp/comin_deploy_key
       #
@@ -110,8 +118,8 @@
       # remote aarch64 builder or binfmt emulation (boot.binfmt.emulatedSystems).
       #   zstd -d result/sd-image/*.img.zst -o rpi.img  # then flash it to the SD card
       packages.${system} = {
-        sd-image-ntp = mkSdImage "ntp";
-        sd-image-dns = mkSdImage "dns";
+        sd-image-ser_ntp1 = mkSdImage "ser_ntp1";
+        sd-image-ser_dns1 = mkSdImage "ser_dns1";
       };
     };
 }

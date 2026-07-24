@@ -1,4 +1,4 @@
-# Host: dns — AdGuard Home DNS server.
+# Host: ser_dns1 — AdGuard Home DNS server.
 { ... }:
 
 {
