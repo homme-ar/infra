@@ -1,0 +1,20 @@
+# ServiceMonitor for the AdGuard Home exporter (metrics of the AdGuard Home
+# instance running on ser-dns1, collected over its HTTP API).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: adguard-exporter
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: adguard-exporter
+spec:
+  namespaceSelector:
+    matchNames:
+      - observability
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: adguard-exporter
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

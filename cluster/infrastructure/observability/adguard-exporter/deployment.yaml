@@ -1,0 +1,65 @@
+# Prometheus exporter for the AdGuard Home instance running on ser-dns1
+# (external Raspberry Pi). It polls the AdGuard HTTP API with the admin
+# credentials from the adguard-exporter secret.
+# https://github.com/henrywhitaker3/adguard-exporter
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adguard-exporter
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: adguard-exporter
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: adguard-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: adguard-exporter
+    spec:
+      containers:
+        - name: adguard-exporter
+          image: ghcr.io/henrywhitaker3/adguard-exporter:v1.2.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ADGUARD_SERVERS
+              value: "http://${SER_DNS1_IP}"
+            - name: INTERVAL
+              value: "30s"
+            - name: ADGUARD_USERNAMES
+              valueFrom:
+                secretKeyRef:
+                  name: adguard-exporter
+                  key: adguard-username
+            - name: ADGUARD_PASSWORDS
+              valueFrom:
+                secretKeyRef:
+                  name: adguard-exporter
+                  key: adguard-password
+          ports:
+            - name: metrics
+              containerPort: 9618
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics

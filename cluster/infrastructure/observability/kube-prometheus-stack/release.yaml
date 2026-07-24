@@ -83,6 +83,24 @@ spec:
           - key: node-role.kubernetes.io/control-plane
             operator: Exists
             effect: NoSchedule
+        # External (non-k8s) targets: the auxiliary Raspberry Pi 4 hosts.
+        # ser-ntp1: node-exporter (9100), chrony exporter (9123), gpsd exporter (9015).
+        # ser-dns1: node-exporter (9100). AdGuard metrics come from the
+        # in-cluster adguard-exporter (see observability/adguard-exporter).
+        additionalScrapeConfigs:
+          - job_name: rpi-node
+            static_configs:
+              - targets:
+                  - "${SER_NTP1_IP}:9100"
+                  - "${SER_DNS1_IP}:9100"
+          - job_name: ser-ntp1-chrony
+            static_configs:
+              - targets:
+                  - "${SER_NTP1_IP}:9123"
+          - job_name: ser-ntp1-gpsd
+            static_configs:
+              - targets:
+                  - "${SER_NTP1_IP}:9015"
       service:
         # Label so Headlamp's prometheus plugin can autodiscover this Service
         additionalLabels:

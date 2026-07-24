@@ -5,3 +5,4 @@ resources:
   - metrics-server
   - node-feature-discovery
   - kube-prometheus-stack
+  - adguard-exporter

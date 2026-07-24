@@ -42,6 +42,12 @@ data:
   # ── NTP server ────────────────────────────────────────────────────────────
   NTP_SERVER_IP: "10.0.7.1"
 
+  # ── Auxiliary NixOS hosts (Raspberry Pi 4, DHCP reservations) ─────────────
+  # AdGuard Home DNS server
+  SER_DNS1_IP: "10.0.10.1"
+  # GPS-disciplined NTP stratum 1 server
+  SER_NTP1_IP: "10.0.10.2"
+
   # ── OCI cloud hosts ───────────────────────────────────────────────────────
   OCI_CLOUD_IP: "129.151.125.247"
 

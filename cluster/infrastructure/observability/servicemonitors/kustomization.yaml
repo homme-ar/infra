@@ -5,3 +5,4 @@ resources:
   - longhorn.yaml
   - cilium.yaml
   - flux.yaml
+  - adguard.yaml
