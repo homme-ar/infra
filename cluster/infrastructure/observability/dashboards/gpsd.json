@@ -1734,7 +1734,7 @@
           },
           "expr": "histogram_quantile($percentiles, sum(rate(gpsd_pps_histogram_bucket{instance=~\".*$instance.*\",device=\"$device\"}[$rateinterval])) by (le))",
           "interval": "",
-          "legendFormat": "${percentiles}th percentile positive Clock offset",
+          "legendFormat": "$${percentiles}th percentile positive Clock offset",
           "refId": "A"
         },
         {
@@ -1752,7 +1752,7 @@
           },
           "expr": "histogram_quantile((1- $percentiles), sum(rate(gpsd_pps_histogram_bucket{instance=~\".*$instance.*\",device=\"$device\"}[$rateinterval])) by (le))",
           "interval": "",
-          "legendFormat": "(100-${percentiles})th percentile negative Clock offset",
+          "legendFormat": "(100-$${percentiles})th percentile negative Clock offset",
           "refId": "B"
         }
       ],
