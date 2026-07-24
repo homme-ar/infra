@@ -33,6 +33,17 @@
   # script above only updates the partition when it is mounted.
   fileSystems."/boot/firmware".options = lib.mkForce [ "nofail" ];
 
+  # The generic SD image profile enables `hardware.enableAllHardware`, which
+  # adds initrd modules for many ARM SoCs (Rockchip, Allwinner, ...) that do
+  # not exist in the Raspberry Pi kernel, breaking the initrd build
+  # ("modprobe: FATAL: Module dw-hdmi not found in directory ..."). Restrict
+  # the initrd module list to what the RPi 4 kernel actually ships (this
+  # mirrors nixos-hardware's raspberry-pi-4 module).
+  boot.initrd.availableKernelModules = lib.mkForce [
+    "pcie-brcmstb" # required for the PCIe bus (and thus USB) to work
+    "reset-raspberrypi" # required for the VL805 USB firmware to load
+  ];
+
   # No ZFS pools are used on these hosts (silences an upstream warning).
   boot.zfs.forceImportRoot = false;
 
