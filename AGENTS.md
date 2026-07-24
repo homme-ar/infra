@@ -16,7 +16,7 @@ The repository manages three distinct things:
 
 - **Kubernetes nodes**: 3 × Minisforum MS-A2 (`ser-msa2cp1` `192.0.2.2`, `ser-msa2cp2` `192.0.2.3`, `ser-msa2cp3` `192.0.2.4`), all control-plane, with a shared VIP `192.0.2.1` (API endpoint `https://192.0.2.1:6443`). Scheduling on control planes is allowed.
 - **Versions**: Talos `v1.13.6`, Kubernetes `v1.36.0` (pinned in `talos/talconfig.yaml`).
-- **Auxiliary hosts**: `ntp` (GPS-disciplined NTP stratum 1 via chrony) and `dns` (AdGuard Home), both Raspberry Pi 4 running NixOS (see `nixos/`).
+- **Auxiliary hosts**: `ser_ntp1` (GPS-disciplined NTP stratum 1 via chrony) and `ser_dns1` (AdGuard Home), both Raspberry Pi 4 running NixOS (see `nixos/`).
 
 ## Repository Layout
 
@@ -36,7 +36,7 @@ The repository manages three distinct things:
 │   └── apps/              #   platform/, iot/, legacy/, media/
 ├── nixos/                 # Standalone Nix flake: NixOS configs for the RPi4 hosts
 │   ├── flake.nix          #   Own inputs (nixpkgs nixos-26.05, comin, sops-nix, ...)
-│   ├── hosts/             #   Per-host entry points: ntp/, dns/
+│   ├── hosts/             #   Per-host entry points: ser_ntp1/, ser_dns1/
 │   ├── modules/           #   Shared modules: common/, chrony-gps/, adguard/
 │   └── secrets/           #   SOPS-encrypted host secrets (comin deploy key, ...)
 ├── scripts/               # Helper CLI scripts (added to PATH by the dev shell)
@@ -108,13 +108,13 @@ kustomize build cluster/apps/platform/n8n
 # deploy key and an aarch64 builder or binfmt emulation)
 sops -d --extract '["comin_deploy_key"]' nixos/secrets/secrets.yaml > /tmp/comin_deploy_key
 chmod 644 /tmp/comin_deploy_key
-NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#packages.aarch64-linux.sd-image-ntp   # or sd-image-dns
+NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#packages.aarch64-linux.sd-image-ser_ntp1   # or sd-image-ser_dns1
 # (the full `packages.aarch64-linux.` path is required on x86_64 build machines)
 shred -u /tmp/comin_deploy_key
 zstd -d result/sd-image/*.img.zst -o rpi.img   # then flash to SD
 
 # Check the flake evaluates (fast sanity check for Nix edits)
-nix flake check ./nixos --no-build   # or: nix eval ./nixos#nixosConfigurations.ntp.config.system.build.toplevel.drvPath
+nix flake check ./nixos --no-build   # or: nix eval ./nixos#nixosConfigurations.ser_ntp1.config.system.build.toplevel.drvPath
 ```
 
 After first boot, hosts self-update via comin — changes are deployed by committing to this repo, not by SSHing in.
