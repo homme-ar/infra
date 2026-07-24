@@ -38,6 +38,7 @@ The repository manages three distinct things:
 │   ├── flake.nix          #   Own inputs (nixpkgs nixos-26.05, comin, sops-nix, ...)
 │   ├── hosts/             #   Per-host entry points: ser-ntp1/, ser-dns1/
 │   ├── modules/           #   Shared modules: common/, chrony-gps/, adguard/
+│   ├── pkgs/              #   Custom packages not in nixpkgs (gpsd-prometheus-exporter)
 │   └── secrets/           #   SOPS-encrypted host secrets (comin deploy key, ...)
 ├── scripts/               # Helper CLI scripts (added to PATH by the dev shell)
 │   ├── wireguard-config   #   Print a WireGuard peer config from the cluster secret
