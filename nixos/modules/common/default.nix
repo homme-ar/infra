@@ -99,6 +99,10 @@
       {
         name = "origin";
         url = "git@github.com:homme-ar/infra.git";
+        # GitHub's SSH endpoint requires the `git` user; the comin module
+        # defaults to `comin`, which GitHub rejects (that default is only
+        # valid for HTTPS token auth).
+        auth.username = "git";
         auth.ssh_deploy_key_path = "/var/lib/comin/deploy_key";
         branches.main.name = "main";
       }
