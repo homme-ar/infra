@@ -72,7 +72,7 @@
             the comin deploy key, e.g.:
               sops -d --extract '["comin_deploy_key"]' nixos/secrets/secrets.yaml > /tmp/comin_deploy_key
               chmod 644 /tmp/comin_deploy_key
-              NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#sd-image-${hostname}
+              NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#packages.aarch64-linux.sd-image-${hostname}
               shred -u /tmp/comin_deploy_key
           ''
         else
@@ -102,7 +102,8 @@
       #
       #   sops -d --extract '["comin_deploy_key"]' nixos/secrets/secrets.yaml > /tmp/comin_deploy_key
       #   chmod 644 /tmp/comin_deploy_key  # readable by the Nix build user
-      #   NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#sd-image-ntp
+      #   NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#packages.aarch64-linux.sd-image-ntp
+      #   (the full `packages.aarch64-linux.` path is required on x86_64 build machines)
       #   shred -u /tmp/comin_deploy_key
       #
       # Building an aarch64-linux image on an x86_64 machine also requires a
