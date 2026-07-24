@@ -1,4 +1,4 @@
-# Host: ser_ntp1 — GPS-disciplined NTP stratum 1 server.
+# Host: ser-ntp1 — GPS-disciplined NTP stratum 1 server.
 { ... }:
 
 {
