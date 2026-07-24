@@ -10,6 +10,22 @@ let
   ppsGpioPin = 18;
 in
 {
+  # --- Boot hardening against GPS UART chatter ---
+  # The GPS module (GT-U7) streams NMEA sentences into the Pi's RX pin from
+  # power-on. U-Boot reads that stream as console keypresses and drops to its
+  # interactive prompt instead of auto-booting. `CONFIG_BOOTDELAY=-2` makes
+  # U-Boot boot immediately without checking for keypresses (the SD image has
+  # no env storage, so `saveenv` cannot persist `bootdelay`).
+  hardware.raspberry-pi.firmware.uboot.package = pkgs.ubootRaspberryPiAarch64.override (old: {
+    extraConfig = (old.extraConfig or "") + ''
+      CONFIG_BOOTDELAY=-2
+    '';
+  });
+
+  # The same NMEA chatter would also land keys on the extlinux generation
+  # menu; boot the default generation instantly instead of showing it.
+  boot.loader.timeout = 0;
+
   # --- UART / PPS wiring (config.txt, applied by the GPU firmware) ---
   # enable_uart is already on by default (U-Boot needs it). `disable-bt`
   # disables the Bluetooth modem and maps the PL011 UART (/dev/ttyAMA0) to
