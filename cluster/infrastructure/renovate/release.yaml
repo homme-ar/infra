@@ -38,14 +38,14 @@ spec:
           prHourlyLimit: 5,
           prConcurrentLimit: 10,
           labels: ['dependencies'],
-          // Default fileMatch of these managers only covers files named
-          // helmrelease.yaml / kubernetes manifests in specific dirs; this repo
-          // keeps Flux HelmReleases in release.yaml files under cluster/.
+          // Default managerFilePatterns of these managers only cover files
+          // named helmrelease.yaml / kubernetes manifests in specific dirs;
+          // this repo keeps Flux HelmReleases in release.yaml files under cluster/.
           flux: {
-            fileMatch: ['cluster/.*\\.yaml$'],
+            managerFilePatterns: ['/cluster\\/.*\\.yaml$/'],
           },
           kubernetes: {
-            fileMatch: ['cluster/.*\\.yaml$'],
+            managerFilePatterns: ['/cluster\\/.*\\.yaml$/'],
           },
           // One PR per project (leaf directory under cluster/), containing all
           // of its dependency updates. When adding a new app/component, add a
