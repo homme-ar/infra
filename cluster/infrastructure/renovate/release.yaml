@@ -1,0 +1,73 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: renovate
+  namespace: renovate
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: renovate
+      version: "46.*"
+      sourceRef:
+        kind: HelmRepository
+        name: renovate
+        namespace: flux-system
+      interval: 12h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    cronjob:
+      schedule: "17 * * * *"
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 3
+      failedJobsHistoryLimit: 3
+      jobBackoffLimit: 1
+    renovate:
+      configIsJavaScript: true
+      config: |
+        module.exports = {
+          platform: 'github',
+          repositories: ['homme-ar/infra'],
+          onboarding: false,
+          requireConfig: 'ignored',
+          prHourlyLimit: 5,
+          prConcurrentLimit: 10,
+          labels: ['dependencies'],
+        };
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+    # All keys of this secret are injected as environment variables
+    # (RENOVATE_APP_ID, RENOVATE_PRIVATE_KEY_PATH).
+    existingSecret: renovate-github-app
+    env:
+      LOG_LEVEL: info
+    extraVolumes:
+      - name: github-app-key
+        secret:
+          secretName: renovate-github-app
+          defaultMode: 0400
+          items:
+            - key: app-private-key.pem
+              path: app-private-key.pem
+    extraVolumeMounts:
+      - name: github-app-key
+        mountPath: /secrets
+        readOnly: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi

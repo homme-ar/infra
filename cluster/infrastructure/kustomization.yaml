@@ -6,3 +6,4 @@ resources:
   - storage
   - observability
   - etcd-backup
+  - renovate
