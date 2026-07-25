@@ -27,6 +27,20 @@ spec:
       successfulJobsHistoryLimit: 3
       failedJobsHistoryLimit: 3
       jobBackoffLimit: 1
+      # Renovate no longer accepts App ID + private key directly; it requires a
+      # GitHub App installation token (RENOVATE_TOKEN). Mint one at job start:
+      # sign a JWT with the App private key and exchange it for an installation
+      # token (valid for 1h, so it must be generated on every run).
+      preCommand: |
+        b64url() { openssl base64 -e -A | tr '+/' '-_' | tr -d '='; }
+        now=$(date +%s)
+        jwt_header=$(printf '{"alg":"RS256","typ":"JWT"}' | b64url)
+        jwt_payload=$(printf '{"iat":%d,"exp":%d,"iss":%s}' $((now - 60)) $((now + 540)) "$RENOVATE_APP_ID" | b64url)
+        jwt_signature=$(printf '%s.%s' "$jwt_header" "$jwt_payload" | openssl dgst -sha256 -sign "$RENOVATE_PRIVATE_KEY_PATH" -binary | b64url)
+        jwt="$jwt_header.$jwt_payload.$jwt_signature"
+        installation_id=$(curl -sf -H "Authorization: Bearer $jwt" -H "Accept: application/vnd.github+json" https://api.github.com/app/installations | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
+        export RENOVATE_TOKEN=$(curl -sf -X POST -H "Authorization: Bearer $jwt" -H "Accept: application/vnd.github+json" "https://api.github.com/app/installations/$installation_id/access_tokens" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+        echo "Minted GitHub App installation token for installation $installation_id"
     renovate:
       configIsJavaScript: true
       config: |
