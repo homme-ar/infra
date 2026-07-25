@@ -35,8 +35,10 @@ spec:
           repositories: ['homme-ar/infra'],
           onboarding: false,
           requireConfig: 'ignored',
-          prHourlyLimit: 5,
+          // NOTE: temporarily unlimited to catch up on the backlog; set back to 5.
+          prHourlyLimit: 0,
           prConcurrentLimit: 10,
+          dependencyDashboard: true,
           labels: ['dependencies'],
           // Default managerFilePatterns of these managers only cover files
           // named helmrelease.yaml / kubernetes manifests in specific dirs;
