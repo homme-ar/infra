@@ -57,7 +57,7 @@ The repository manages three distinct things:
 - **TLS**: cert-manager with Let's Encrypt (Cloudflare DNS-01), issuers in `cluster/infrastructure/security/cert-manager-config/`.
 - **Observability**: kube-prometheus-stack, metrics-server, node-feature-discovery, plus ServiceMonitors for cilium/cnpg/flux/longhorn.
 - **VPN**: WireGuard via the wireguard-operator (CRs in `cluster/infrastructure/networking/wireguard/instance/`, one `WireguardPeer` per device).
-- **Dependency updates**: Renovate self-hosted (CronJob via the official Helm chart in `cluster/infrastructure/renovate/`, hourly) opens PRs against `main` with Helm chart and container image updates. Authenticates to GitHub as a GitHub App (credentials in the SOPS-encrypted `renovate-github-app` secret).
+- **Dependency updates**: Renovate self-hosted (CronJob via the official Helm chart in `cluster/infrastructure/renovate/`, hourly) opens PRs against `main` with Helm chart and container image updates. Authenticates to GitHub with a fine-grained PAT (in the SOPS-encrypted `renovate-github-token` secret).
 - **Auxiliary hosts**: NixOS (aarch64) managed by **comin** (pull-based GitOps — each host polls this repo and switches to the `nixosConfigurations` output matching its hostname).
 
 ## Build & Run Commands
