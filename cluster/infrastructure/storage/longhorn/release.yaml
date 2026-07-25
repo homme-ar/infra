@@ -28,6 +28,10 @@ spec:
       defaultDataPath: "/var/lib/longhorn"
       createDefaultDiskLabeledNodes: false
       v2DataEngine: true
+      # Backup target: QNAP NAS over NFS. No credential secret needed for NFS.
+      # Note the Longhorn URL format requires ":" after the host.
+      backupTarget: "nfs://10.0.4.1:/backup/longhorn"
+      backupstorePollInterval: 300
     persistence:
       dataEngine: v2
     csi:

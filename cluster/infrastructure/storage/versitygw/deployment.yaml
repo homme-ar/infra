@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: versitygw
+  namespace: backup
+  labels:
+    app.kubernetes.io/name: versitygw
+spec:
+  replicas: 1
+  # Single writer on the NFS share; avoid multi-attach during rollouts
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: versitygw
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: versitygw
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: versitygw
+          image: versity/versitygw:v1.7.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--port"
+            - ":7070"
+            - "posix"
+            - "/data"
+          env:
+            # Root IAM credentials (see secret.yaml); used by CNPG barman.
+            - name: ROOT_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: versitygw-s3
+                  key: ROOT_ACCESS_KEY
+            - name: ROOT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: versitygw-s3
+                  key: ROOT_SECRET_KEY
+          ports:
+            - name: s3
+              containerPort: 7070
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          livenessProbe:
+            tcpSocket:
+              port: s3
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: s3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: versitygw-data

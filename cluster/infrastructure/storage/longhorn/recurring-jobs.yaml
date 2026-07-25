@@ -1,0 +1,38 @@
+# Recurring backup jobs to the QNAP NAS (backupTarget configured in release.yaml).
+# Volumes opt in via the label `recurring-job-group.longhorn.io/backup: enabled`
+# on their PVC (Longhorn propagates PVC labels to the volume via CSI).
+# Deliberately excluded: CNPG volumes (backed up via barmanObjectStore),
+# ntfy-cache and waha-media (regenerable data).
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: backup-daily
+  namespace: longhorn-system
+  labels:
+    app.kubernetes.io/name: longhorn
+    app.kubernetes.io/component: backup
+spec:
+  name: backup-daily
+  task: backup
+  cron: "0 3 * * *"
+  retain: 7
+  concurrency: 2
+  groups:
+    - backup
+---
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: backup-weekly
+  namespace: longhorn-system
+  labels:
+    app.kubernetes.io/name: longhorn
+    app.kubernetes.io/component: backup
+spec:
+  name: backup-weekly
+  task: backup
+  cron: "0 4 * * * 0"
+  retain: 4
+  concurrency: 2
+  groups:
+    - backup
