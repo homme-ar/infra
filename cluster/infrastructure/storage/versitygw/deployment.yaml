@@ -28,6 +28,13 @@ spec:
             - "--port"
             - ":7070"
             - "posix"
+            # NFS has no xattr support: keep S3 metadata in a local sidecar
+            # directory (Longhorn PVC mounted at /meta)
+            - "--sidecar"
+            - "/meta"
+            # Avoid copy_file_range hangs seen with some NFS servers on
+            # multipart completion (barman uploads large base backups)
+            - "--disable-copy-file-range"
             - "/data"
           env:
             # Root IAM credentials (see secret.yaml); used by CNPG barman.
@@ -47,6 +54,8 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+            - name: meta
+              mountPath: /meta
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
@@ -75,3 +84,6 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: versitygw-data
+        - name: meta
+          persistentVolumeClaim:
+            claimName: versitygw-meta
