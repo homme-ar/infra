@@ -31,7 +31,7 @@ metadata:
 spec:
   name: backup-weekly
   task: backup
-  cron: "0 4 * * * 0"
+  cron: "0 4 * * 0"
   retain: 4
   concurrency: 2
   groups:
