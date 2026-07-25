@@ -58,6 +58,30 @@ directories on the QNAP.
   Prometheus replays its WAL; worst case ~2h of the most recent metrics are
   lost. The 15-day TSDB history inside the volume survives.
 
+### One-time steps already performed on the live cluster
+
+These were applied manually once (documented for cluster rebuilds):
+
+1. **BackupTarget CR**: the `default` BackupTarget CR was created by
+   longhorn-manager with an empty URL (`defaultSettings` from the Helm chart
+   only apply on fresh installs, not upgrades). Fixed with:
+   ```bash
+   kubectl -n longhorn-system patch backuptarget default --type merge \
+     -p '{"spec":{"backupTargetURL":"nfs://10.0.4.1:/backup/longhorn"}}'
+   ```
+   On a fresh install the Helm `defaultSettings.backupTarget` should take
+   effect; verify `kubectl -n longhorn-system get backuptarget` shows
+   `AVAILABLE=true` after any rebuild.
+2. **Volume labels for existing volumes**: the PVC → volume label sync can
+   lag for pre-existing volumes. All 19 in-scope volumes were labeled
+   directly:
+   ```bash
+   kubectl get pvc -A -l recurring-job-group.longhorn.io/backup=enabled \
+     -o jsonpath='{range .items[*]}{.spec.volumeName}{"\n"}{end}' | while read vol; do
+     kubectl -n longhorn-system label volume "$vol" recurring-job-group.longhorn.io/backup=enabled --overwrite
+   done
+   ```
+
 ### CNPG policy details
 
 - `cluster/apps/platform/postgres/cluster.yaml`: `spec.backup` points barman at
