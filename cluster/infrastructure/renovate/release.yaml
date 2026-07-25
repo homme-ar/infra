@@ -56,7 +56,7 @@ spec:
       - name: github-app-key
         secret:
           secretName: renovate-github-app
-          defaultMode: 0400
+          defaultMode: 0444
           items:
             - key: app-private-key.pem
               path: app-private-key.pem
