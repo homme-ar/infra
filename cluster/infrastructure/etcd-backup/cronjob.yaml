@@ -30,7 +30,7 @@ spec:
             fsGroup: 1000
           initContainers:
             - name: fetch-talosctl
-              image: alpine:3.21
+              image: alpine:3.24
               imagePullPolicy: IfNotPresent
               command:
                 - /bin/sh
@@ -52,7 +52,7 @@ spec:
                     - ALL
           containers:
             - name: snapshot
-              image: alpine:3.21
+              image: alpine:3.24
               imagePullPolicy: IfNotPresent
               command:
                 - /bin/sh
