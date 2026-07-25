@@ -27,7 +27,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: lidarr
-          image: lscr.io/linuxserver/lidarr:3.1.0
+          image: lscr.io/linuxserver/lidarr:8.1.2135
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
