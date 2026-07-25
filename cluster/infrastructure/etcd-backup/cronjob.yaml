@@ -60,16 +60,16 @@ spec:
                 - |
                   set -e
                   TS=$(date +%F-%H%M)
-                  OUT="/out/etcd-snapshot-${TS}.db"
+                  OUT="/out/etcd-snapshot-$${TS}.db"
                   # Try each control-plane node until one answers
                   for NODE in 10.0.20.2 10.0.20.3 10.0.20.4; do
-                    echo "Attempting etcd snapshot from ${NODE}..."
-                    if /tools/talosctl --talosconfig /secrets/talosconfig -n "${NODE}" -e "${NODE}" etcd snapshot "${OUT}"; then
-                      echo "Snapshot saved: ${OUT}"
+                    echo "Attempting etcd snapshot from $${NODE}..."
+                    if /tools/talosctl --talosconfig /secrets/talosconfig -n "$${NODE}" -e "$${NODE}" etcd snapshot "$${OUT}"; then
+                      echo "Snapshot saved: $${OUT}"
                       break
                     fi
                   done
-                  test -s "${OUT}"
+                  test -s "$${OUT}"
                   # Retention: keep 14 days of snapshots
                   find /out -name 'etcd-snapshot-*.db' -mtime +14 -delete
                   ls -la /out
