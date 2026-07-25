@@ -38,6 +38,15 @@ spec:
           prHourlyLimit: 5,
           prConcurrentLimit: 10,
           labels: ['dependencies'],
+          // Default fileMatch of these managers only covers files named
+          // helmrelease.yaml / kubernetes manifests in specific dirs; this repo
+          // keeps Flux HelmReleases in release.yaml files under cluster/.
+          flux: {
+            fileMatch: ['cluster/.*\\.yaml$'],
+          },
+          kubernetes: {
+            fileMatch: ['cluster/.*\\.yaml$'],
+          },
         };
       securityContext:
         allowPrivilegeEscalation: false
