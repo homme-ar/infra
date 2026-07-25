@@ -4,6 +4,7 @@ resources:
   - namespace.yaml
   - pv-nfs.yaml
   - pvc-nfs.yaml
+  - pvc-meta.yaml
   - secret.yaml
   - deployment.yaml
   - service.yaml

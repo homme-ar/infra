@@ -1,0 +1,19 @@
+# Small Longhorn volume for the S3 metadata sidecar store. The NFS backend
+# does not support xattrs, so versitygw keeps object metadata (ETags,
+# multipart state) here instead. Not labeled for backup: losing it only
+# affects metadata of in-flight/older uploads, not the backup data itself.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: versitygw-meta
+  namespace: backup
+  labels:
+    app.kubernetes.io/name: versitygw
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ${STORAGE_CLASS_SINGLENODE}
+  resources:
+    requests:
+      storage: 2Gi
