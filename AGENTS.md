@@ -43,7 +43,7 @@ The repository manages three distinct things:
 ├── scripts/               # Helper CLI scripts (added to PATH by the dev shell)
 │   ├── wireguard-config   #   Print a WireGuard peer config from the cluster secret
 │   └── wireguard-qrcode   #   Render a peer config as a QR code
-└── docs/                  # Operational runbooks (bootstrap, migrations, upgrades)
+└── docs/                  # Operational runbooks (bootstrap, backups, migrations, upgrades)
 ```
 
 ## Technology Stack
@@ -145,7 +145,8 @@ There is **no automated test suite**. Validation is:
 - **Helm apps**: a `repository.yaml` (HelmRepository) + `release.yaml` (HelmRelease) pair per component; plain-manifest apps use Deployments directly.
 - **Variable substitution**: cluster-wide values (domain `example.com`, LB IPs, storage classes) live in `cluster/cluster-vars.yaml` and are referenced as `${VARIABLE_NAME}`; every Flux Kustomization has `postBuild.substituteFrom` pointing at that ConfigMap. Use these variables instead of hardcoding IPs/domains.
 - **Flux ordering**: `gotk-sync.yaml` defines dedicated Kustomizations with `dependsOn`/`healthChecks` where CRDs must exist first (cert-manager-config after cert-manager, CNPG clusters after the operator, WireGuard CRs after wireguard-operator, ServiceMonitors after kube-prometheus-stack, all apps after infrastructure). When adding an operator + its CRs, follow this same two-phase pattern.
-- **Docs**: operational procedures go in `docs/` as Markdown runbooks (see `BOOTSTRAP.md`, `MEDIA-STACK.md`).
+- **Backups**: the full policy lives in `docs/BACKUPS.md`. Longhorn volumes are backed up to the QNAP NAS **only if their PVC carries the label `recurring-job-group.longhorn.io/backup: enabled`** — add it to every new app PVC that should be backed up (exceptions: CNPG volumes, which use CNPG `barmanObjectStore` backups via the in-cluster Versity Gateway, and regenerable caches). etcd snapshots are taken daily by the `etcd-backup` CronJob (namespace `backup`).
+- **Docs**: operational procedures go in `docs/` as Markdown runbooks (see `BOOTSTRAP.md`, `BACKUPS.md`, `MEDIA-STACK.md`).
 
 ## Security Considerations
 

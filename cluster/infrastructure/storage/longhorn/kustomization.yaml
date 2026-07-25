@@ -5,4 +5,5 @@ resources:
   - repository.yaml
   - release.yaml
   - storage-class-singlenode.yaml
+  - recurring-jobs.yaml
   - httproute.yaml

@@ -66,6 +66,12 @@ spec:
         # at the operator level via replicas, not at the volume level)
         storageSpec:
           volumeClaimTemplate:
+            metadata:
+              labels:
+                # Include the TSDB volume in the Longhorn NAS backup jobs
+                # (see docs/BACKUPS.md). Only applies to newly created PVCs —
+                # existing claims were labeled manually (one-time kubectl label).
+                recurring-job-group.longhorn.io/backup: enabled
             spec:
               storageClassName: ${STORAGE_CLASS_SINGLENODE}
               accessModes: ["ReadWriteOnce"]
@@ -119,6 +125,12 @@ spec:
       alertmanagerSpec:
         storage:
           volumeClaimTemplate:
+            metadata:
+              labels:
+                # Include this volume in the Longhorn NAS backup jobs
+                # (see docs/BACKUPS.md). Only applies to newly created PVCs —
+                # existing claims were labeled manually (one-time kubectl label).
+                recurring-job-group.longhorn.io/backup: enabled
             spec:
               storageClassName: ${STORAGE_CLASS_SINGLENODE}
               accessModes: ["ReadWriteOnce"]

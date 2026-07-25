@@ -1,0 +1,16 @@
+# Weekly base backup of the PostgreSQL cluster to the Versity Gateway bucket.
+# WAL archiving (continuous) covers point-in-time recovery between base backups;
+# barman retentionPolicy "30d" (see cluster.yaml) prunes what falls out of the window.
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: postgres-weekly
+  namespace: postgres
+spec:
+  # Sundays at 02:00
+  schedule: "0 2 * * * 0"
+  backupOwnerReference: self
+  cluster:
+    name: postgres
+  # Take the backup from the primary to avoid waiting on standby catch-up
+  target: primary

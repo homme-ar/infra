@@ -6,6 +6,8 @@ metadata:
   labels:
     app.kubernetes.io/name: home-assistant
     app.kubernetes.io/component: storage
+    # Include this volume in the Longhorn NAS backup jobs (see docs/BACKUPS.md)
+    recurring-job-group.longhorn.io/backup: enabled
 spec:
   accessModes:
     - ReadWriteOnce

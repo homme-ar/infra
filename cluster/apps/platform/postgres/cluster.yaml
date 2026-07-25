@@ -57,6 +57,27 @@ spec:
   # Rolling update strategy — standby updated first, then primary
   primaryUpdateStrategy: unsupervised
 
+  # Continuous backup to the in-cluster Versity Gateway (S3 API over the QNAP
+  # NFS share /backup/versitygw). Base backups are taken weekly via the
+  # ScheduledBackup; WAL archiving is continuous, giving PITR to any second
+  # inside the 30-day retention window.
+  backup:
+    retentionPolicy: "30d"
+    barmanObjectStore:
+      destinationPath: s3://postgres
+      endpointURL: http://versitygw.backup.svc.cluster.local:7070
+      s3Credentials:
+        accessKeyId:
+          name: postgres-backup-s3
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: postgres-backup-s3
+          key: SECRET_ACCESS_KEY
+      wal:
+        compression: gzip
+      data:
+        compression: gzip
+
   # Affinity: spread instances across different nodes for HA
   affinity:
     podAntiAffinityType: preferred

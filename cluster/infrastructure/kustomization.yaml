@@ -5,3 +5,4 @@ resources:
   - security
   - storage
   - observability
+  - etcd-backup

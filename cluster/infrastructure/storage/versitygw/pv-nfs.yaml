@@ -1,0 +1,23 @@
+# Static NFS PV for the Versity Gateway backend storage.
+# Maps to /backup/versitygw on the QNAP NAS; S3 buckets are plain
+# subdirectories of that share (posix backend).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: versitygw-nfs
+  labels:
+    app.kubernetes.io/name: versitygw
+    app.kubernetes.io/component: storage
+spec:
+  capacity:
+    # Nominal size; the real capacity is whatever the QNAP share has.
+    storage: 1Pi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: ${NAS_IP}
+    path: /backup/versitygw
+    readOnly: false
