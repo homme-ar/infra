@@ -27,6 +27,30 @@ spec:
       successfulJobsHistoryLimit: 3
       failedJobsHistoryLimit: 3
       jobBackoffLimit: 1
+      # Copies the renovate-metrics binary into a shared volume so the main
+      # container can pipe the structured Renovate logs through it.
+      initContainers:
+        - name: renovate-metrics
+          image: ghcr.io/raffis/renovate-metrics:v0.0.15
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c", "cp /usr/bin/renovate-metrics /shared/renovate-metrics"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: renovate-metrics-bin
+              mountPath: /shared
+      # renovate-metrics parses the structured logs from stdout and pushes
+      # prometheus metrics to the pushgateway (observability/pushgateway).
+      # tee keeps the logs visible via kubectl logs; pipefail propagates a
+      # Renovate failure as a failed Job.
+      commandOverride: ["/bin/bash", "-c"]
+      argsOverride:
+        - |
+          set -o pipefail;
+          renovate | tee /dev/stderr | /shared/renovate-metrics push --prometheus=http://prometheus-pushgateway.observability:9091
     renovate:
       configIsJavaScript: true
       config: |
@@ -89,6 +113,7 @@ spec:
             { matchFileNames: ['cluster/infrastructure/observability/kube-prometheus-stack/**'], groupName: 'kube-prometheus-stack', groupSlug: 'kube-prometheus-stack' },
             { matchFileNames: ['cluster/infrastructure/observability/metrics-server/**'], groupName: 'metrics-server', groupSlug: 'metrics-server' },
             { matchFileNames: ['cluster/infrastructure/observability/node-feature-discovery/**'], groupName: 'node-feature-discovery', groupSlug: 'node-feature-discovery' },
+            { matchFileNames: ['cluster/infrastructure/observability/pushgateway/**'], groupName: 'pushgateway', groupSlug: 'pushgateway' },
             { matchFileNames: ['cluster/infrastructure/observability/servicemonitors/**'], groupName: 'servicemonitors', groupSlug: 'servicemonitors' },
             { matchFileNames: ['cluster/infrastructure/renovate/**'], groupName: 'renovate', groupSlug: 'renovate' },
             { matchFileNames: ['cluster/infrastructure/security/cert-manager-config/**'], groupName: 'cert-manager-config', groupSlug: 'cert-manager-config' },
@@ -107,10 +132,22 @@ spec:
     securityContext:
       runAsNonRoot: true
       runAsUser: 1000
+      # Makes the shared renovate-metrics-bin emptyDir writable by the
+      # initContainer (which also runs as uid 1000).
+      fsGroup: 1000
     # All keys of this secret are injected as environment variables (RENOVATE_TOKEN).
     existingSecret: renovate-github-token
     env:
-      LOG_LEVEL: info
+      # renovate-metrics requires the structured debug logs to extract metrics.
+      LOG_LEVEL: debug
+      LOG_FORMAT: json
+    extraVolumes:
+      - name: renovate-metrics-bin
+        emptyDir: {}
+    extraVolumeMounts:
+      - name: renovate-metrics-bin
+        mountPath: /shared
+        readOnly: true
     resources:
       requests:
         cpu: 100m

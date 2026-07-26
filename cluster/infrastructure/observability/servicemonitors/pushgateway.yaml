@@ -1,0 +1,23 @@
+# ServiceMonitor for the Prometheus Pushgateway. Receives the metrics pushed
+# by renovate-metrics after each self-hosted Renovate run
+# (see infrastructure/renovate). honorLabels keeps the job/instance labels
+# pushed by the client instead of replacing them with the pushgateway's own.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: prometheus-pushgateway
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: prometheus-pushgateway
+spec:
+  namespaceSelector:
+    matchNames:
+      - observability
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: prometheus-pushgateway
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      honorLabels: true

@@ -5,5 +5,6 @@ resources:
   - metrics-server
   - node-feature-discovery
   - kube-prometheus-stack
+  - pushgateway
   - adguard-exporter
   - dashboards
