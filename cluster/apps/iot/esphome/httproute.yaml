@@ -5,6 +5,7 @@ metadata:
   namespace: esphome
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://esphome-adm.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: IoT
     gethomepage.dev/name: ESPHome
     gethomepage.dev/icon: esphome.png

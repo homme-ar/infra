@@ -5,6 +5,7 @@ metadata:
   namespace: bazarr
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://bazarr-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Bazarr
     gethomepage.dev/icon: bazarr.png

@@ -5,6 +5,7 @@ metadata:
   namespace: jellyfin
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://jellyfin-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Jellyfin
     gethomepage.dev/icon: jellyfin.png

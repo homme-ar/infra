@@ -5,6 +5,7 @@ metadata:
   namespace: ntfy
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://notify.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Platform
     gethomepage.dev/name: ntfy
     gethomepage.dev/icon: ntfy.png

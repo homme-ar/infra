@@ -5,6 +5,7 @@ metadata:
   namespace: vaultwarden
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://claves-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Platform
     gethomepage.dev/name: Vaultwarden
     gethomepage.dev/icon: vaultwarden.png

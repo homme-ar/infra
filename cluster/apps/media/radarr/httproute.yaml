@@ -5,6 +5,7 @@ metadata:
   namespace: radarr
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://radarr-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Radarr
     gethomepage.dev/icon: radarr.png

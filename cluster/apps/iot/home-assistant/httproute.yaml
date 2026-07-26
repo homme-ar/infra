@@ -5,6 +5,7 @@ metadata:
   namespace: home-assistant
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://ha.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: IoT
     gethomepage.dev/name: Home Assistant
     gethomepage.dev/icon: home-assistant.png

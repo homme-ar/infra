@@ -5,6 +5,7 @@ metadata:
   namespace: sonarr
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://sonarr-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Sonarr
     gethomepage.dev/icon: sonarr.png

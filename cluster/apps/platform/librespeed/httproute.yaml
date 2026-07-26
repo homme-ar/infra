@@ -5,6 +5,7 @@ metadata:
   namespace: librespeed
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://speed-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Platform
     gethomepage.dev/name: LibreSpeed
     gethomepage.dev/icon: librespeed.png

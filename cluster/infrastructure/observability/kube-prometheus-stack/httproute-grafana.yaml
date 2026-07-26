@@ -5,6 +5,7 @@ metadata:
   namespace: observability
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://grafana-adm.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Admin
     gethomepage.dev/name: Grafana
     gethomepage.dev/icon: grafana.png

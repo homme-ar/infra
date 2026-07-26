@@ -5,6 +5,7 @@ metadata:
   namespace: zigbee2mqtt
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://zigbee2mqtt-adm.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: IoT
     gethomepage.dev/name: Zigbee2MQTT
     gethomepage.dev/icon: zigbee2mqtt.png
