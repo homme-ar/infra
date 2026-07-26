@@ -54,5 +54,7 @@ data:
           cpu: true
           memory: true
           showLabel: true
+  # No Docker host; the file must exist or homepage fails config init
+  docker.yaml: ""
   custom.css: ""
   custom.js: ""
