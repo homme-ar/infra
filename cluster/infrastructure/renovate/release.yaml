@@ -53,6 +53,10 @@ spec:
           // of its dependency updates. When adding a new app/component, add a
           // matching rule here.
           packageRules: [
+            // GHCR (which backs lscr.io) keeps every tag ever published, including
+            // an ancient '8.1.2135' tag that is actually Lidarr 0.8.1 from 2021.
+            // Constrain lidarr to the current 3.x stable stream.
+            { matchPackageNames: ['lscr.io/linuxserver/lidarr'], allowedVersions: '/^3\\./' },
             { matchFileNames: ['cluster/apps/iot/esphome/**'], groupName: 'esphome', groupSlug: 'esphome' },
             { matchFileNames: ['cluster/apps/iot/home-assistant/**'], groupName: 'home-assistant', groupSlug: 'home-assistant' },
             { matchFileNames: ['cluster/apps/iot/mosquitto/**'], groupName: 'mosquitto', groupSlug: 'mosquitto' },
