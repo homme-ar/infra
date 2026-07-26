@@ -23,6 +23,9 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       namespace: waha
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: homepage
     # Media stack (sonarr/radarr/lidarr/prowlarr/bazarr/sabnzbd) — these apps
     # have their built-in auth disabled and rely on Authelia at the gateway.
     - group: gateway.networking.k8s.io
