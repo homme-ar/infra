@@ -1,20 +1,14 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: prometheus
-  namespace: observability
-  annotations:
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Admin
-    gethomepage.dev/name: Prometheus
-    gethomepage.dev/icon: prometheus.png
-    gethomepage.dev/description: Metrics database
+  name: homepage
+  namespace: homepage
 spec:
   parentRefs:
     - name: envoy-gateway
       namespace: kube-system
   hostnames:
-    - "prometheus-adm.${CLUSTER_DOMAIN}"
+    - "inicio.${CLUSTER_DOMAIN}"
   rules:
     - filters:
         - type: ExternalAuth
@@ -46,5 +40,5 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: kube-prometheus-stack-prometheus
-          port: 9090
+        - name: homepage
+          port: 80

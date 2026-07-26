@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: headlamp
   namespace: headlamp
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Admin
+    gethomepage.dev/name: Headlamp
+    gethomepage.dev/icon: headlamp.png
+    gethomepage.dev/description: Kubernetes dashboard
 spec:
   parentRefs:
     - name: envoy-gateway

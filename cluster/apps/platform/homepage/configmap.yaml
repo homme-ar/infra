@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage
+  namespace: homepage
+  labels:
+    app.kubernetes.io/name: homepage
+data:
+  # Gateway API HTTPRoute discovery only; there are no Ingresses in this cluster
+  kubernetes.yaml: |
+    mode: cluster
+    gateway: true
+    ingress: false
+  settings.yaml: |
+    title: Homme
+    theme: dark
+    color: slate
+    language: es
+    # Group order for auto-discovered services
+    layout:
+      Media:
+        style: row
+        columns: 4
+      Platform:
+        style: row
+        columns: 4
+      IoT:
+        style: row
+        columns: 3
+      Admin:
+        style: row
+        columns: 3
+  # All services come from HTTPRoute annotation discovery
+  services.yaml: ""
+  bookmarks.yaml: |
+    - Infra:
+        - GitHub Repo:
+            - abbr: GH
+              href: https://github.com/homme-ar/infra
+  # Widgets without API keys: search + cluster summary via metrics.k8s.io
+  widgets.yaml: |
+    - search:
+        provider: duckduckgo
+        target: _blank
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: "homme-cluster"
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+  custom.css: ""
+  custom.js: ""

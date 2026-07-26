@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: zigbee2mqtt
   namespace: zigbee2mqtt
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: IoT
+    gethomepage.dev/name: Zigbee2MQTT
+    gethomepage.dev/icon: zigbee2mqtt.png
+    gethomepage.dev/description: Zigbee to MQTT bridge
 spec:
   parentRefs:
     - name: envoy-gateway

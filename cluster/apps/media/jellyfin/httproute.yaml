@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: jellyfin
   namespace: jellyfin
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Jellyfin
+    gethomepage.dev/icon: jellyfin.png
+    gethomepage.dev/description: Media server
 spec:
   parentRefs:
     - name: envoy-gateway

@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: radarr
   namespace: radarr
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Radarr
+    gethomepage.dev/icon: radarr.png
+    gethomepage.dev/description: Movie manager
 spec:
   parentRefs:
     - name: envoy-gateway

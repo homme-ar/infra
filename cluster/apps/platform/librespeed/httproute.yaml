@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: librespeed
   namespace: librespeed
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Platform
+    gethomepage.dev/name: LibreSpeed
+    gethomepage.dev/icon: librespeed.png
+    gethomepage.dev/description: Network speed test
 spec:
   parentRefs:
     - name: envoy-gateway

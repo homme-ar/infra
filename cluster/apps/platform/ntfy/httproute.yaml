@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: ntfy
   namespace: ntfy
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Platform
+    gethomepage.dev/name: ntfy
+    gethomepage.dev/icon: ntfy.png
+    gethomepage.dev/description: Push notifications
 spec:
   parentRefs:
     - name: envoy-gateway

@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: sabnzbd
   namespace: sabnzbd
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: SABnzbd
+    gethomepage.dev/icon: sabnzbd.png
+    gethomepage.dev/description: Usenet downloader
 spec:
   parentRefs:
     - name: envoy-gateway

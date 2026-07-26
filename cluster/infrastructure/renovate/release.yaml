@@ -95,6 +95,7 @@ spec:
             { matchFileNames: ['cluster/apps/media/sonarr/**'], groupName: 'sonarr', groupSlug: 'sonarr' },
             { matchFileNames: ['cluster/apps/platform/authelia/**'], groupName: 'authelia', groupSlug: 'authelia' },
             { matchFileNames: ['cluster/apps/platform/headlamp/**'], groupName: 'headlamp', groupSlug: 'headlamp' },
+            { matchFileNames: ['cluster/apps/platform/homepage/**'], groupName: 'homepage', groupSlug: 'homepage' },
             { matchFileNames: ['cluster/apps/platform/index/**'], groupName: 'index', groupSlug: 'index' },
             { matchFileNames: ['cluster/apps/platform/ittools/**'], groupName: 'ittools', groupSlug: 'ittools' },
             { matchFileNames: ['cluster/apps/platform/librespeed/**'], groupName: 'librespeed', groupSlug: 'librespeed' },

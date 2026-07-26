@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: bazarr
   namespace: bazarr
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Bazarr
+    gethomepage.dev/icon: bazarr.png
+    gethomepage.dev/description: Subtitle manager
 spec:
   parentRefs:
     - name: envoy-gateway
