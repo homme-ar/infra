@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: prowlarr
   namespace: prowlarr
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Prowlarr
+    gethomepage.dev/icon: prowlarr.png
+    gethomepage.dev/description: Indexer manager
 spec:
   parentRefs:
     - name: envoy-gateway

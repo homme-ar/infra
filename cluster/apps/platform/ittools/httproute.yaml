@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: ittools
   namespace: ittools
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Platform
+    gethomepage.dev/name: IT Tools
+    gethomepage.dev/icon: it-tools.png
+    gethomepage.dev/description: IT utilities collection
 spec:
   parentRefs:
     - name: envoy-gateway

@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: jellyseerr
   namespace: jellyseerr
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Jellyseerr
+    gethomepage.dev/icon: jellyseerr.png
+    gethomepage.dev/description: Media requests
 spec:
   parentRefs:
     - name: envoy-gateway

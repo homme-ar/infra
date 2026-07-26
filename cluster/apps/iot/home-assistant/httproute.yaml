@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: home-assistant
   namespace: home-assistant
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: IoT
+    gethomepage.dev/name: Home Assistant
+    gethomepage.dev/icon: home-assistant.png
+    gethomepage.dev/description: Home automation
 spec:
   parentRefs:
     - name: envoy-gateway

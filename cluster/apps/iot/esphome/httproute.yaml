@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: esphome
   namespace: esphome
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: IoT
+    gethomepage.dev/name: ESPHome
+    gethomepage.dev/icon: esphome.png
+    gethomepage.dev/description: ESP device manager
 spec:
   parentRefs:
     - name: envoy-gateway

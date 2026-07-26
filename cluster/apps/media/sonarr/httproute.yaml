@@ -3,6 +3,12 @@ kind: HTTPRoute
 metadata:
   name: sonarr
   namespace: sonarr
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Sonarr
+    gethomepage.dev/icon: sonarr.png
+    gethomepage.dev/description: TV series manager
 spec:
   parentRefs:
     - name: envoy-gateway
