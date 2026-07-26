@@ -7,6 +7,7 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://bazarr-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Media
+    gethomepage.dev/weight: "70"
     gethomepage.dev/name: Bazarr
     gethomepage.dev/icon: bazarr.png
     gethomepage.dev/description: Subtitle manager

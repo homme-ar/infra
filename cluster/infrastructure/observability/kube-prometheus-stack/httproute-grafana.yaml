@@ -6,7 +6,8 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://grafana-adm.${CLUSTER_DOMAIN}"
-    gethomepage.dev/group: Admin
+    gethomepage.dev/group: Observability
+    gethomepage.dev/weight: "10"
     gethomepage.dev/name: Grafana
     gethomepage.dev/icon: grafana.png
     gethomepage.dev/description: Metrics dashboards

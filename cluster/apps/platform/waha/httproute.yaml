@@ -6,7 +6,8 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://waha-adm.${CLUSTER_DOMAIN}"
-    gethomepage.dev/group: Admin
+    gethomepage.dev/group: Notifications
+    gethomepage.dev/weight: "20"
     gethomepage.dev/name: WAHA
     gethomepage.dev/icon: whatsapp.png
     gethomepage.dev/description: WhatsApp HTTP API

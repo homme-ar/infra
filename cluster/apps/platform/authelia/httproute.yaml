@@ -3,6 +3,14 @@ kind: HTTPRoute
 metadata:
   name: authelia
   namespace: authelia
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://auth.${CLUSTER_DOMAIN}"
+    gethomepage.dev/group: Security
+    gethomepage.dev/weight: "30"
+    gethomepage.dev/name: Authelia
+    gethomepage.dev/icon: authelia.png
+    gethomepage.dev/description: Single sign-on portal
 spec:
   parentRefs:
     - name: envoy-gateway

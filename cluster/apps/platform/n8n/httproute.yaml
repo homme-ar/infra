@@ -6,7 +6,8 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://n8n-apps.${CLUSTER_DOMAIN}"
-    gethomepage.dev/group: Platform
+    gethomepage.dev/group: Automation
+    gethomepage.dev/weight: "10"
     gethomepage.dev/name: n8n
     gethomepage.dev/icon: n8n.png
     gethomepage.dev/description: Workflow automation

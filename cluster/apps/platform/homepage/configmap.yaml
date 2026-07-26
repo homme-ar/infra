@@ -16,63 +16,89 @@ data:
     theme: dark
     color: slate
     language: es
-    # Group order for auto-discovered services
+    # Group order (usage frequency first); applies to merged static + discovered groups
     layout:
       Media:
         style: row
         columns: 4
-      Platform:
-        style: row
-        columns: 4
-      Homelab:
-        style: row
-        columns: 5
       IoT:
         style: row
+        columns: 4
+      Networking:
+        style: row
         columns: 3
-      Admin:
+      Security:
+        style: row
+        columns: 3
+      Tools:
+        style: row
+        columns: 3
+      Automation:
+        style: row
+        columns: 3
+      Notifications:
+        style: row
+        columns: 3
+      Observability:
+        style: row
+        columns: 3
+      Infrastructure:
         style: row
         columns: 3
   # Static services: homelab devices and external services (the cluster
-  # apps are auto-discovered from HTTPRoute annotations)
+  # apps are auto-discovered from HTTPRoute annotations). Groups merge with
+  # discovered groups of the same name; lower weight sorts first.
   services.yaml: |
-    - Homelab:
+    - Networking:
         - Unifi Controller:
             icon: unifi.png
             href: https://192.0.2.254/
             description: Network controller
-        - QNAP NAS:
-            icon: qnap.png
-            href: http://192.0.2.20/cgi-bin/
-            description: NAS management
-        - Reolink NVR:
-            icon: reolink.png
-            href: http://192.0.2.21/
-            description: Camera NVR
-        - SLZB-06 Coordinator:
-            icon: zigbee.png
-            href: http://192.0.2.31/
-            description: Zigbee coordinator
-        - SLZB-06 Router:
-            icon: zigbee.png
-            href: http://192.0.2.32/
-            description: Zigbee router
+            weight: 10
         - AdGuard DNS:
             icon: adguard-home.png
             href: http://192.0.2.11/
             description: DNS server (ser-dns1)
-        - Solar Logger:
-            icon: mdi-solar-power
-            href: http://192.0.2.42/
-            description: Solar generation monitor
+            weight: 20
+    - IoT:
+        - SLZB-06 Coordinator:
+            icon: zigbee.png
+            href: http://192.0.2.31/
+            description: Zigbee coordinator
+            weight: 40
+        - SLZB-06 Router:
+            icon: zigbee.png
+            href: http://192.0.2.32/
+            description: Zigbee router
+            weight: 50
         - OpenTherm Gateway:
             icon: mdi-thermostat
             href: http://192.0.2.41/
             description: Boiler gateway
+            weight: 60
+        - Solar Logger:
+            icon: mdi-solar-power
+            href: http://192.0.2.42/
+            description: Solar generation monitor
+            weight: 70
+    - Security:
+        - Reolink NVR:
+            icon: reolink.png
+            href: http://192.0.2.21/
+            description: Camera NVR
+            weight: 20
+    - Infrastructure:
+        - QNAP NAS:
+            icon: qnap.png
+            href: http://192.0.2.20/cgi-bin/
+            description: NAS management
+            weight: 10
+    - Tools:
         - Prusa Connect:
             icon: prusa-research.png
             href: https://connect.prusa3d.com/
             description: 3D printer cloud
+            weight: 30
   bookmarks.yaml: |
     - Infra:
         - GitHub Repo:
