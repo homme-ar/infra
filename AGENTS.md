@@ -55,7 +55,7 @@ The repository manages three distinct things:
 - **Databases**: CloudNativePG (CNPG) operator; per-app `Cluster`/database manifests live in `cluster/apps/platform/postgres/`.
 - **Secrets**: SOPS + Age. Flux decrypts at reconcile time via the `sops-age` secret (`decryption.provider: sops` on the Kustomizations).
 - **TLS**: cert-manager with Let's Encrypt (Cloudflare DNS-01), issuers in `cluster/infrastructure/security/cert-manager-config/`.
-- **Observability**: kube-prometheus-stack, metrics-server, node-feature-discovery, plus ServiceMonitors for cilium/cnpg/flux/longhorn.
+- **Observability**: kube-prometheus-stack, metrics-server, node-feature-discovery, a Prometheus Pushgateway (`observability/pushgateway`) that receives `renovate-metrics` from the Renovate CronJob (its logs are piped through the binary via an initContainer/shared volume), plus ServiceMonitors for cilium/cnpg/flux/longhorn/adguard/pushgateway.
 - **VPN**: WireGuard via the wireguard-operator (CRs in `cluster/infrastructure/networking/wireguard/instance/`, one `WireguardPeer` per device).
 - **Dependency updates**: Renovate self-hosted (CronJob via the official Helm chart in `cluster/infrastructure/renovate/`, hourly) opens PRs against `main` with Helm chart and container image updates. Authenticates to GitHub with a fine-grained PAT (in the SOPS-encrypted `renovate-github-token` secret). Updates are grouped into one PR per project (leaf directory) via `packageRules` in the HelmRelease values — when adding a new app/component directory, add a matching `matchFileNames` rule there.
 - **Auxiliary hosts**: NixOS (aarch64) managed by **comin** (pull-based GitOps — each host polls this repo and switches to the `nixosConfigurations` output matching its hostname).
