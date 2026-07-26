@@ -5,6 +5,7 @@ metadata:
   namespace: headlamp
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://headlamp-adm.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Admin
     gethomepage.dev/name: Headlamp
     gethomepage.dev/icon: headlamp.png

@@ -5,6 +5,7 @@ metadata:
   namespace: n8n
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://n8n-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Platform
     gethomepage.dev/name: n8n
     gethomepage.dev/icon: n8n.png

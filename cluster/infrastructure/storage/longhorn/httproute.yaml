@@ -5,6 +5,7 @@ metadata:
   namespace: longhorn-system
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://longhorn-adm.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Admin
     gethomepage.dev/name: Longhorn
     gethomepage.dev/icon: longhorn.png

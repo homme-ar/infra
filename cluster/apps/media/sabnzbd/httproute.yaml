@@ -5,6 +5,7 @@ metadata:
   namespace: sabnzbd
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://sabnzbd-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Media
     gethomepage.dev/name: SABnzbd
     gethomepage.dev/icon: sabnzbd.png

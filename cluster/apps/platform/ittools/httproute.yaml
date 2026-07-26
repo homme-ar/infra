@@ -5,6 +5,7 @@ metadata:
   namespace: ittools
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://ittools-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Platform
     gethomepage.dev/name: IT Tools
     gethomepage.dev/icon: it-tools.png

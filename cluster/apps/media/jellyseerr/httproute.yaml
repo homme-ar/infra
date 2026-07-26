@@ -5,6 +5,7 @@ metadata:
   namespace: jellyseerr
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://jellyseerr-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Jellyseerr
     gethomepage.dev/icon: jellyseerr.png

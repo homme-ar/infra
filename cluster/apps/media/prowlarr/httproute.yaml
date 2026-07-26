@@ -5,6 +5,7 @@ metadata:
   namespace: prowlarr
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://prowlarr-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Prowlarr
     gethomepage.dev/icon: prowlarr.png

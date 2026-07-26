@@ -5,6 +5,7 @@ metadata:
   namespace: lidarr
   annotations:
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://lidarr-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Lidarr
     gethomepage.dev/icon: lidarr.png
