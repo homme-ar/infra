@@ -24,14 +24,55 @@ data:
       Platform:
         style: row
         columns: 4
+      Homelab:
+        style: row
+        columns: 5
       IoT:
         style: row
         columns: 3
       Admin:
         style: row
         columns: 3
-  # All services come from HTTPRoute annotation discovery
-  services.yaml: ""
+  # Static services: homelab devices and external services (the cluster
+  # apps are auto-discovered from HTTPRoute annotations)
+  services.yaml: |
+    - Homelab:
+        - Unifi Controller:
+            icon: unifi.png
+            href: https://192.0.2.254/
+            description: Network controller
+        - QNAP NAS:
+            icon: qnap.png
+            href: http://192.0.2.20/cgi-bin/
+            description: NAS management
+        - Reolink NVR:
+            icon: reolink.png
+            href: http://192.0.2.21/
+            description: Camera NVR
+        - SLZB-06 Coordinator:
+            icon: zigbee.png
+            href: http://192.0.2.31/
+            description: Zigbee coordinator
+        - SLZB-06 Router:
+            icon: zigbee.png
+            href: http://192.0.2.32/
+            description: Zigbee router
+        - AdGuard DNS:
+            icon: adguard-home.png
+            href: http://192.0.2.11/
+            description: DNS server (ser-dns1)
+        - Solar Logger:
+            icon: mdi-solar-power
+            href: http://192.0.2.42/
+            description: Solar generation monitor
+        - OpenTherm Gateway:
+            icon: mdi-thermostat
+            href: http://192.0.2.41/
+            description: Boiler gateway
+        - Prusa Connect:
+            icon: prusa-research.png
+            href: https://connect.prusa3d.com/
+            description: 3D printer cloud
   bookmarks.yaml: |
     - Infra:
         - GitHub Repo:
