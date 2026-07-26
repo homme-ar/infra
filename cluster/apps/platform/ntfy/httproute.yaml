@@ -6,7 +6,8 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://notify.${CLUSTER_DOMAIN}"
-    gethomepage.dev/group: Platform
+    gethomepage.dev/group: Notifications
+    gethomepage.dev/weight: "10"
     gethomepage.dev/name: ntfy
     gethomepage.dev/icon: ntfy.png
     gethomepage.dev/description: Push notifications

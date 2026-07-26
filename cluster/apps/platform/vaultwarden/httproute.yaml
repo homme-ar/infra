@@ -6,7 +6,8 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://claves-apps.${CLUSTER_DOMAIN}"
-    gethomepage.dev/group: Platform
+    gethomepage.dev/group: Security
+    gethomepage.dev/weight: "10"
     gethomepage.dev/name: Vaultwarden
     gethomepage.dev/icon: vaultwarden.png
     gethomepage.dev/description: Password manager

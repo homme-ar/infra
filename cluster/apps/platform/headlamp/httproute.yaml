@@ -6,7 +6,8 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://headlamp-adm.${CLUSTER_DOMAIN}"
-    gethomepage.dev/group: Admin
+    gethomepage.dev/group: Infrastructure
+    gethomepage.dev/weight: "20"
     gethomepage.dev/name: Headlamp
     gethomepage.dev/icon: headlamp.png
     gethomepage.dev/description: Kubernetes dashboard

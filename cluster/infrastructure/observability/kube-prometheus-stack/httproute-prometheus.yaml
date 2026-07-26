@@ -6,7 +6,8 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://prometheus-adm.${CLUSTER_DOMAIN}"
-    gethomepage.dev/group: Admin
+    gethomepage.dev/group: Observability
+    gethomepage.dev/weight: "20"
     gethomepage.dev/name: Prometheus
     gethomepage.dev/icon: prometheus.png
     gethomepage.dev/description: Metrics database

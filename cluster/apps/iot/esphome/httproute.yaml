@@ -7,6 +7,7 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://esphome-adm.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: IoT
+    gethomepage.dev/weight: "20"
     gethomepage.dev/name: ESPHome
     gethomepage.dev/icon: esphome.png
     gethomepage.dev/description: ESP device manager

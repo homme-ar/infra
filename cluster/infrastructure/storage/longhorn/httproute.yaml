@@ -8,7 +8,8 @@ metadata:
     gethomepage.dev/href: "https://longhorn-adm.${CLUSTER_DOMAIN}"
     # The frontend pods are labeled app=longhorn-ui, not after the HTTPRoute name
     gethomepage.dev/pod-selector: "app=longhorn-ui"
-    gethomepage.dev/group: Admin
+    gethomepage.dev/group: Infrastructure
+    gethomepage.dev/weight: "30"
     gethomepage.dev/name: Longhorn
     gethomepage.dev/icon: longhorn.png
     gethomepage.dev/description: Block storage management

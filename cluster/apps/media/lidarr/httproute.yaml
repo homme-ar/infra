@@ -7,6 +7,7 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://lidarr-apps.${CLUSTER_DOMAIN}"
     gethomepage.dev/group: Media
+    gethomepage.dev/weight: "60"
     gethomepage.dev/name: Lidarr
     gethomepage.dev/icon: lidarr.png
     gethomepage.dev/description: Music manager

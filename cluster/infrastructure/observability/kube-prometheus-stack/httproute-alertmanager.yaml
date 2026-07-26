@@ -6,7 +6,8 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://alertmanager-adm.${CLUSTER_DOMAIN}"
-    gethomepage.dev/group: Admin
+    gethomepage.dev/group: Observability
+    gethomepage.dev/weight: "30"
     gethomepage.dev/name: Alertmanager
     gethomepage.dev/icon: alertmanager.png
     gethomepage.dev/description: Alert routing

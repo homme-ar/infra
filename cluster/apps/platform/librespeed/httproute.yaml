@@ -6,7 +6,8 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://speed-apps.${CLUSTER_DOMAIN}"
-    gethomepage.dev/group: Platform
+    gethomepage.dev/group: Tools
+    gethomepage.dev/weight: "20"
     gethomepage.dev/name: LibreSpeed
     gethomepage.dev/icon: librespeed.png
     gethomepage.dev/description: Network speed test
