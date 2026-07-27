@@ -16,6 +16,14 @@ data:
     theme: dark
     color: slate
     language: es
+    logo: https://example.com/assets/logo/black.svg
+    favicon: https://example.com/assets/favicon/main.png
+    background:
+      image: https://example.com/assets/background/main.jpg
+      blur: sm
+      saturate: 50
+      brightness: 50
+      opacity: 50
     # Group order (usage frequency first); applies to merged static + discovered groups
     layout:
       Media:
