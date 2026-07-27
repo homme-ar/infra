@@ -45,14 +45,14 @@ spec:
           # The app process itself ends up running unprivileged (PUID 1000).
           resources:
             requests:
-              cpu: 50m
-              memory: 256Mi
+              cpu: 100m
+              memory: 512Mi
             limits:
-              cpu: "1"
-              # 2Gi: SABnzbd 5.x defaults to a 1G article cache (cache_limit),
-              # so a 1Gi container limit was OOM-killing the pod on startup
-              # as soon as it resumed the download queue.
-              memory: 2Gi
+              cpu: "2"
+              # 6Gi: SABnzbd 5.x defaults to a 1G article cache (cache_limit),
+              # but unrar/par2 repair of large downloads can push RSS well past
+              # 2Gi — that limit was still getting the pod OOM-killed.
+              memory: 6Gi
           # SABnzbd has no unauthenticated health endpoint, so probe the TCP
           # port instead of an HTTP path.
           livenessProbe:
