@@ -13,6 +13,8 @@ metadata:
     gethomepage.dev/name: Longhorn
     gethomepage.dev/icon: longhorn.png
     gethomepage.dev/description: Block storage management
+    gethomepage.dev/widget.type: "longhorn"
+    gethomepage.dev/widget.url: "http://longhorn-frontend.longhorn-system"
 spec:
   parentRefs:
     - name: envoy-gateway
