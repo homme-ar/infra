@@ -24,6 +24,10 @@ data:
       saturate: 50
       brightness: 50
       opacity: 50
+    # Providers for info widgets (widgets.yaml)
+    providers:
+      longhorn:
+        url: http://longhorn-frontend.longhorn-system
     # Group order (usage frequency first); applies to merged static + discovered groups
     layout:
       Media:
@@ -144,6 +148,7 @@ data:
           cpu: true
           memory: true
           showLabel: true
+    - type: longhorn
   # No Docker host; the file must exist or homepage fails config init
   docker.yaml: ""
   # No Proxmox; the file must exist or homepage fails config init
