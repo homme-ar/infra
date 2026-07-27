@@ -63,11 +63,21 @@ data:
             href: https://192.0.2.254/
             description: Network controller
             weight: 10
+            widget:
+              type: unifi
+              url: https://192.0.2.254
+              username: "{{HOMEPAGE_VAR_UNIFI_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_UNIFI_PASSWORD}}"
         - AdGuard DNS:
             icon: adguard-home.png
             href: http://192.0.2.11/
             description: DNS server (ser-dns1)
             weight: 20
+            widget:
+              type: adguard
+              url: http://192.0.2.11
+              username: "{{HOMEPAGE_VAR_ADGUARD_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_ADGUARD_PASSWORD}}"
     - IoT:
         - SLZB-06 Coordinator:
             icon: zigbee.png
@@ -101,6 +111,11 @@ data:
             href: http://192.0.2.20/cgi-bin/
             description: NAS management
             weight: 10
+            widget:
+              type: qnap
+              url: http://192.0.2.20
+              username: "{{HOMEPAGE_VAR_QNAP_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_QNAP_PASSWORD}}"
     - Tools:
         - Prusa Connect:
             icon: prusa-research.png

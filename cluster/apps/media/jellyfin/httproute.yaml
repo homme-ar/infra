@@ -11,6 +11,9 @@ metadata:
     gethomepage.dev/name: Jellyfin
     gethomepage.dev/icon: jellyfin.png
     gethomepage.dev/description: Media server
+    gethomepage.dev/widget.type: "jellyfin"
+    gethomepage.dev/widget.url: "http://jellyfin.jellyfin"
+    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}"
 spec:
   parentRefs:
     - name: envoy-gateway

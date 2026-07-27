@@ -11,6 +11,9 @@ metadata:
     gethomepage.dev/name: Radarr
     gethomepage.dev/icon: radarr.png
     gethomepage.dev/description: Movie manager
+    gethomepage.dev/widget.type: "radarr"
+    gethomepage.dev/widget.url: "http://radarr.radarr"
+    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_RADARR_API_KEY}}"
 spec:
   parentRefs:
     - name: envoy-gateway

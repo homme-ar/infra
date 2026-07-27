@@ -42,6 +42,10 @@ spec:
             # for the kubelet HTTP probes to pass the host check.
             - name: HOMEPAGE_ALLOWED_HOSTS
               value: "$(MY_POD_IP):3000,inicio.${CLUSTER_DOMAIN}"
+          # Widget credentials (SOPS-encrypted), referenced as {{HOMEPAGE_VAR_*}}
+          envFrom:
+            - secretRef:
+                name: homepage-secret
           ports:
             - name: http
               containerPort: 3000

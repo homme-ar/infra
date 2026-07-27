@@ -11,6 +11,9 @@ metadata:
     gethomepage.dev/name: Bazarr
     gethomepage.dev/icon: bazarr.png
     gethomepage.dev/description: Subtitle manager
+    gethomepage.dev/widget.type: "bazarr"
+    gethomepage.dev/widget.url: "http://bazarr.bazarr"
+    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_BAZARR_API_KEY}}"
 spec:
   parentRefs:
     - name: envoy-gateway

@@ -11,6 +11,9 @@ metadata:
     gethomepage.dev/name: Home Assistant
     gethomepage.dev/icon: home-assistant.png
     gethomepage.dev/description: Home automation
+    gethomepage.dev/widget.type: "homeassistant"
+    gethomepage.dev/widget.url: "http://home-assistant.home-assistant"
+    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_HA_TOKEN}}"
 spec:
   parentRefs:
     - name: envoy-gateway

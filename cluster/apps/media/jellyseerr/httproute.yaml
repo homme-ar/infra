@@ -11,6 +11,9 @@ metadata:
     gethomepage.dev/name: Jellyseerr
     gethomepage.dev/icon: jellyseerr.png
     gethomepage.dev/description: Media requests
+    gethomepage.dev/widget.type: "jellyseerr"
+    gethomepage.dev/widget.url: "http://jellyseerr.jellyseerr"
+    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_JELLYSEERR_API_KEY}}"
 spec:
   parentRefs:
     - name: envoy-gateway
