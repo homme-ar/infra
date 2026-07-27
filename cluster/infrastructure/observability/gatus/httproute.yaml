@@ -1,0 +1,27 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: gatus
+  namespace: observability
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://status.${CLUSTER_DOMAIN}"
+    gethomepage.dev/group: Observability
+    gethomepage.dev/weight: "20"
+    gethomepage.dev/name: Gatus
+    gethomepage.dev/icon: gatus.png
+    gethomepage.dev/description: Status page & uptime monitoring
+spec:
+  parentRefs:
+    - name: envoy-gateway
+      namespace: kube-system
+  hostnames:
+    - "status.${CLUSTER_DOMAIN}"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: gatus
+          port: 80

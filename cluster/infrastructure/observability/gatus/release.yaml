@@ -1,0 +1,217 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: gatus
+  namespace: observability
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: gatus
+      version: "1.5.*"
+      sourceRef:
+        kind: HelmRepository
+        name: twin
+        namespace: flux-system
+      interval: 12h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    # Recreate avoids multi-attach errors with the RWO Longhorn PVC.
+    deployment:
+      strategy: Recreate
+    # Injects NTFY_TOKEN from the SOPS-encrypted gatus-ntfy secret, referenced
+    # from the Gatus config below as ${NTFY_TOKEN} (Gatus env interpolation).
+    # Flux post-build substitution only replaces variables defined in
+    # cluster-vars, so ${NTFY_TOKEN} reaches the rendered config untouched.
+    envFrom:
+      - secretRef:
+          name: gatus-ntfy
+    persistence:
+      enabled: true
+      size: 1Gi
+      storageClassName: ${STORAGE_CLASS}
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+    config:
+      storage:
+        type: sqlite
+        path: /data/data.db
+      # Expose Prometheus metrics at /metrics.
+      metrics: true
+      alerting:
+        ntfy:
+          url: "http://ntfy.ntfy.svc.cluster.local"
+          topic: "uptime"
+          token: "${NTFY_TOKEN}"
+          priority: 4
+          click: "https://status.${CLUSTER_DOMAIN}"
+          default-alert:
+            enabled: true
+            failure-threshold: 3
+            success-threshold: 2
+            send-on-resolved: true
+      # HTTP services are checked through their public FQDN so the whole chain
+      # (DNS -> Gateway -> TLS -> app) is validated. Services behind Authelia
+      # ext-authz are checked against their in-cluster Service instead: the
+      # external URL would return an auth redirect/401 even when the app is
+      # down, masking real outages. The auth chain itself is covered by the
+      # Authelia endpoint.
+      endpoints:
+        # ── Platform ────────────────────────────────────────────────────
+        - name: Index
+          group: Platform
+          url: https://${CLUSTER_DOMAIN}
+          conditions:
+            - "[STATUS] == 200"
+        - name: Authelia
+          group: Platform
+          url: https://auth.${CLUSTER_DOMAIN}/api/health
+          conditions:
+            - "[STATUS] == 200"
+        - name: NTFY
+          group: Platform
+          url: https://notify.${CLUSTER_DOMAIN}/v1/health
+          conditions:
+            - "[STATUS] == 200"
+        - name: n8n
+          group: Platform
+          url: https://n8n-apps.${CLUSTER_DOMAIN}/healthz
+          conditions:
+            - "[STATUS] == 200"
+        - name: Vaultwarden
+          group: Platform
+          url: https://claves-apps.${CLUSTER_DOMAIN}/alive
+          conditions:
+            - "[STATUS] == 200"
+        - name: IT Tools
+          group: Platform
+          url: https://ittools-apps.${CLUSTER_DOMAIN}
+          conditions:
+            - "[STATUS] == 200"
+        - name: LibreSpeed
+          group: Platform
+          url: https://speed-apps.${CLUSTER_DOMAIN}
+          conditions:
+            - "[STATUS] == 200"
+        - name: Homepage
+          group: Platform
+          url: http://homepage.homepage.svc.cluster.local
+          conditions:
+            - "[STATUS] == 200"
+        - name: Headlamp
+          group: Platform
+          url: http://headlamp.headlamp.svc.cluster.local
+          conditions:
+            - "[STATUS] == 200"
+        - name: WAHA
+          group: Platform
+          url: http://waha.waha.svc.cluster.local
+          conditions:
+            - "[STATUS] == 200"
+        # ── Media ───────────────────────────────────────────────────────
+        - name: Jellyfin
+          group: Media
+          url: https://jellyfin-apps.${CLUSTER_DOMAIN}/health
+          conditions:
+            - "[STATUS] == 200"
+        - name: Seerr
+          group: Media
+          url: https://seerr-apps.${CLUSTER_DOMAIN}/api/v1/status
+          conditions:
+            - "[STATUS] == 200"
+        - name: Sonarr
+          group: Media
+          url: http://sonarr.sonarr.svc.cluster.local/ping
+          conditions:
+            - "[STATUS] == 200"
+        - name: Radarr
+          group: Media
+          url: http://radarr.radarr.svc.cluster.local/ping
+          conditions:
+            - "[STATUS] == 200"
+        - name: Lidarr
+          group: Media
+          url: http://lidarr.lidarr.svc.cluster.local/ping
+          conditions:
+            - "[STATUS] == 200"
+        - name: Prowlarr
+          group: Media
+          url: http://prowlarr.prowlarr.svc.cluster.local/ping
+          conditions:
+            - "[STATUS] == 200"
+        - name: Bazarr
+          group: Media
+          url: http://bazarr.bazarr.svc.cluster.local
+          conditions:
+            - "[STATUS] == 200"
+        - name: SABnzbd
+          group: Media
+          url: http://sabnzbd.sabnzbd.svc.cluster.local/sabnzbd
+          conditions:
+            - "[STATUS] == 200"
+        # ── IoT ─────────────────────────────────────────────────────────
+        - name: Home Assistant
+          group: IoT
+          url: https://ha.${CLUSTER_DOMAIN}
+          conditions:
+            - "[STATUS] == 200"
+        - name: ESPHome
+          group: IoT
+          url: http://esphome.esphome.svc.cluster.local
+          conditions:
+            - "[STATUS] == 200"
+        - name: Zigbee2MQTT
+          group: IoT
+          url: http://zigbee2mqtt.zigbee2mqtt.svc.cluster.local
+          conditions:
+            - "[STATUS] == 200"
+        # ── Infrastructure ──────────────────────────────────────────────
+        - name: Kubernetes API
+          group: Infrastructure
+          url: https://192.0.2.1:6443/healthz
+          client:
+            insecure: true
+          conditions:
+            - "[STATUS] == 200"
+        - name: AdGuard DNS
+          group: Infrastructure
+          url: ${SER_DNS1_IP}
+          dns:
+            query-name: ${CLUSTER_DOMAIN}
+            query-type: A
+          conditions:
+            - "[DNS_RCODE] == NOERROR"
+        - name: NAS (NFS)
+          group: Infrastructure
+          url: tcp://${NAS_IP}:2049
+          conditions:
+            - "[CONNECTED] == true"
+        - name: PostgreSQL (CNPG)
+          group: Infrastructure
+          url: tcp://${LB_POSTGRES_IP}:5432
+          conditions:
+            - "[CONNECTED] == true"
+        - name: Mosquitto (MQTT)
+          group: Infrastructure
+          url: tcp://${LB_MQTT_IP}:1883
+          conditions:
+            - "[CONNECTED] == true"
+        - name: Grafana
+          group: Infrastructure
+          url: http://kube-prometheus-stack-grafana.observability.svc.cluster.local/api/health
+          conditions:
+            - "[STATUS] == 200"
+        - name: Longhorn UI
+          group: Infrastructure
+          url: http://longhorn-frontend.longhorn-system.svc.cluster.local
+          conditions:
+            - "[STATUS] == 200"

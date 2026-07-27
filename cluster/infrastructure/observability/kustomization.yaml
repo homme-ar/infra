@@ -8,3 +8,4 @@ resources:
   - pushgateway
   - adguard-exporter
   - dashboards
+  - gatus
