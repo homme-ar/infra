@@ -11,6 +11,8 @@ metadata:
     gethomepage.dev/name: Prometheus
     gethomepage.dev/icon: prometheus.png
     gethomepage.dev/description: Metrics database
+    gethomepage.dev/widget.type: "prometheus"
+    gethomepage.dev/widget.url: "http://kube-prometheus-stack-prometheus.observability:9090"
 spec:
   parentRefs:
     - name: envoy-gateway

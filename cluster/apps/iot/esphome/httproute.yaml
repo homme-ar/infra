@@ -11,6 +11,8 @@ metadata:
     gethomepage.dev/name: ESPHome
     gethomepage.dev/icon: esphome.png
     gethomepage.dev/description: ESP device manager
+    gethomepage.dev/widget.type: "esphome"
+    gethomepage.dev/widget.url: "http://esphome.esphome"
 spec:
   parentRefs:
     - name: envoy-gateway
