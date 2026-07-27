@@ -16,6 +16,14 @@ data:
     theme: dark
     color: slate
     language: es
+    logo: https://homme.ar/assets/logo/black.svg
+    favicon: https://homme.ar/assets/favicon/main.png
+    background:
+      image: https://homme.ar/assets/background/main.jpg
+      blur: sm
+      saturate: 50
+      brightness: 50
+      opacity: 50
     # Group order (usage frequency first); applies to merged static + discovered groups
     layout:
       Media:
