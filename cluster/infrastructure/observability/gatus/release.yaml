@@ -164,7 +164,7 @@ spec:
             - "[STATUS] == 200"
         - name: SABnzbd
           group: Media
-          url: http://sabnzbd.sabnzbd.svc.cluster.local/sabnzbd
+          url: http://sabnzbd.sabnzbd.svc.cluster.local/sabnzbd/
           conditions:
             - "[STATUS] == 200"
         # ── IoT ─────────────────────────────────────────────────────────
@@ -189,8 +189,10 @@ spec:
           url: https://10.0.20.1:6443/healthz
           client:
             insecure: true
+          # Talos disables anonymous auth, so /healthz answers 401 — that is
+          # enough to prove the API endpoint and TLS handshake are healthy.
           conditions:
-            - "[STATUS] == 200"
+            - "[STATUS] == 401"
         - name: AdGuard DNS
           group: Infrastructure
           url: ${SER_DNS1_IP}
