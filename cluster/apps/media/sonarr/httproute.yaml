@@ -11,6 +11,9 @@ metadata:
     gethomepage.dev/name: Sonarr
     gethomepage.dev/icon: sonarr.png
     gethomepage.dev/description: TV series manager
+    gethomepage.dev/widget.type: "sonarr"
+    gethomepage.dev/widget.url: "http://sonarr.sonarr"
+    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_SONARR_API_KEY}}"
 spec:
   parentRefs:
     - name: envoy-gateway

@@ -11,6 +11,9 @@ metadata:
     gethomepage.dev/name: Grafana
     gethomepage.dev/icon: grafana.png
     gethomepage.dev/description: Metrics dashboards
+    gethomepage.dev/widget.type: "grafana"
+    gethomepage.dev/widget.url: "http://kube-prometheus-stack-grafana.observability"
+    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_GRAFANA_TOKEN}}"
 spec:
   parentRefs:
     - name: envoy-gateway
