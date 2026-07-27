@@ -62,18 +62,24 @@ deleted afterwards. Steps:
    the next step (the Deployment pins `replicas: 1`).
 3. `kubectl -n jellyseerr scale deploy/jellyseerr --replicas=0` and wait for the pod
    to terminate (RWO volume must be detached; also avoids SQLite writes mid-copy).
-4. Apply the copy Job: alpine image, mounts `jellyseerr-config` read-only at `/old`
-   and `seerr-config` at `/new`, runs `cp -a /old/. /new/` and
-   `chown -R 1000:1000 /new`.
-5. Verify the copy (file listing, `settings.json` present), then delete the Job.
+4. Apply the copy Job in namespace `jellyseerr` (PVCs are namespace-scoped, so the
+   Job cannot mount PVCs from two namespaces): alpine image, mounts
+   `jellyseerr-config` read-only at `/old` and a temporary PVC `seerr-config-tmp`
+   at `/new`, runs `cp -a /old/. /new/` and `chown -R 1000:1000 /new`.
+5. Verify the copy (file listing, `settings.json` present), then rebind the new
+   Longhorn volume into namespace `seerr`: set the PV reclaim policy to `Retain`,
+   delete the Job and the tmp PVC, clear the PV's `claimRef`. The GitOps-managed
+   `seerr-config` PVC (commit 2) then binds to that PV via `volumeName`.
 
 ## Cutover — 3 commits
 
-1. **Commit 1** — `cluster/apps/media/seerr/` containing only `namespace.yaml`,
-   `pvc-config.yaml`, `kustomization.yaml`, plus the `seerr` entry in
-   `cluster/apps/media/kustomization.yaml`. Flux provisions the empty PVC.
+1. **Commit 1** — `cluster/apps/media/seerr/` containing only `namespace.yaml` and
+   `kustomization.yaml`, plus the `seerr` entry in
+   `cluster/apps/media/kustomization.yaml`. (The PVC comes in commit 2: it must carry
+   `volumeName`, which is only known after the copy.)
 2. Manual data-migration steps above.
-3. **Commit 2** — add `deployment.yaml`, `service.yaml`, `httproute.yaml` to the seerr
+3. **Commit 2** — add `pvc-config.yaml` (with `volumeName` pointing at the migrated
+   PV), `deployment.yaml`, `service.yaml`, `httproute.yaml` to the seerr
    kustomization; rename `HOMEPAGE_VAR_JELLYSEERR_API_KEY` →
    `HOMEPAGE_VAR_SEERR_API_KEY` in `cluster/apps/platform/homepage/secret.yaml`
    (same value, edited with `sops`; the API key survives the automatic migration);
