@@ -20,14 +20,23 @@ spec:
   upgrade:
     remediation:
       retries: 3
+  # Alerting values carrying the ${NTFY_TOKEN} placeholder come from the
+  # SOPS-encrypted gatus-values secret: Flux post-build substitution runs in
+  # strict mode and would fail on the undefined variable if the placeholder
+  # lived inline here. The secret stores the snippet base64-encoded (data,
+  # not stringData) so envsubst never sees it, and helm-controller merges it
+  # into these values untouched. Gatus then interpolates ${NTFY_TOKEN} at
+  # runtime from the env var injected below.
+  valuesFrom:
+    - kind: Secret
+      name: gatus-values
+      valuesKey: values.yaml
   values:
     # Recreate avoids multi-attach errors with the RWO Longhorn PVC.
     deployment:
       strategy: Recreate
     # Injects NTFY_TOKEN from the SOPS-encrypted gatus-ntfy secret, referenced
-    # from the Gatus config below as ${NTFY_TOKEN} (Gatus env interpolation).
-    # Flux post-build substitution only replaces variables defined in
-    # cluster-vars, so ${NTFY_TOKEN} reaches the rendered config untouched.
+    # from the Gatus config as ${NTFY_TOKEN} (Gatus env interpolation).
     envFrom:
       - secretRef:
           name: gatus-ntfy
@@ -51,7 +60,7 @@ spec:
         ntfy:
           url: "http://ntfy.ntfy.svc.cluster.local"
           topic: "uptime"
-          token: "${NTFY_TOKEN}"
+          # token is merged in from the gatus-values secret (see valuesFrom).
           priority: 4
           click: "https://status.${CLUSTER_DOMAIN}"
           default-alert:
