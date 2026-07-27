@@ -5,3 +5,7 @@ kind: Kustomization
 # namespace rewrite would corrupt the MAC).
 resources:
   - namespace.yaml
+  - pvc-config.yaml
+  - deployment.yaml
+  - service.yaml
+  - httproute.yaml

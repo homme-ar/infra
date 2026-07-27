@@ -1,6 +1,6 @@
 # Media Stack Runbook
 
-Operational guide for the media stack: `bazarr`, `jellyfin`, `jellyseerr`, `lidarr`,
+Operational guide for the media stack: `bazarr`, `jellyfin`, `seerr`, `lidarr`,
 `prowlarr`, `radarr`, `sabnzbd`, `sonarr` (manifests under `cluster/apps/media/`).
 
 ## Architecture
@@ -17,7 +17,7 @@ Operational guide for the media stack: `bazarr`, `jellyfin`, `jellyseerr`, `lida
 - **Privilege model**: the LinuxServer images start as root (their s6-overlay init
   requires it) and drop to the unprivileged `abc` user (PUID/PGID 1000) before launching
   the app — do not add `runAsNonRoot` or capability drops to those pods, the init crashes
-  without CHOWN/SETUID/SETGID. jellyseerr (non-LSIO image) runs fully non-root.
+  without CHOWN/SETUID/SETGID. seerr (non-LSIO image) runs fully non-root.
 - **Ingress**: `HTTPRoute` per app on the shared `envoy-gateway`, hostname
   `<app>-apps.${CLUSTER_DOMAIN}` (covered by the existing wildcard DNS + TLS cert).
 - **Jellyfin transcode scratch**: `emptyDir` at `/config/data/transcodes` so transient
@@ -57,7 +57,7 @@ headlamp/zigbee2mqtt/waha). Their namespaces are listed in
 (`*.${CLUSTER_DOMAIN}` → `two_factor`) already covers their hostnames, so no Authelia
 config change is needed.
 
-`jellyfin` and `jellyseerr` keep their own built-in authentication on purpose (they are
+`jellyfin` and `seerr` keep their own built-in authentication on purpose (they are
 user-facing multi-user apps, and Jellyfin clients don't play well with SSO redirects).
 
 ### Disabling each app's built-in auth (one-time, in the UI)
@@ -97,7 +97,7 @@ Because every pod mounts the same `/data`, **no remote path mappings are needed*
 - **bazarr**: point it at sonarr/radarr; subtitle paths follow the same `/data/media/...` roots.
 - **jellyfin**: libraries at `/data/media/movies`, `/data/media/tv`, `/data/media/music`.
   Its mount is read-only; metadata is stored in its Longhorn config PVC.
-- **jellyseerr**: connect to Jellyfin, then link sonarr/radarr for request fulfillment.
+- **seerr**: connect to Jellyfin, then link sonarr/radarr for request fulfillment.
 
 ### Verifying hardlinks work
 
