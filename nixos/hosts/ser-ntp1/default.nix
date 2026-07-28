@@ -2,7 +2,10 @@
 { ... }:
 
 {
-  imports = [ ../../modules/chrony-gps ];
+  imports = [
+    ../../modules/rpi4
+    ../../modules/chrony-gps
+  ];
 
   # Recommended: static address for a time server (the onboard Ethernet
   # interface on Raspberry Pi 4 is `end0`).

@@ -9,14 +9,14 @@ This is **not an application codebase** — it is an Infrastructure-as-Code / Gi
 The repository manages three distinct things:
 
 1. **A 3-node Kubernetes cluster** running on Talos Linux (`homme-cluster`), defined in `talos/` and `cluster/`.
-2. **Two auxiliary NixOS hosts** (Raspberry Pi 4: an NTP server and a DNS server), defined as a standalone Nix flake in `nixos/`.
+2. **Three auxiliary NixOS hosts** (Raspberry Pi: an NTP server, a DNS server, and a UPS monitor), defined as a standalone Nix flake in `nixos/`.
 3. **A reproducible dev environment** (Nix flake + direnv) providing all CLI tools, defined in the root `flake.nix`.
 
 ### Hardware & topology
 
 - **Kubernetes nodes**: 3 × Minisforum MS-A2 (`ser-msa2cp1` `192.0.2.2`, `ser-msa2cp2` `192.0.2.3`, `ser-msa2cp3` `192.0.2.4`), all control-plane, with a shared VIP `192.0.2.1` (API endpoint `https://192.0.2.1:6443`). Scheduling on control planes is allowed.
 - **Versions**: Talos `v1.13.6`, Kubernetes `v1.36.0` (pinned in `talos/talconfig.yaml`).
-- **Auxiliary hosts**: `ser-ntp1` (GPS-disciplined NTP stratum 1 via chrony) and `ser-dns1` (AdGuard Home), both Raspberry Pi 4 running NixOS (see `nixos/`).
+- **Auxiliary hosts**: `ser-ntp1` (GPS-disciplined NTP stratum 1 via chrony) and `ser-dns1` (AdGuard Home), both Raspberry Pi 4, plus `ser-ups1` (apcupsd for the APC Smart-UPS over USB; NIS on tcp/3551 for Home Assistant, Prometheus exporter on :9162), a Raspberry Pi 3 — all running NixOS (see `nixos/`).
 
 ## Repository Layout
 
@@ -36,8 +36,8 @@ The repository manages three distinct things:
 │   └── apps/              #   platform/, iot/, media/
 ├── nixos/                 # Standalone Nix flake: NixOS configs for the RPi4 hosts
 │   ├── flake.nix          #   Own inputs (nixpkgs nixos-26.05, comin, sops-nix, ...)
-│   ├── hosts/             #   Per-host entry points: ser-ntp1/, ser-dns1/
-│   ├── modules/           #   Shared modules: common/, chrony-gps/, adguard/
+│   ├── hosts/             #   Per-host entry points: ser-ntp1/, ser-dns1/, ser-ups1/
+│   ├── modules/           #   Shared modules: common/, rpi4/, chrony-gps/, adguard/, apcupsd/
 │   ├── pkgs/              #   Custom packages not in nixpkgs (gpsd-prometheus-exporter)
 │   └── secrets/           #   SOPS-encrypted host secrets (comin deploy key, ...)
 ├── scripts/               # Helper CLI scripts (added to PATH by the dev shell)
@@ -110,7 +110,7 @@ kustomize build cluster/apps/platform/n8n
 # deploy key and an aarch64 builder or binfmt emulation)
 sops -d --extract '["comin_deploy_key"]' nixos/secrets/secrets.yaml > /tmp/comin_deploy_key
 chmod 644 /tmp/comin_deploy_key
-NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#packages.aarch64-linux.sd-image-ser-ntp1   # or sd-image-ser-dns1
+NIXOS_COMIN_DEPLOY_KEY=/tmp/comin_deploy_key nix build --impure --option sandbox false ./nixos#packages.aarch64-linux.sd-image-ser-ntp1   # or sd-image-ser-dns1 / sd-image-ser-ups1
 # (the full `packages.aarch64-linux.` path is required on x86_64 build machines)
 shred -u /tmp/comin_deploy_key
 zstd -d result/sd-image/*.img.zst -o rpi.img   # then flash to SD

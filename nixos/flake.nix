@@ -1,5 +1,5 @@
 {
-  description = "NixOS configurations for the Homme auxiliary Raspberry Pi 4 hosts (GitOps-managed by comin)";
+  description = "NixOS configurations for the Homme auxiliary Raspberry Pi hosts (GitOps-managed by comin)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
@@ -34,11 +34,11 @@
       cominDeployKeyPath = builtins.getEnv "NIXOS_COMIN_DEPLOY_KEY";
 
       mkHost =
-        { hostname, hostModule }:
+        { hostname, hostModule, nixosHardwareModule }:
         nixpkgs.lib.nixosSystem {
           inherit system;
           modules = [
-            nixos-hardware.nixosModules.raspberry-pi-4
+            nixosHardwareModule
             comin.nixosModules.comin
             sops-nix.nixosModules.sops
             # The same configuration builds the SD image and runs on the
@@ -86,12 +86,21 @@
         ser-ntp1 = mkHost {
           hostname = "ser-ntp1";
           hostModule = ./hosts/ser-ntp1;
+          nixosHardwareModule = nixos-hardware.nixosModules.raspberry-pi-4;
         };
 
         # AdGuard Home DNS server
         ser-dns1 = mkHost {
           hostname = "ser-dns1";
           hostModule = ./hosts/ser-dns1;
+          nixosHardwareModule = nixos-hardware.nixosModules.raspberry-pi-4;
+        };
+
+        # apcupsd server for the APC Smart-UPS (Raspberry Pi 3)
+        ser-ups1 = mkHost {
+          hostname = "ser-ups1";
+          hostModule = ./hosts/ser-ups1;
+          nixosHardwareModule = nixos-hardware.nixosModules.raspberry-pi-3;
         };
       };
 
@@ -112,6 +121,7 @@
       packages.${system} = {
         sd-image-ser-ntp1 = mkSdImage "ser-ntp1";
         sd-image-ser-dns1 = mkSdImage "ser-dns1";
+        sd-image-ser-ups1 = mkSdImage "ser-ups1";
       };
     };
 }
