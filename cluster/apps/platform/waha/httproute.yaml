@@ -15,6 +15,7 @@ spec:
   parentRefs:
     - name: envoy-gateway
       namespace: kube-system
+      sectionName: https
   # Same hostname as the legacy deployment. This specific match takes
   # precedence over the legacy-fallback wildcard route at cutover time.
   hostnames:
