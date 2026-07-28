@@ -19,6 +19,7 @@ spec:
   parentRefs:
     - name: envoy-gateway
       namespace: kube-system
+      sectionName: https
   hostnames:
     - "grafana-adm.${CLUSTER_DOMAIN}"
   rules:

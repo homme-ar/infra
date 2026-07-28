@@ -18,6 +18,7 @@ spec:
   parentRefs:
     - name: envoy-gateway
       namespace: kube-system
+      sectionName: https
   hostnames:
     - "sabnzbd-apps.${CLUSTER_DOMAIN}"
   rules:
