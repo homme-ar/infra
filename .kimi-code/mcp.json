@@ -1,8 +1,4 @@
 {
   "mcpServers": {
-    "home-assistant": {
-      "url": "https://ha.homme.ar/api/mcp",
-      "bearerTokenEnvVar": "HA_TOKEN"
-    }
   }
 }
