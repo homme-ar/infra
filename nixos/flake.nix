@@ -57,6 +57,14 @@
       sdImageInjectModule =
         { lib, config, ... }:
         {
+          # Image builds run unsandboxed (--option sandbox false) on a NixOS
+          # host, and the extlinux populate builder enumerates the *build
+          # host's* generations (/nix/var/nix/profiles/system-*-link) into the
+          # image's boot menu, leaking host kernels and entries into it.
+          # Limit 0 keeps only the image's own default entry. On-device
+          # comin rebuilds are unaffected (this module only applies to the
+          # image build), so the Pi keeps its own rollback generations.
+          boot.loader.generic-extlinux-compatible.configurationLimit = 0;
           sdImage.populateRootCommands = lib.mkForce ''
             mkdir -p ./files/boot
             ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./files/boot
