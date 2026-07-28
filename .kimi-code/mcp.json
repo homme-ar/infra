@@ -1,8 +1,4 @@
 {
   "mcpServers": {
-    "home-assistant": {
-      "url": "https://ha.example.com/api/mcp",
-      "bearerTokenEnvVar": "HA_TOKEN"
-    }
   }
 }
