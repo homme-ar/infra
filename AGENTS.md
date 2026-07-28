@@ -64,6 +64,10 @@ The repository manages three distinct things:
 
 All CLI tools come from the Nix dev shell. **Always run commands inside it**: either with direnv active (`direnv allow` once, then tools are on `PATH`) or via `nix develop --command <cmd>`. Do not rely on system-installed versions of `kubectl`, `talosctl`, `flux`, `sops`, etc. The dev shell also prepends `scripts/` to `PATH`.
 
+### Dev-shell environment variables (SOPS)
+
+`env.sops.yaml` (repo root) holds dev-only environment variables that direnv decrypts and exports automatically when the shell is entered (see `.envrc`; it matches the `.*\.sops\.yaml$` rule in `.sops.yaml`). Edit it with `sops env.sops.yaml` — direnv reloads on save. Only dev-only, non-cluster variables belong here; cluster secrets stay in `cluster/` as SOPS-encrypted Kubernetes Secrets. Decryption happens in `.envrc` (never in the flake `shellHook`) so plaintext values are not persisted in the nix-direnv cache under `.direnv/`.
+
 ### Cluster access (always pass explicit config paths)
 
 ```bash
