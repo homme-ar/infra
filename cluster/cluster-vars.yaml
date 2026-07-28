@@ -26,11 +26,13 @@ data:
   # Wildcard DNS answer IP (same as pool start / gateway IP)
   LB_WILDCARD_IP: "10.0.21.1"
 
-  # ── Auxiliary NixOS hosts (Raspberry Pi 4, DHCP reservations) ─────────────
+  # ── Auxiliary NixOS hosts (Raspberry Pi, DHCP reservations) ───────────────
   # AdGuard Home DNS server
   SER_DNS1_IP: "10.0.10.1"
   # GPS-disciplined NTP stratum 1 server
   SER_NTP1_IP: "10.0.10.2"
+  # apcupsd server for the APC Smart-UPS
+  SER_UPS1_IP: "10.0.10.3"
 
   # ── OCI cloud hosts ───────────────────────────────────────────────────────
   OCI_CLOUD_IP: "129.151.125.247"
