@@ -124,6 +124,20 @@ spec:
             static_configs:
               - targets:
                   - "${SER_UPS1_IP}:9162"
+          - job_name: comin
+            static_configs:
+              - targets:
+                  - "${SER_NTP1_IP}:4243"
+                labels:
+                  instance: ser-ntp1
+              - targets:
+                  - "${SER_DNS1_IP}:4243"
+                labels:
+                  instance: ser-dns1
+              - targets:
+                  - "${SER_UPS1_IP}:4243"
+                labels:
+                  instance: ser-ups1
       service:
         # Label so Headlamp's prometheus plugin can autodiscover this Service
         additionalLabels:
