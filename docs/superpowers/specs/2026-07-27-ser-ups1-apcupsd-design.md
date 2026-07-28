@@ -80,8 +80,8 @@ the sops-nix wiring stay untouched.
   DEVICE
   NISIP 0.0.0.0
   NISPORT 3551
-  BATTERYLEVEL 50
-  MINUTES 5
+  BATTERYLEVEL -1
+  MINUTES -1
   TIMEOUT 0
   ```
 
@@ -90,9 +90,11 @@ the sops-nix wiring stay untouched.
     connect remotely.
   - `DEVICE` empty = USB autodetection (correct for the SRT2200XLI USB HID
     interface).
-  - `BATTERYLEVEL 50` / `MINUTES 5` are the nixpkgs defaults; `TIMEOUT 0`
-    means the Pi never shuts itself down — it only reports. The UPS feeds
-    network gear, not this host's logic.
+  - `BATTERYLEVEL -1` / `MINUTES -1` / `TIMEOUT 0` disable every shutdown
+    trigger: the Pi is report-only and stays up as long as the battery lasts.
+    Home Assistant is responsible for any shutdown automation. (The nixpkgs
+    defaults `BATTERYLEVEL 50` / `MINUTES 5` would make apcupsd shut the Pi
+    down mid-outage, cutting off UPS visibility exactly when HA needs it.)
 - `services.prometheus.exporters.apcupsd.enable = true;` (defaults: port
   9162, scrapes `127.0.0.1:3551`).
 - `networking.firewall.extraCommands` allowing tcp/3551 and tcp/9162 from

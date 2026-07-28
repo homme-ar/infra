@@ -2,7 +2,10 @@
 { ... }:
 
 {
-  imports = [ ../../modules/adguard ];
+  imports = [
+    ../../modules/rpi4
+    ../../modules/adguard
+  ];
 
   # Recommended: static address — this is the DNS server handed out by DHCP
   # (the onboard Ethernet interface on Raspberry Pi 4 is `end0`).
