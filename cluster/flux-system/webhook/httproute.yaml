@@ -1,0 +1,25 @@
+# Public endpoint for the GitHub webhook that triggers Flux reconciliation.
+# Deliberately NOT behind Authelia ExternalAuth: GitHub cannot do SSO —
+# authentication is the HMAC signature validated by notification-controller.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: flux-webhook-receiver
+  namespace: flux-system
+  labels:
+    app.kubernetes.io/name: flux
+spec:
+  parentRefs:
+    - name: envoy-gateway
+      namespace: kube-system
+      sectionName: https
+  hostnames:
+    - "flux-webhook.${CLUSTER_DOMAIN}"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /hook/
+      backendRefs:
+        - name: webhook-receiver
+          port: 80
