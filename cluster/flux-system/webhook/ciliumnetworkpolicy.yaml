@@ -1,0 +1,24 @@
+# Allow the Cilium Gateway (cilium-envoy, host-networked on the nodes) to reach
+# the notification-controller webhook port. The flux-bootstrap NetworkPolicy
+# `allow-webhooks` only allows pod traffic (namespaceSelector), which does not
+# cover host-networked sources — so the GitHub webhook endpoint gets 503s
+# without this policy.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-gateway-webhooks
+  namespace: flux-system
+  labels:
+    app.kubernetes.io/name: flux
+spec:
+  endpointSelector:
+    matchLabels:
+      app: notification-controller
+  ingress:
+    - fromEntities:
+        - remote-node
+        - host
+      toPorts:
+        - ports:
+            - port: "9292"
+              protocol: TCP
