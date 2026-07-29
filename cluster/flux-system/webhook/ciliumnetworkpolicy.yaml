@@ -1,8 +1,8 @@
-# Allow the Cilium Gateway (cilium-envoy, host-networked on the nodes) to reach
-# the notification-controller webhook port. The flux-bootstrap NetworkPolicy
-# `allow-webhooks` only allows pod traffic (namespaceSelector), which does not
-# cover host-networked sources — so the GitHub webhook endpoint gets 503s
-# without this policy.
+# Allow the Cilium Gateway (cilium-envoy) to reach the notification-controller
+# webhook port. The flux-bootstrap NetworkPolicy `allow-webhooks` only allows
+# pod traffic (namespaceSelector), but Envoy upstream connections carry Cilium's
+# reserved `ingress` identity (and node-originated probes use host/remote-node),
+# so the GitHub webhook endpoint gets 503s without this policy.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -16,8 +16,13 @@ spec:
       app: notification-controller
   ingress:
     - fromEntities:
+        # host/remote-node: health checks and node-originated traffic
         - remote-node
         - host
+        # ingress: Cilium's reserved identity for Envoy (Gateway API) upstream
+        # connections — without it the gateway gets 503s for same-node backends
+        # behind NetworkPolicy enforcement
+        - ingress
       toPorts:
         - ports:
             - port: "9292"
