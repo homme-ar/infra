@@ -9,6 +9,9 @@ result-*
 *.key
 *.pem
 
+# Superpowers working docs (specs/plans — never committed)
+docs/superpowers/
+
 # IDEs & OS
 .vscode/
 .idea/
