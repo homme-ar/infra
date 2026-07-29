@@ -1,0 +1,18 @@
+apiVersion: notification.toolkit.fluxcd.io/v1
+kind: Receiver
+metadata:
+  name: flux-system
+  namespace: flux-system
+  labels:
+    app.kubernetes.io/name: flux
+spec:
+  type: github
+  events:
+    - push
+  secretRef:
+    name: github-webhook-token
+  resources:
+    - apiVersion: source.toolkit.fluxcd.io/v1
+      kind: GitRepository
+      name: flux-system
+      namespace: flux-system
