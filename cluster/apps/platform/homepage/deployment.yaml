@@ -6,6 +6,10 @@ metadata:
   labels:
     app.kubernetes.io/name: homepage
     app.kubernetes.io/component: web
+  annotations:
+    # Reloader restarts homepage when its ConfigMap or homepage-secret changes
+    # (ConfigMap is mounted via subPath, so kubelet does not propagate updates).
+    reloader.stakater.com/auto: "true"
 spec:
   revisionHistoryLimit: 3
   replicas: 1
