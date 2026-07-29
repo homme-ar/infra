@@ -32,6 +32,10 @@ spec:
       name: gatus-values
       valuesKey: values.yaml
   values:
+    # Reloader restarts gatus when the gatus-values or gatus-ntfy secrets change.
+    # (top-level `annotations` is applied to the Deployment metadata by the chart)
+    annotations:
+      reloader.stakater.com/auto: "true"
     # Recreate avoids multi-attach errors with the RWO Longhorn PVC.
     deployment:
       strategy: Recreate
