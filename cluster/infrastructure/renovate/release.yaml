@@ -121,6 +121,7 @@ spec:
             { matchFileNames: ['cluster/infrastructure/security/cert-manager-config/**'], groupName: 'cert-manager-config', groupSlug: 'cert-manager-config' },
             { matchFileNames: ['cluster/infrastructure/security/cert-manager/**'], groupName: 'cert-manager', groupSlug: 'cert-manager' },
             { matchFileNames: ['cluster/infrastructure/security/kubelet-serving-cert-approver/**'], groupName: 'kubelet-serving-cert-approver', groupSlug: 'kubelet-serving-cert-approver' },
+            { matchFileNames: ['cluster/infrastructure/security/reloader/**'], groupName: 'reloader', groupSlug: 'reloader' },
             { matchFileNames: ['cluster/infrastructure/storage/cloudnativepg/**'], groupName: 'cloudnativepg', groupSlug: 'cloudnativepg' },
             { matchFileNames: ['cluster/infrastructure/storage/longhorn/**'], groupName: 'longhorn', groupSlug: 'longhorn' },
             { matchFileNames: ['cluster/infrastructure/storage/versitygw/**'], groupName: 'versitygw', groupSlug: 'versitygw' },
