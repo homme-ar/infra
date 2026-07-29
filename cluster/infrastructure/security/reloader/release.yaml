@@ -1,0 +1,40 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: reloader
+  namespace: reloader
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: reloader
+      version: "2.2.*"
+      sourceRef:
+        kind: HelmRepository
+        name: stakater
+        namespace: flux-system
+      interval: 12h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  # Chart defaults already run non-root (uid 65534, seccomp RuntimeDefault);
+  # add the repo-standard hardening and explicit resources (chart default is
+  # resources: {}). Reload behavior stays at chart defaults: opt-in via
+  # workload annotations (autoReloadAll: false).
+  values:
+    reloader:
+      deployment:
+        containerSecurityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
