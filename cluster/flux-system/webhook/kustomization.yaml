@@ -2,8 +2,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - receiver.yaml
-  # Temporarily disabled: flux-system Kustomization must first apply its own
-  # postBuild substitution (gotk-sync.yaml) before the ${CLUSTER_DOMAIN}
-  # variable in the HTTPRoute can be resolved. Re-enabled in a follow-up commit.
-  # - httproute.yaml
+  - httproute.yaml
   - secret.yaml
