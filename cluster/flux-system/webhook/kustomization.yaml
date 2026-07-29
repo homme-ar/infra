@@ -4,3 +4,4 @@ resources:
   - receiver.yaml
   - httproute.yaml
   - secret.yaml
+  - ciliumnetworkpolicy.yaml
