@@ -21,6 +21,9 @@ spec:
       sectionName: https
   hostnames:
     - "ha.${CLUSTER_DOMAIN}"
+    # LAN-only alias used as the internal URL by the HA companion app, so it
+    # fails over to the public URL cleanly when leaving the home WiFi.
+    - "ha-local.${CLUSTER_DOMAIN}"
   rules:
     - matches:
         - path:
