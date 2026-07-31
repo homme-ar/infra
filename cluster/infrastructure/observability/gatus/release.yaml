@@ -171,6 +171,11 @@ spec:
           url: http://sabnzbd.sabnzbd.svc.cluster.local/
           conditions:
             - "[STATUS] == 200"
+        - name: Maintainerr
+          group: Media
+          url: http://maintainerr.maintainerr.svc.cluster.local/login
+          conditions:
+            - "[STATUS] == 200"
         # ── IoT ─────────────────────────────────────────────────────────
         - name: Home Assistant
           group: IoT
