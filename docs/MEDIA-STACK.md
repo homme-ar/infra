@@ -1,7 +1,8 @@
 # Media Stack Runbook
 
-Operational guide for the media stack: `bazarr`, `jellyfin`, `seerr`, `lidarr`,
-`prowlarr`, `radarr`, `sabnzbd`, `sonarr` (manifests under `cluster/apps/media/`).
+Operational guide for the media stack: `bazarr`, `jellyfin`, `maintainerr`,
+`seerr`, `lidarr`, `prowlarr`, `radarr`, `sabnzbd`, `sonarr` (manifests under
+`cluster/apps/media/`).
 
 ## Architecture
 
@@ -57,6 +58,11 @@ headlamp/zigbee2mqtt/waha). Their namespaces are listed in
 (`*.${CLUSTER_DOMAIN}` → `two_factor`) already covers their hostnames, so no Authelia
 config change is needed.
 
+`maintainerr` is also protected by Authelia at the gateway (namespace listed in
+the same reference grant), but unlike the `*arr` apps it **keeps its built-in
+login enabled** — it has no external-auth mode, so after passing Authelia you
+still log in with the Maintainerr admin account created on first run.
+
 `jellyfin` and `seerr` keep their own built-in authentication on purpose (they are
 user-facing multi-user apps, and Jellyfin clients don't play well with SSO redirects).
 
@@ -98,6 +104,13 @@ Because every pod mounts the same `/data`, **no remote path mappings are needed*
 - **jellyfin**: libraries at `/data/media/movies`, `/data/media/tv`, `/data/media/music`.
   Its mount is read-only; metadata is stored in its Longhorn config PVC.
 - **seerr**: connect to Jellyfin, then link sonarr/radarr for request fulfillment.
+- **maintainerr**: on first login create the admin account, then connect the
+  services with their in-cluster URLs — Jellyfin
+  (`http://jellyfin.jellyfin.svc.cluster.local`, API key from Jellyfin →
+  Dashboard → API Keys), sonarr/radarr (`http://sonarr.sonarr.svc.cluster.local`
+  / `http://radarr.radarr.svc.cluster.local`) and optionally seerr
+  (`http://seerr.seerr.svc.cluster.local`). It mounts no media share: deletions
+  are executed through the sonarr/radarr APIs.
 
 ### Verifying hardlinks work
 
