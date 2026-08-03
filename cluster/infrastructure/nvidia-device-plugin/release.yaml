@@ -21,6 +21,10 @@ spec:
     remediation:
       retries: 3
   values:
+    # Run with the nvidia runtime handler (registered by the siderolabs
+    # nvidia-container-toolkit extension) so the driver libs (libnvidia-ml)
+    # are injected into the plugin container.
+    runtimeClassName: nvidia
     # Only ser-msa2cp1 has a GPU (label set by the Talos machine patch).
     nodeSelector:
       nvidia.com/gpu.present: "true"
