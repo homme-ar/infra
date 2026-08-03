@@ -16,7 +16,7 @@ The repository manages three distinct things:
 
 - **Kubernetes nodes**: 3 × Minisforum MS-A2 (`ser-msa2cp1` `10.0.20.2`, `ser-msa2cp2` `10.0.20.3`, `ser-msa2cp3` `10.0.20.4`), all control-plane, with a shared VIP `10.0.20.1` (API endpoint `https://10.0.20.1:6443`). Scheduling on control planes is allowed.
 - **Versions**: Talos `v1.13.6`, Kubernetes `v1.36.0` (pinned in `talos/talconfig.yaml`).
-- **Auxiliary hosts**: `ser-ntp1` (GPS-disciplined NTP stratum 1 via chrony) and `ser-dns1` (AdGuard Home), both Raspberry Pi 4, plus `ser-ups1` (apcupsd for the APC Smart-UPS over USB; NIS on tcp/3551 for Home Assistant, Prometheus exporter on :9162), a Raspberry Pi 3 — all running NixOS (see `nixos/`).
+- **Auxiliary hosts**: `ser-ntp1` (GPS-disciplined NTP stratum 1 via chrony), `ser-dns1` (AdGuard Home) and `ser-serial1` (UART jump box for rack devices: SSH serial tools + ser2net on tcp/7001-7004), all Raspberry Pi 4, plus `ser-ups1` (apcupsd for the APC Smart-UPS over USB; NIS on tcp/3551 for Home Assistant, Prometheus exporter on :9162), a Raspberry Pi 3 — all running NixOS (see `nixos/`).
 
 ## Repository Layout
 
@@ -36,8 +36,8 @@ The repository manages three distinct things:
 │   └── apps/              #   platform/, iot/, media/
 ├── nixos/                 # Standalone Nix flake: NixOS configs for the RPi4 hosts
 │   ├── flake.nix          #   Own inputs (nixpkgs nixos-26.05, comin, sops-nix, ...)
-│   ├── hosts/             #   Per-host entry points: ser-ntp1/, ser-dns1/, ser-ups1/
-│   ├── modules/           #   Shared modules: common/, rpi4/, chrony-gps/, adguard/, apcupsd/
+│   ├── hosts/             #   Per-host entry points: ser-ntp1/, ser-dns1/, ser-ups1/, ser-serial1/
+│   ├── modules/           #   Shared modules: common/, rpi4/, chrony-gps/, adguard/, apcupsd/, uart/
 │   ├── pkgs/              #   Custom packages not in nixpkgs (gpsd-prometheus-exporter)
 │   └── secrets/           #   SOPS-encrypted host secrets (comin deploy key, ...)
 ├── scripts/               # Helper CLI scripts (added to PATH by the dev shell)
