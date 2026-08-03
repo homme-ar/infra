@@ -110,6 +110,13 @@
           hostModule = ./hosts/ser-ups1;
           nixosHardwareModule = nixos-hardware.nixosModules.raspberry-pi-3;
         };
+
+        # UART jump box for rack devices (SSH serial tools + ser2net)
+        ser-serial1 = mkHost {
+          hostname = "ser-serial1";
+          hostModule = ./hosts/ser-serial1;
+          nixosHardwareModule = nixos-hardware.nixosModules.raspberry-pi-4;
+        };
       };
 
       # SD card images for the initial provisioning of each host. Each image
@@ -130,6 +137,7 @@
         sd-image-ser-ntp1 = mkSdImage "ser-ntp1";
         sd-image-ser-dns1 = mkSdImage "ser-dns1";
         sd-image-ser-ups1 = mkSdImage "ser-ups1";
+        sd-image-ser-serial1 = mkSdImage "ser-serial1";
       };
     };
 }
