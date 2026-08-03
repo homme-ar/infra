@@ -1,0 +1,34 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: nvidia-device-plugin
+  namespace: nvidia-device-plugin
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: nvidia-device-plugin
+      version: "0.19.*"
+      sourceRef:
+        kind: HelmRepository
+        name: nvidia-device-plugin
+        namespace: flux-system
+      interval: 12h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    # Only ser-msa2cp1 has a GPU (label set by the Talos machine patch).
+    nodeSelector:
+      nvidia.com/gpu.present: "true"
+    # The GPU node is a control plane, so the DaemonSet must tolerate its taint.
+    tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule

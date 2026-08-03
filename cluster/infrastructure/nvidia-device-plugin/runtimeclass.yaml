@@ -1,0 +1,8 @@
+# Runtime handler registered in containerd by the siderolabs
+# nvidia-container-toolkit-lts system extension. GPU workloads must set
+# runtimeClassName: nvidia (in addition to requesting nvidia.com/gpu).
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: nvidia
+handler: nvidia
