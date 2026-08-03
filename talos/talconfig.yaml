@@ -27,10 +27,10 @@ nodes:
             - siderolabs/amdgpu
             - siderolabs/iscsi-tools
             - siderolabs/util-linux-tools
-            # - siderolabs/nonfree-kmod-nvidia-lts
-            # - siderolabs/nvidia-container-toolkit-lts
-    # patches:
-    #   - "@./patches/nodes/ser-msa2cp1-gpu.yaml"
+            - siderolabs/nonfree-kmod-nvidia-lts
+            - siderolabs/nvidia-container-toolkit-lts
+    patches:
+      - "@./patches/nodes/ser-msa2cp1-gpu.yaml"
 
   - hostname: ser-msa2cp2
     ipAddress: 192.0.2.3
