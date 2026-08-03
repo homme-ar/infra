@@ -25,7 +25,7 @@ spec:
       schedule: "17 * * * *"
       concurrencyPolicy: Forbid
       successfulJobsHistoryLimit: 3
-      failedJobsHistoryLimit: 3
+      failedJobsHistoryLimit: 1
       jobBackoffLimit: 1
       # Copies the renovate-metrics binary into a shared volume so the main
       # container can pipe the structured Renovate logs through it.
