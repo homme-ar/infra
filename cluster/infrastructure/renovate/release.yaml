@@ -110,6 +110,7 @@ spec:
             { matchFileNames: ['cluster/infrastructure/networking/cilium/**'], groupName: 'cilium', groupSlug: 'cilium' },
             { matchFileNames: ['cluster/infrastructure/networking/gateway/**'], groupName: 'gateway', groupSlug: 'gateway' },
             { matchFileNames: ['cluster/infrastructure/networking/wireguard/**'], groupName: 'wireguard', groupSlug: 'wireguard' },
+            { matchFileNames: ['cluster/infrastructure/nvidia-device-plugin/**'], groupName: 'nvidia-device-plugin', groupSlug: 'nvidia-device-plugin' },
             { matchFileNames: ['cluster/infrastructure/observability/adguard-exporter/**'], groupName: 'adguard-exporter', groupSlug: 'adguard-exporter' },
             { matchFileNames: ['cluster/infrastructure/observability/dashboards/**'], groupName: 'dashboards', groupSlug: 'dashboards' },
             { matchFileNames: ['cluster/infrastructure/observability/gatus/**'], groupName: 'gatus', groupSlug: 'gatus' },
