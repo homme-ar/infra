@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subgen
+  namespace: subgen
+  labels:
+    app.kubernetes.io/name: subgen
+    app.kubernetes.io/component: server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: subgen
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: subgen
+    spec:
+      # The nvidia.com/gpu request pins scheduling to ser-msa2cp1 (the only
+      # GPU node); the nvidia runtime handler injects the driver libraries.
+      runtimeClassName: nvidia
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: subgen
+          image: ghcr.io/coaxk/subarr-subgen:2026.07.3-r1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9000
+              protocol: TCP
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: America/Argentina/Buenos_Aires
+            - name: TRANSCRIBE_DEVICE
+              value: cuda
+            # large-v3-turbo: ~3GB VRAM, near-large-v3 quality, transcribe-only
+            # (translation to Spanish is Lingarr's job, not Whisper's).
+            - name: WHISPER_MODEL
+              value: large-v3-turbo
+            - name: CONCURRENT_TRANSCRIPTIONS
+              value: "1"
+            # Free VRAM once the queue drains so Jellyfin/Ollama can use it.
+            - name: CLEAR_VRAM_ON_COMPLETE
+              value: "true"
+            - name: MODEL_PATH
+              value: /models
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "4"
+              memory: 8Gi
+              nvidia.com/gpu: "1"
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: models
+              mountPath: /models
+            # Single QNAP share, same path as every other media pod — Subarr
+            # drives subgen by file path, so paths must match exactly.
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: subgen-models
+        - name: data
+          persistentVolumeClaim:
+            claimName: nas-media
