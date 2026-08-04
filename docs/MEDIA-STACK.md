@@ -151,6 +151,53 @@ of the injected driver utilities) lists the ffmpeg process:
 kubectl exec -n jellyfin deploy/jellyfin -- nvidia-smi
 ```
 
+## AI subtitle pipeline (subarr + subgen + lingarr + ollama)
+
+For content where Bazarr's providers have no subtitles, an AI pipeline fills
+the gap. **Bazarr never talks to Subgen directly** (avoids the blocking
+Whisper-provider bottleneck) — Subarr is the only Subgen client.
+
+- **subarr** (`subarr-apps.${CLUSTER_DOMAIN}`): walks the Sonarr/Radarr/Bazarr
+  libraries, verifies real subtitle gaps, and feeds Subgen through a
+  backpressured queue. Refreshes the Jellyfin item when a subtitle lands.
+- **subgen** (`ghcr.io/coaxk/subarr-subgen`, internal only): faster-whisper
+  `large-v3-turbo` on the RTX A2000 (`runtimeClassName: nvidia`,
+  `nvidia.com/gpu: 1`). Writes `.<lang>.srt` next to the media on `/data`.
+  `CLEAR_VRAM_ON_COMPLETE=true` frees VRAM when the queue drains.
+- **lingarr** (`lingarr-apps.${CLUSTER_DOMAIN}`): translates the generated
+  subtitles to Spanish using Ollama's OpenAI-compatible endpoint. Whisper
+  itself cannot translate English audio to Spanish (its `translate` task only
+  outputs English), which is why this second step exists.
+- **ollama** (`cluster/apps/ai/ollama`, internal only): runs `aya:8b` on the
+  GPU. `OLLAMA_KEEP_ALIVE=1m` unloads the model from VRAM after 1 minute idle,
+  so the 12GB A2000 stays available for Jellyfin NVENC and Whisper.
+
+All four pods mount the same NFS share at `/data`, so no path mapping is
+needed anywhere. Subarr's and Lingarr's SQLite databases live on Longhorn
+PVCs (`/config`, `/app/config`) — never on NFS.
+
+### Post-deploy one-time steps
+
+1. **Pull the translation model**:
+   `kubectl exec -n ollama deploy/ollama -- ollama pull aya:8b`
+2. **API keys**: fill real values into the SOPS secrets
+   (`sops cluster/apps/media/subarr/secret.yaml`,
+   `sops cluster/apps/media/lingarr/secret.yaml`) — Sonarr/Radarr/Bazarr keys
+   from each app's Settings → General, Jellyfin key from Dashboard → API Keys.
+   Commit and reconcile (`flux reconcile kustomization cluster-apps -n flux-system`).
+   Because the keys are injected as env vars from secrets, updating the secret
+   does not restart the pods — restart them once:
+   `kubectl rollout restart -n subarr deploy/subarr` and
+   `kubectl rollout restart -n lingarr deploy/lingarr`.
+3. **Subarr onboarding**: open `subarr-apps.${CLUSTER_DOMAIN}`, verify the
+   auto-detected integrations (subgen/sonarr/radarr/bazarr/jellyfin), then run
+   the first coverage walk from the Coverage tab.
+4. **Lingarr**: open `lingarr-apps.${CLUSTER_DOMAIN}`, confirm Radarr/Sonarr
+   show connected and that the `localai` service reports healthy.
+5. **End-to-end check**: pick one episode with no subtitles, queue it in
+   Subarr, and confirm a `.<lang>.srt` appears next to the media, followed by
+   a `.es.srt` once Lingarr translates it.
+
 ## Upgrade procedure
 
 Images are pinned (e.g. `lscr.io/linuxserver/sonarr:4.0.19`). To upgrade: bump the tag in
@@ -159,9 +206,3 @@ Images are pinned (e.g. `lscr.io/linuxserver/sonarr:4.0.19`). To upgrade: bump t
 ```bash
 flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile kustomization cluster-apps -n flux-system
 ```
-
-## Future work (deliberately out of scope)
-
-- **subgen** (whisper-based subtitle generation): should request
-  `nvidia.com/gpu: 1` and set `runtimeClassName: nvidia` — the device plugin
-  time-slices the A2000 across up to 10 pods.

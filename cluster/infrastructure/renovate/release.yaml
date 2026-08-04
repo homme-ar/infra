@@ -81,12 +81,14 @@ spec:
             // an ancient '8.1.2135' tag that is actually Lidarr 0.8.1 from 2021.
             // Constrain lidarr to the current 3.x stable stream.
             { matchPackageNames: ['lscr.io/linuxserver/lidarr'], allowedVersions: '/^3\\./' },
+            { matchFileNames: ['cluster/apps/ai/ollama/**'], groupName: 'ollama', groupSlug: 'ollama' },
             { matchFileNames: ['cluster/apps/iot/esphome/**'], groupName: 'esphome', groupSlug: 'esphome' },
             { matchFileNames: ['cluster/apps/iot/home-assistant/**'], groupName: 'home-assistant', groupSlug: 'home-assistant' },
             { matchFileNames: ['cluster/apps/iot/mosquitto/**'], groupName: 'mosquitto', groupSlug: 'mosquitto' },
             { matchFileNames: ['cluster/apps/iot/zigbee2mqtt/**'], groupName: 'zigbee2mqtt', groupSlug: 'zigbee2mqtt' },
             { matchFileNames: ['cluster/apps/media/bazarr/**'], groupName: 'bazarr', groupSlug: 'bazarr' },
             { matchFileNames: ['cluster/apps/media/jellyfin/**'], groupName: 'jellyfin', groupSlug: 'jellyfin' },
+            { matchFileNames: ['cluster/apps/media/lingarr/**'], groupName: 'lingarr', groupSlug: 'lingarr' },
             { matchFileNames: ['cluster/apps/media/maintainerr/**'], groupName: 'maintainerr', groupSlug: 'maintainerr' },
             { matchFileNames: ['cluster/apps/media/seerr/**'], groupName: 'seerr', groupSlug: 'seerr' },
             { matchFileNames: ['cluster/apps/media/lidarr/**'], groupName: 'lidarr', groupSlug: 'lidarr' },
@@ -94,6 +96,8 @@ spec:
             { matchFileNames: ['cluster/apps/media/radarr/**'], groupName: 'radarr', groupSlug: 'radarr' },
             { matchFileNames: ['cluster/apps/media/sabnzbd/**'], groupName: 'sabnzbd', groupSlug: 'sabnzbd' },
             { matchFileNames: ['cluster/apps/media/sonarr/**'], groupName: 'sonarr', groupSlug: 'sonarr' },
+            { matchFileNames: ['cluster/apps/media/subarr/**'], groupName: 'subarr', groupSlug: 'subarr' },
+            { matchFileNames: ['cluster/apps/media/subgen/**'], groupName: 'subgen', groupSlug: 'subgen' },
             { matchFileNames: ['cluster/apps/platform/authelia/**'], groupName: 'authelia', groupSlug: 'authelia' },
             { matchFileNames: ['cluster/apps/platform/headlamp/**'], groupName: 'headlamp', groupSlug: 'headlamp' },
             { matchFileNames: ['cluster/apps/platform/homepage/**'], groupName: 'homepage', groupSlug: 'homepage' },
