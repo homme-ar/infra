@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lingarr
+  namespace: lingarr
+  labels:
+    app.kubernetes.io/name: lingarr
+    app.kubernetes.io/component: server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: lingarr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: lingarr
+    spec:
+      # Runs fully as UID/GID 1000 so translated .es.srt files land on the
+      # QNAP NFS share with the same ownership as every other media app.
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: lingarr
+          image: ghcr.io/lingarr-translate/lingarr:1.2.4
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9876
+              protocol: TCP
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:9876
+            - name: TZ
+              value: America/Argentina/Buenos_Aires
+            - name: DB_CONNECTION
+              value: sqlite
+            - name: RADARR_URL
+              value: http://radarr.radarr.svc.cluster.local:7878
+            - name: SONARR_URL
+              value: http://sonarr.sonarr.svc.cluster.local:8989
+            # Local AI translation via Ollama's OpenAI-compatible endpoint.
+            - name: SERVICE_TYPE
+              value: '["localai"]'
+            - name: LOCAL_AI_ENDPOINT
+              value: http://ollama.ollama.svc.cluster.local:11434/v1
+            - name: LOCAL_AI_MODEL
+              value: aya:8b
+            - name: SOURCE_LANGUAGES
+              value: '[{"name":"English","code":"en"}]'
+            - name: TARGET_LANGUAGES
+              value: '[{"name":"Spanish","code":"es"}]'
+            # Authelia owns authentication at the gateway.
+            - name: AUTH_ENABLED
+              value: "false"
+            - name: TELEMETRY_ENABLED
+              value: "false"
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: lingarr-secret
+                  key: RADARR_API_KEY
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: lingarr-secret
+                  key: SONARR_API_KEY
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: lingarr-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: nas-media

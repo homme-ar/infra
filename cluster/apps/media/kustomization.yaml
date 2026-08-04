@@ -4,6 +4,7 @@ resources:
   - bazarr
   - jellyfin
   - lidarr
+  - lingarr
   - maintainerr
   - prowlarr
   - radarr
