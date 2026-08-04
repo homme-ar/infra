@@ -39,10 +39,12 @@ spec:
               value: America/Argentina/Buenos_Aires
             - name: DB_CONNECTION
               value: sqlite
+            # Repo Services expose port 80 (targetPort = app port), so the
+            # in-cluster URLs must NOT use the apps' native ports.
             - name: RADARR_URL
-              value: http://radarr.radarr.svc.cluster.local:7878
+              value: http://radarr.radarr.svc.cluster.local
             - name: SONARR_URL
-              value: http://sonarr.sonarr.svc.cluster.local:8989
+              value: http://sonarr.sonarr.svc.cluster.local
             # Local AI translation via Ollama's OpenAI-compatible endpoint.
             - name: SERVICE_TYPE
               value: '["localai"]'
