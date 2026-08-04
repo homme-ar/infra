@@ -20,6 +20,10 @@ spec:
       labels:
         app.kubernetes.io/name: jellyfin
     spec:
+      # Runs on ser-msa2cp1: the nvidia.com/gpu request below pins scheduling to
+      # the only GPU node. The nvidia runtime handler (Talos container-toolkit
+      # extension) injects the driver libraries into the container.
+      runtimeClassName: nvidia
       # LinuxServer images must start as root: their s6-overlay init applies
       # the PUID/PGID mapping and then drops to the unprivileged abc user
       # (UID/GID 1000), which is the owner used on the QNAP NFS share.
@@ -40,6 +44,10 @@ spec:
               value: "1000"
             - name: TZ
               value: America/Argentina/Buenos_Aires
+            # The toolkit default capabilities (compute,utility) do not expose
+            # the video engines; without "all" ffmpeg cannot see NVENC/NVDEC.
+            - name: NVIDIA_DRIVER_CAPABILITIES
+              value: all
           # No capability drops here: the s6-overlay init needs CHOWN/SETUID/
           # SETGID to fix /config ownership before dropping to the abc user.
           # The app process itself ends up running unprivileged (PUID 1000).
@@ -47,9 +55,11 @@ spec:
             requests:
               cpu: 100m
               memory: 512Mi
+              nvidia.com/gpu: "1"
             limits:
               cpu: "2"
               memory: 2Gi
+              nvidia.com/gpu: "1"
           livenessProbe:
             httpGet:
               path: /health
