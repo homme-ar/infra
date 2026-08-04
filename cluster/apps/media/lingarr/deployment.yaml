@@ -48,8 +48,10 @@ spec:
             # Local AI translation via Ollama's native generate API (Lingarr
             # treats the endpoint as chat API only when it ends in
             # "completions"; anything else is posted to as-is).
+            # Single value, NOT a JSON array: /api/translate/languages passes
+            # this raw to the service factory, which only matches bare names.
             - name: SERVICE_TYPE
-              value: '["localai"]'
+              value: localai
             - name: LOCAL_AI_ENDPOINT
               value: http://ollama.ollama.svc.cluster.local:11434/api/generate
             - name: LOCAL_AI_MODEL
