@@ -32,10 +32,15 @@ spec:
               containerPort: 11434
               protocol: TCP
           env:
-            # Unload models from VRAM after 1 minute idle so the A2000 stays
-            # available for Jellyfin transcoding and Whisper (subgen).
+            # Keep the model resident in VRAM indefinitely. A short keep-alive
+            # triggers an Ollama runner race: requests arriving while the model
+            # loads/unloads get HTTP 200 with an empty response
+            # (ollama/ollama#16326, #7603), and Lingarr aborts the whole
+            # translation job on the first empty response. aya:8b uses ~5.2GB
+            # of the A2000's 12GB, leaving headroom for Whisper (subgen) and
+            # Jellyfin transcoding.
             - name: OLLAMA_KEEP_ALIVE
-              value: 1m
+              value: "-1"
             - name: OLLAMA_MAX_LOADED_MODELS
               value: "1"
           resources:
