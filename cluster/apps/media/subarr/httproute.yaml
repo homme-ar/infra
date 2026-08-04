@@ -9,7 +9,7 @@ metadata:
     gethomepage.dev/group: Media
     gethomepage.dev/weight: "71"
     gethomepage.dev/name: Subarr
-    gethomepage.dev/icon: subarr.png
+    gethomepage.dev/icon: mdi-subtitles-outline
     gethomepage.dev/description: AI subtitle coordinator
 spec:
   parentRefs:
