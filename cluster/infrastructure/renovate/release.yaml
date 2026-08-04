@@ -117,6 +117,7 @@ spec:
             { matchFileNames: ['cluster/infrastructure/nvidia-device-plugin/**'], groupName: 'nvidia-device-plugin', groupSlug: 'nvidia-device-plugin' },
             { matchFileNames: ['cluster/infrastructure/observability/adguard-exporter/**'], groupName: 'adguard-exporter', groupSlug: 'adguard-exporter' },
             { matchFileNames: ['cluster/infrastructure/observability/dashboards/**'], groupName: 'dashboards', groupSlug: 'dashboards' },
+            { matchFileNames: ['cluster/infrastructure/observability/dcgm-exporter/**'], groupName: 'dcgm-exporter', groupSlug: 'dcgm-exporter' },
             { matchFileNames: ['cluster/infrastructure/observability/gatus/**'], groupName: 'gatus', groupSlug: 'gatus' },
             { matchFileNames: ['cluster/infrastructure/observability/kube-prometheus-stack/**'], groupName: 'kube-prometheus-stack', groupSlug: 'kube-prometheus-stack' },
             { matchFileNames: ['cluster/infrastructure/observability/metrics-server/**'], groupName: 'metrics-server', groupSlug: 'metrics-server' },
