@@ -51,6 +51,11 @@ spec:
               value: "true"
             - name: MODEL_PATH
               value: /models
+            # Name subtitle files with 2-letter codes (.en., .es.) to match
+            # the *arr ecosystem (Bazarr/Lingarr detect languages that way);
+            # the subgen default is ISO 639-2/B (3 letters).
+            - name: SUBTITLE_LANGUAGE_NAMING_TYPE
+              value: ISO_639_1
           resources:
             requests:
               cpu: 100m
