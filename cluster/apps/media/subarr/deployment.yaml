@@ -66,6 +66,13 @@ spec:
               value: /data
             - name: ARR_PATH_PREFIX
               value: /data
+            # Optional Ollama enrichment (classification of vague Bazarr
+            # wanted entries); points at the shared cluster Ollama and the
+            # model already pulled for Lingarr.
+            - name: OLLAMA_URL
+              value: http://ollama.ollama.svc.cluster.local:11434
+            - name: OLLAMA_MODEL
+              value: aya:8b
             # Authelia owns authentication at the gateway.
             - name: SUBARR_AUTH_DISABLED
               value: "1"
