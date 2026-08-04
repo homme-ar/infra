@@ -6,4 +6,5 @@ resources:
   - cilium.yaml
   - flux.yaml
   - adguard.yaml
+  - dcgm.yaml
   - pushgateway.yaml

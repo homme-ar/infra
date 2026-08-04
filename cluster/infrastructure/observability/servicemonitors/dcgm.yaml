@@ -1,0 +1,21 @@
+# ServiceMonitor for the NVIDIA dcgm-exporter DaemonSet (GPU metrics of the
+# RTX A2000 on ser-msa2cp1, the only node labeled nvidia.com/gpu.present=true).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dcgm-exporter
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: dcgm-exporter
+spec:
+  namespaceSelector:
+    matchNames:
+      - observability
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: dcgm-exporter
+      app.kubernetes.io/instance: dcgm-exporter
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
