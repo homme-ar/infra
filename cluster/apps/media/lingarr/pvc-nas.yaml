@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nas-media
+  namespace: lingarr
+  labels:
+    app.kubernetes.io/name: lingarr
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: lingarr-nas
+  resources:
+    requests:
+      storage: 1Pi
