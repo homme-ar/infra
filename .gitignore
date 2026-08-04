@@ -12,6 +12,9 @@ result-*
 # Superpowers working docs (specs/plans — never committed)
 docs/superpowers/
 
+# Kimi Code local config (may contain secret tokens — never committed)
+.kimi-code/
+
 # IDEs & OS
 .vscode/
 .idea/
