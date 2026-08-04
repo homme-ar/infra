@@ -6,6 +6,7 @@
 #   chrony.json   https://grafana.com/grafana/dashboards/19186 (chrony-exporter)
 #   adguard.json  https://github.com/henrywhitaker3/adguard-exporter
 #   renovate.json https://github.com/raffis/renovate-metrics (grafana/dashboard.json)
+#   dcgm.json     https://grafana.com/grafana/dashboards/12239 (NVIDIA DCGM exporter)
 # Datasources in the JSON are normalized to {"type": "prometheus"} so they
 # resolve to the default Prometheus datasource at runtime.
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -33,6 +34,12 @@ configMapGenerator:
   - name: grafana-dashboard-renovate
     files:
       - renovate.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+  - name: grafana-dashboard-dcgm
+    files:
+      - dcgm.json
     options:
       labels:
         grafana_dashboard: "1"
