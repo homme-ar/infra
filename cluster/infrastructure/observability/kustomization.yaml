@@ -7,5 +7,6 @@ resources:
   - kube-prometheus-stack
   - pushgateway
   - adguard-exporter
+  - dcgm-exporter
   - dashboards
   - gatus

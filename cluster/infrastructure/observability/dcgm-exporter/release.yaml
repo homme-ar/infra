@@ -1,0 +1,47 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: dcgm-exporter
+  namespace: observability
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: dcgm-exporter
+      version: "4.8.*"
+      sourceRef:
+        kind: HelmRepository
+        name: dcgm-exporter
+        namespace: flux-system
+      interval: 12h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    # Run with the nvidia runtime handler (registered by the siderolabs
+    # nvidia-container-toolkit extension) so dcgm-exporter can reach the
+    # driver/NVML on the host.
+    runtimeClassName: nvidia
+    # Only ser-msa2cp1 has a GPU (label set by the Talos machine patch).
+    nodeSelector:
+      nvidia.com/gpu.present: "true"
+    # The GPU node is a control plane, so the DaemonSet must tolerate its taint.
+    tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+    # The ServiceMonitor lives in cluster/infrastructure/observability/servicemonitors/
+    # so it is applied only after the Prometheus Operator CRDs exist.
+    serviceMonitor:
+      enabled: false
+    # Add pod/namespace labels to GPU metrics so VRAM/utilization can be
+    # attributed to ollama, subgen and jellyfin. The chart creates the
+    # ClusterRole/ClusterRoleBinding (pods read) automatically.
+    kubernetes:
+      enablePodLabels: true
