@@ -41,6 +41,12 @@ spec:
             # (non-NFS) storage for the database.
             - name: SUBARR_DB_PATH
               value: /config/subarr.db
+            # Must be set explicitly: the in-namespace Service named "subarr"
+            # makes the kubelet inject SUBARR_PORT=tcp://<clusterIP>:80, which
+            # crashes subarr's config parser. An explicit env var wins over
+            # the injected one.
+            - name: SUBARR_PORT
+              value: "9922"
             - name: SUBGEN_URL
               value: http://subgen.subgen.svc.cluster.local:9000
             - name: SONARR_URL
