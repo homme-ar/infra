@@ -21,6 +21,20 @@ spec:
     remediation:
       retries: 3
   values:
+    # Time-slicing: advertise 10 logical replicas of the single physical GPU so
+    # multiple pods (jellyfin transcoding, future subgen/whisper, ...) share it.
+    # No VRAM isolation between pods (12GB total on the RTX A2000); MIG is not
+    # supported on this card.
+    config:
+      map:
+        default: |-
+          version: v1
+          sharing:
+            timeSlicing:
+              resources:
+                - name: nvidia.com/gpu
+                  replicas: 10
+      default: default
     # Run with the nvidia runtime handler (registered by the siderolabs
     # nvidia-container-toolkit extension) so the driver libs (libnvidia-ml)
     # are injected into the plugin container.
