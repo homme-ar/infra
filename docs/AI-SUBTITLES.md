@@ -108,48 +108,36 @@ disabled on purpose).
 
 Open `https://lingarr-apps.homme.ar` (behind Authelia).
 
-Everything functional is already set via env vars:
+Everything functional is set via env vars on the Deployment
+(`cluster/apps/media/lingarr/deployment.yaml`), which overwrite the matching
+DB settings at every pod startup — change them in Git, never in the UI:
 
-- Radarr/Sonarr URLs + API keys (from the secret)
-- Translation service: `localai` → `http://ollama.ollama.svc.cluster.local:11434/v1/chat/completions`,
-  model `qwen2.5:7b`
+- Radarr/Sonarr URLs + API keys (keys from the secret)
+- Translation service: `SERVICE_TYPE=localai`,
+  `LOCAL_AI_ENDPOINT=http://ollama.ollama.svc.cluster.local:11434/v1/chat/completions`,
+  `LOCAL_AI_MODEL=qwen2.5:7b`
+- `AI_PROMPT`: Rioplatense prompt with few-shot examples (the examples are
+  what make qwen2.5:7b preserve `<i>` tags and use voseo consistently; avoid
+  phrasing rules as negations — "never use Mexican slang" measurably degrades
+  output)
 - Source language: English (`en`); Target language: Spanish (`es`)
 - SQLite DB on the Longhorn PVC at `/app/config`
 
 The OpenAI-compatible chat endpoint is used on purpose (Lingarr treats any
 endpoint ending in `completions` as chat): qwen2.5 follows instructions far
 better through its chat template than through raw `/api/generate` completions.
-Two settings matter:
 
-- **Chat request template** (Settings → Request Templates) — includes a low
-  temperature; 7B models hallucinate at Ollama's default 0.8:
-  `{"model":"{model}","messages":[{"role":"system","content":"{systemPrompt}"},{"role":"user","content":"{userMessage}"}],"stream":false,"temperature":0.2}`
-- **Generate request template** must be left EMPTY (unused with the chat
-  endpoint; a chat-style body there previously made Ollama answer
-  `done_reason:"load"` with an empty response — see Troubleshooting).
+The ONE setting that still lives only in the DB (no env var exists) is the
+**chat request template** (Settings → Request Templates). It must include a
+low temperature — 7B models hallucinate at Ollama's default 0.8:
 
-The AI prompt (Settings → Translation) is tuned for Rioplatense output with
-few-shot examples (the examples are what make qwen2.5:7b preserve `<i>` tags
-and use voseo consistently; avoid phrasing rules as negations — "never use
-Mexican slang" measurably degrades output):
-
+```json
+{"model":"{model}","messages":[{"role":"system","content":"{systemPrompt}"},{"role":"user","content":"{userMessage}"}],"stream":false,"temperature":0.2}
 ```
-You are a subtitle translator from English to Rioplatense Spanish (Argentina).
-Translate the subtitle line the user sends you. Rules:
-- Use Argentine voseo and natural Rioplatense phrasing, but stay strictly faithful to the original meaning.
-- Never add, omit, or invent content. Translate only the line the user sends, nothing more.
-- Keep a similar length to the original.
-- HTML tags such as <i> and </i> must be kept unchanged, wrapping the translated text in the same positions.
-- Output only the translated line.
 
-Examples:
-English: <i>I know, I know.</i>
-Spanish: <i>Ya sé, ya sé.</i>
-English: You are kidding me, right?
-Spanish: Me estás cargando, ¿no?
-English: Holy shit, that is my car!
-Spanish: ¡La puta madre, ese es mi auto!
-```
+Leave the **generate request template** EMPTY (unused with the chat endpoint;
+a chat-style body there previously made Ollama answer `done_reason:"load"`
+with an empty response — see Troubleshooting).
 
 In the UI:
 
