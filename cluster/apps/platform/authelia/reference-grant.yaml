@@ -26,8 +26,8 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       namespace: homepage
-    # Media stack (sonarr/radarr/lidarr/prowlarr/bazarr/sabnzbd/maintainerr) —
-    # these apps sit behind Authelia at the gateway.
+    # Media stack (sonarr/radarr/lidarr/prowlarr/bazarr/sabnzbd/maintainerr/
+    # subarr/lingarr) — these apps sit behind Authelia at the gateway.
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       namespace: sonarr
@@ -49,6 +49,12 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       namespace: maintainerr
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: subarr
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: lingarr
   to:
     - group: ""
       kind: Service
