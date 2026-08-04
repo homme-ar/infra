@@ -10,7 +10,7 @@ Overview of the flow:
 ```
 Sonarr/Radarr/Bazarr ─→ Subarr (finds real gaps, queues work)
                             └─→ Subgen (Whisper, writes .<lang>.srt next to media)
-                                     └─→ Lingarr (translates to .es.srt via Ollama aya:8b)
+                                     └─→ Lingarr (translates to .es.srt via Ollama qwen2.5:7b)
 ```
 
 Bazarr never talks to Subgen — Subarr is the only Subgen client.
@@ -53,16 +53,16 @@ kubectl --kubeconfig talos/clusterconfig/kubeconfig rollout restart -n lingarr d
 
 ## 3. Verify Ollama (already done at deploy time)
 
-The `aya:8b` model was pulled during deployment and persists on the
+The `qwen2.5:7b` model was pulled during deployment and persists on the
 `ollama-models` Longhorn PVC. Sanity check:
 
 ```bash
 kubectl --kubeconfig talos/clusterconfig/kubeconfig exec -n ollama deploy/ollama -- ollama list
-# Expected: aya:8b listed
+# Expected: qwen2.5:7b listed
 ```
 
-Nothing else to configure: `OLLAMA_KEEP_ALIVE=-1` keeps `aya:8b` resident in
-VRAM (~5.2GB of the A2000's 12GB). Do NOT lower this to a short TTL: Ollama
+Nothing else to configure: `OLLAMA_KEEP_ALIVE=-1` keeps `qwen2.5:7b` resident in
+VRAM (~4.7GB of the A2000's 12GB). Do NOT lower this to a short TTL: Ollama
 returns HTTP 200 with an empty response for requests that arrive while the
 model loads/unloads (ollama/ollama#16326), and Lingarr aborts the whole job on
 the first empty response. `OLLAMA_MAX_LOADED_MODELS=1` keeps a single model
@@ -111,17 +111,52 @@ Open `https://lingarr-apps.homme.ar` (behind Authelia).
 Everything functional is already set via env vars:
 
 - Radarr/Sonarr URLs + API keys (from the secret)
-- Translation service: `localai` → `http://ollama.ollama.svc.cluster.local:11434/v1`,
-  model `aya:8b`
+- Translation service: `localai` → `http://ollama.ollama.svc.cluster.local:11434/v1/chat/completions`,
+  model `qwen2.5:7b`
 - Source language: English (`en`); Target language: Spanish (`es`)
 - SQLite DB on the Longhorn PVC at `/app/config`
+
+The OpenAI-compatible chat endpoint is used on purpose (Lingarr treats any
+endpoint ending in `completions` as chat): qwen2.5 follows instructions far
+better through its chat template than through raw `/api/generate` completions.
+Two settings matter:
+
+- **Chat request template** (Settings → Request Templates) — includes a low
+  temperature; 7B models hallucinate at Ollama's default 0.8:
+  `{"model":"{model}","messages":[{"role":"system","content":"{systemPrompt}"},{"role":"user","content":"{userMessage}"}],"stream":false,"temperature":0.2}`
+- **Generate request template** must be left EMPTY (unused with the chat
+  endpoint; a chat-style body there previously made Ollama answer
+  `done_reason:"load"` with an empty response — see Troubleshooting).
+
+The AI prompt (Settings → Translation) is tuned for Rioplatense output with
+few-shot examples (the examples are what make qwen2.5:7b preserve `<i>` tags
+and use voseo consistently; avoid phrasing rules as negations — "never use
+Mexican slang" measurably degrades output):
+
+```
+You are a subtitle translator from English to Rioplatense Spanish (Argentina).
+Translate the subtitle line the user sends you. Rules:
+- Use Argentine voseo and natural Rioplatense phrasing, but stay strictly faithful to the original meaning.
+- Never add, omit, or invent content. Translate only the line the user sends, nothing more.
+- Keep a similar length to the original.
+- HTML tags such as <i> and </i> must be kept unchanged, wrapping the translated text in the same positions.
+- Output only the translated line.
+
+Examples:
+English: <i>I know, I know.</i>
+Spanish: <i>Ya sé, ya sé.</i>
+English: You are kidding me, right?
+Spanish: Me estás cargando, ¿no?
+English: Holy shit, that is my car!
+Spanish: ¡La puta madre, ese es mi auto!
+```
 
 In the UI:
 
 1. Confirm Radarr and Sonarr show as connected.
 2. Confirm the `localai` translation service reports healthy (it will load
-   `aya:8b` into VRAM on first use — the first translation is slow while the
-   model loads; afterwards it stays resident).
+   `qwen2.5:7b` into VRAM on first use — the first translation is slow while
+   the model loads; afterwards it stays resident).
 3. Review the automation/schedule settings so Lingarr periodically picks up
    new `.en` subtitles found by Radarr/Sonarr and translates them to `es`.
 
@@ -142,8 +177,9 @@ In the UI:
 |---|---|
 | Subarr job fails / "Issues" bucket | Subarr → Queue → row details; `kubectl logs -n subgen deploy/subgen` |
 | Subgen slow on first job | Model download (~3GB) into `subgen-models` PVC — happens once |
-| VRAM pressure (A2000 12GB shared) | `kubectl exec -n jellyfin deploy/jellyfin -- nvidia-smi`; subgen frees VRAM when idle, Ollama keeps aya resident (~5.2GB) on purpose |
-| Lingarr "Invalid or empty response from generate API" | Ollama race when a request lands while the model loads/unloads (ollama/ollama#16326) — keep `OLLAMA_KEEP_ALIVE=-1`; requeue the failed job from the Lingarr UI |
+| VRAM pressure (A2000 12GB shared) | `kubectl exec -n jellyfin deploy/jellyfin -- nvidia-smi`; subgen frees VRAM when idle, Ollama keeps qwen2.5 resident (~4.7GB) on purpose |
+| Lingarr "Invalid or empty response from generate API" | A chat-style request template (`"messages"`) configured while the endpoint is `/api/generate` — Ollama answers `done_reason:"load"` with an empty body. Use the `/v1/chat/completions` endpoint (see section 6) or clear the generate template; then requeue the failed jobs |
+| Lingarr hallucinates / invents content | Temperature too high (Ollama default is 0.8) or missing few-shot examples in the AI prompt — both are pinned in section 6 |
 | Lingarr translation errors | Lingarr UI jobs page; verify Ollama: `kubectl exec -n ollama deploy/ollama -- ollama list` |
 | Subtitle has 3-letter code (`.eng.`) | Leftover from before `SUBTITLE_LANGUAGE_NAMING_TYPE=ISO_639_1`; safe to rename or delete |
 | Bazarr still "wanted" for Spanish | Normal until Lingarr delivers the `.es.srt`; Bazarr provider downloads simply upgrade over the AI sub |
