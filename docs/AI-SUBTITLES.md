@@ -159,13 +159,36 @@ In the UI:
 6. In Jellyfin, open the item — Subarr triggers a targeted refresh, so both
    subtitles show up without a library scan.
 
+## 8. VRAM / GPU metrics
+
+The RTX A2000 on `ser-msa2cp1` is scraped every 30s by dcgm-exporter
+(`cluster/infrastructure/observability/dcgm-exporter/`, ServiceMonitor
+`dcgm-exporter` in `observability`). Metrics land in Prometheus and are shown
+in the "NVIDIA DCGM Exporter" dashboard in Grafana. The exporter adds
+`pod`/`namespace` labels, so usage can be attributed to the GPU consumers
+(ollama keeps `qwen2.5:7b` resident ~4.7GB on purpose; subgen frees VRAM when
+idle; jellyfin transcodes on demand).
+
+Key queries (VRAM values are in MiB; the card has 12288 MiB total):
+
+```promql
+DCGM_FI_DEV_FB_USED                                  # VRAM used (MiB)
+DCGM_FI_DEV_FB_FREE                                  # VRAM free (MiB)
+DCGM_FI_DEV_GPU_UTIL                                 # SM utilization (%)
+DCGM_FI_DEV_GPU_TEMP                                 # temperature (C)
+count by (namespace, pod) (DCGM_FI_DEV_GPU_UTIL{pod!=""})  # pods holding the GPU
+```
+
+If the dashboard or queries return nothing, check the exporter pod first:
+`kubectl --kubeconfig talos/clusterconfig/kubeconfig logs -n observability -l app.kubernetes.io/name=dcgm-exporter`.
+
 ## Troubleshooting
 
 | Symptom | Where to look |
 |---|---|
 | Subarr job fails / "Issues" bucket | Subarr → Queue → row details; `kubectl logs -n subgen deploy/subgen` |
 | Subgen slow on first job | Model download (~3GB) into `subgen-models` PVC — happens once |
-| VRAM pressure (A2000 12GB shared) | `kubectl exec -n jellyfin deploy/jellyfin -- nvidia-smi`; subgen frees VRAM when idle, Ollama keeps qwen2.5 resident (~4.7GB) on purpose |
+| VRAM pressure (A2000 12GB shared) | Grafana DCGM dashboard or `DCGM_FI_DEV_FB_USED` in Prometheus (see section 8); subgen frees VRAM when idle, Ollama keeps qwen2.5 resident (~4.7GB) on purpose |
 | Lingarr "Invalid or empty response from generate API" | A chat-style request template (`"messages"`) configured while the endpoint is `/api/generate` — Ollama answers `done_reason:"load"` with an empty body. Use the `/v1/chat/completions` endpoint (see section 6) or clear the generate template; then requeue the failed jobs |
 | Lingarr hallucinates / invents content | Temperature too high (Ollama default is 0.8) or missing few-shot examples in the AI prompt — both are pinned in section 6 |
 | Lingarr translation errors | Lingarr UI jobs page; verify Ollama: `kubectl exec -n ollama deploy/ollama -- ollama list` |
