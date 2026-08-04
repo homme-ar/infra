@@ -49,14 +49,16 @@ spec:
               value: "9922"
             - name: SUBGEN_URL
               value: http://subgen.subgen.svc.cluster.local:9000
+            # Repo Services expose port 80 (targetPort = app port), so the
+            # in-cluster URLs must NOT use the apps' native ports.
             - name: SONARR_URL
-              value: http://sonarr.sonarr.svc.cluster.local:8989
+              value: http://sonarr.sonarr.svc.cluster.local
             - name: RADARR_URL
-              value: http://radarr.radarr.svc.cluster.local:7878
+              value: http://radarr.radarr.svc.cluster.local
             - name: BAZARR_URL
-              value: http://bazarr.bazarr.svc.cluster.local:6767
+              value: http://bazarr.bazarr.svc.cluster.local
             - name: JELLYFIN_URL
-              value: http://jellyfin.jellyfin.svc.cluster.local:8096
+              value: http://jellyfin.jellyfin.svc.cluster.local
             # All pods mount the same NFS share at /data, so no path mapping.
             - name: SUBARR_MEDIA_ROOT
               value: /data
