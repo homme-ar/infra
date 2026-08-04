@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nas-media
+  namespace: subarr
+  labels:
+    app.kubernetes.io/name: subarr
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: subarr-nas
+  resources:
+    requests:
+      storage: 1Pi

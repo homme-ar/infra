@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subarr
+  namespace: subarr
+  labels:
+    app.kubernetes.io/name: subarr
+    app.kubernetes.io/component: server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: subarr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: subarr
+    spec:
+      # Entrypoint starts as root to reconcile /config ownership, then drops
+      # to PUID/PGID (1000) — the same user that owns the QNAP NFS share.
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: subarr
+          image: ghcr.io/coaxk/subarr:2.5.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9922
+              protocol: TCP
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: America/Argentina/Buenos_Aires
+            # SQLite lives on the Longhorn PVC — upstream requires local
+            # (non-NFS) storage for the database.
+            - name: SUBARR_DB_PATH
+              value: /config/subarr.db
+            - name: SUBGEN_URL
+              value: http://subgen.subgen.svc.cluster.local:9000
+            - name: SONARR_URL
+              value: http://sonarr.sonarr.svc.cluster.local:8989
+            - name: RADARR_URL
+              value: http://radarr.radarr.svc.cluster.local:7878
+            - name: BAZARR_URL
+              value: http://bazarr.bazarr.svc.cluster.local:6767
+            - name: JELLYFIN_URL
+              value: http://jellyfin.jellyfin.svc.cluster.local:8096
+            # All pods mount the same NFS share at /data, so no path mapping.
+            - name: SUBARR_MEDIA_ROOT
+              value: /data
+            - name: SUBGEN_MEDIA_PREFIX
+              value: /data
+            - name: ARR_PATH_PREFIX
+              value: /data
+            # Authelia owns authentication at the gateway.
+            - name: SUBARR_AUTH_DISABLED
+              value: "1"
+            # Opt out of anonymous telemetry.
+            - name: SUBARR_TELEMETRY_ENDPOINT
+              value: ""
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: subarr-secret
+                  key: SONARR_API_KEY
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: subarr-secret
+                  key: RADARR_API_KEY
+            - name: BAZARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: subarr-secret
+                  key: BAZARR_API_KEY
+            - name: JELLYFIN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: subarr-secret
+                  key: JELLYFIN_API_KEY
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            # rw: the sidecar-mismatch detector renames orphaned .srt files.
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: subarr-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: nas-media

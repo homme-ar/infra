@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: subarr-config
+  namespace: subarr
+  labels:
+    app.kubernetes.io/name: subarr
+    app.kubernetes.io/component: storage
+    # Include this volume in the Longhorn NAS backup jobs (see docs/BACKUPS.md)
+    recurring-job-group.longhorn.io/backup: enabled
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ${STORAGE_CLASS}
+  resources:
+    requests:
+      storage: 5Gi
