@@ -123,6 +123,34 @@ kubectl exec -n sonarr deploy/sonarr -- ls -li /data/media/tv/<series>/
 
 Identical inode numbers with a link count > 1 mean the import was a hardlink, not a copy.
 
+## Jellyfin hardware transcoding (NVIDIA NVENC)
+
+Jellyfin transcodes on the RTX A2000 in `ser-msa2cp1`. The pod requests
+`nvidia.com/gpu: 1` and runs with `runtimeClassName: nvidia` (driver libraries
+are injected by the Talos `nvidia-container-toolkit` extension), and
+`NVIDIA_DRIVER_CAPABILITIES=all` exposes the video engines (NVENC/NVDEC) to
+ffmpeg. The device plugin is configured with time-slicing (`replicas: 10` in
+`cluster/infrastructure/nvidia-device-plugin/release.yaml`), so other GPU
+workloads (e.g. subgen) can share the card — there is no VRAM isolation, so
+keep the total under the card's 12GB.
+
+One-time setup in the UI (lives in `encoding.xml` on the config PVC, which
+Jellyfin rewrites — it cannot be managed from GitOps):
+
+1. Dashboard → Playback → Transcoding → **Hardware acceleration: NVIDIA NVENC**.
+2. Enable hardware decoding for H.264, HEVC, VP9 and AV1 (the A2000 decodes AV1;
+   it does NOT encode AV1 — AV1 encode requires an Ada Lovelace GPU).
+3. Enable HEVC encoding.
+4. Enable hardware tone mapping (HDR → SDR) — runs entirely on-GPU.
+
+Verify: start a playback that requires transcoding — the Dashboard shows the
+stream transcoding via NVENC, and `nvidia-smi` inside the pod (available because
+of the injected driver utilities) lists the ffmpeg process:
+
+```bash
+kubectl exec -n jellyfin deploy/jellyfin -- nvidia-smi
+```
+
 ## Upgrade procedure
 
 Images are pinned (e.g. `lscr.io/linuxserver/sonarr:4.0.19`). To upgrade: bump the tag in
@@ -134,6 +162,6 @@ flux --kubeconfig=talos/clusterconfig/kubeconfig reconcile kustomization cluster
 
 ## Future work (deliberately out of scope)
 
-- **Jellyfin hardware transcoding** via the AMD iGPU on the MS-A2 nodes (`/dev/dri`):
-  requires Talos-side device permissions plus `securityContext` changes on the Jellyfin pod.
-  Software transcoding works today; revisit only if it becomes a bottleneck.
+- **subgen** (whisper-based subtitle generation): should request
+  `nvidia.com/gpu: 1` and set `runtimeClassName: nvidia` — the device plugin
+  time-slices the A2000 across up to 10 pods.
