@@ -1,0 +1,24 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ha-mcp
+  namespace: ha-mcp
+  labels:
+    app.kubernetes.io/name: ha-mcp
+spec:
+  parentRefs:
+    - name: envoy-gateway
+      namespace: kube-system
+      sectionName: https
+  hostnames:
+    - "ha-mcp.${CLUSTER_DOMAIN}"
+  # No Authelia ExternalAuth filter here: ha-mcp runs its own OIDC flow
+  # against Authelia and MCP clients must reach the OAuth endpoints directly.
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: ha-mcp
+          port: 80

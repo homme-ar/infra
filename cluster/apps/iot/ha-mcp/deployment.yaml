@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ha-mcp
+  namespace: ha-mcp
+  labels:
+    app.kubernetes.io/name: ha-mcp
+spec:
+  replicas: 1
+  # Recreate ensures RWO PVCs are released before a new pod attaches them,
+  # preventing multi-attach errors during rollouts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ha-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ha-mcp
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: ha-mcp
+          image: ghcr.io/homeassistant-ai/ha-mcp:8.0.0
+          imagePullPolicy: IfNotPresent
+          # OIDC mode: access gated by Authelia; all authenticated requests
+          # share the server-side Home Assistant token.
+          args:
+            - ha-mcp-oidc
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8086
+              protocol: TCP
+          env:
+            - name: HOMEASSISTANT_URL
+              value: "http://home-assistant.home-assistant.svc.cluster.local"
+            - name: HOMEASSISTANT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ha-mcp-secret
+                  key: HOMEASSISTANT_TOKEN
+            - name: OIDC_CONFIG_URL
+              value: "https://auth.${CLUSTER_DOMAIN}/.well-known/openid-configuration"
+            - name: OIDC_CLIENT_ID
+              value: "ha-mcp"
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ha-mcp-secret
+                  key: OIDC_CLIENT_SECRET
+            - name: MCP_BASE_URL
+              value: "https://ha-mcp.${CLUSTER_DOMAIN}"
+            # MCP clients (kimi-code, CLIs) receive the OAuth callback on a
+            # loopback redirect; constrains what DCR-registered clients may use.
+            - name: OIDC_ALLOWED_CLIENT_REDIRECT_URIS
+              value: "http://127.0.0.1/*,http://localhost/*"
+            # The web settings UI bypasses OIDC auth under a secret path;
+            # not needed in this deployment.
+            - name: HA_MCP_DISABLE_SETTINGS_UI
+              value: "true"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          # The MCP endpoint requires auth (401), so probe the TCP listener.
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /home/mcpuser/.ha-mcp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: ha-mcp-data

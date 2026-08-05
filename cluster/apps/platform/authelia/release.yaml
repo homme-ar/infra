@@ -23,6 +23,11 @@ spec:
   values:
     secret:
       existingSecret: authelia-secret
+      # Extra SOPS-managed secret (secret-oidc.yaml) holding the OIDC provider
+      # material: HMAC key, JWKS RSA private key and per-client secret digests.
+      # Mounted whole at /secrets/authelia-oidc/.
+      additionalSecrets:
+        authelia-oidc: {}
     pod:
       kind: Deployment
       replicas: 1
@@ -117,5 +122,43 @@ spec:
         timeout: '60 seconds'
         selection_criteria:
           user_verification: preferred
+      # OpenID Connect identity provider. Used by ha-mcp (cluster/apps/iot/ha-mcp)
+      # as an access gate; ha-mcp handles Dynamic Client Registration for MCP
+      # clients itself, so Authelia only ever sees this single static client.
+      identity_providers:
+        oidc:
+          enabled: true
+          hmac_secret:
+            secret_name: authelia-oidc
+            path: identity_providers.oidc.hmac.key
+          jwks:
+            - key_id: main
+              algorithm: RS256
+              use: sig
+              key:
+                path: /secrets/authelia-oidc/identity_providers.oidc.jwks.rs256.pem
+          clients:
+            - client_id: ha-mcp
+              client_name: Home Assistant MCP
+              # PBKDF2 digest read from the authelia-oidc secret; the plaintext
+              # lives in the ha-mcp namespace secret (OIDC_CLIENT_SECRET).
+              client_secret:
+                path: /secrets/authelia-oidc/identity_providers.oidc.client.ha-mcp.secret
+              redirect_uris:
+                - https://ha-mcp.${CLUSTER_DOMAIN}/auth/callback
+              scopes:
+                - openid
+                - profile
+                - email
+                - offline_access
+              grant_types:
+                - authorization_code
+                - refresh_token
+              response_types:
+                - code
+              authorization_policy: two_factor
+              # ha-mcp (FastMCP) validates JWT access tokens by default; the
+              # chart default ('none') would issue opaque tokens instead.
+              access_token_signed_response_alg: RS256
     service:
       port: 80

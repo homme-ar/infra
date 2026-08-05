@@ -83,6 +83,7 @@ spec:
             { matchPackageNames: ['lscr.io/linuxserver/lidarr'], allowedVersions: '/^3\\./' },
             { matchFileNames: ['cluster/apps/ai/ollama/**'], groupName: 'ollama', groupSlug: 'ollama' },
             { matchFileNames: ['cluster/apps/iot/esphome/**'], groupName: 'esphome', groupSlug: 'esphome' },
+            { matchFileNames: ['cluster/apps/iot/ha-mcp/**'], groupName: 'ha-mcp', groupSlug: 'ha-mcp' },
             { matchFileNames: ['cluster/apps/iot/home-assistant/**'], groupName: 'home-assistant', groupSlug: 'home-assistant' },
             { matchFileNames: ['cluster/apps/iot/mosquitto/**'], groupName: 'mosquitto', groupSlug: 'mosquitto' },
             { matchFileNames: ['cluster/apps/iot/zigbee2mqtt/**'], groupName: 'zigbee2mqtt', groupSlug: 'zigbee2mqtt' },
