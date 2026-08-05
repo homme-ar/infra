@@ -128,6 +128,15 @@ spec:
       identity_providers:
         oidc:
           enabled: true
+          # ha-mcp mirrors the upstream access-token lifetime in the tokens it
+          # issues to MCP clients, and the upstream refresh token bounds the
+          # whole session — the stock 1h/1.5h lifespans forced hourly re-logins.
+          lifespans:
+            custom:
+              ha-mcp:
+                access_token: '720 hours'
+                refresh_token: '720 hours'
+                id_token: '720 hours'
           hmac_secret:
             secret_name: authelia-oidc
             path: identity_providers.oidc.hmac.key
@@ -162,6 +171,7 @@ spec:
               response_types:
                 - code
               authorization_policy: two_factor
+              lifespan: ha-mcp
               # ha-mcp (FastMCP) validates JWT access tokens by default; the
               # chart default ('none') would issue opaque tokens instead.
               access_token_signed_response_alg: RS256
