@@ -146,6 +146,11 @@ spec:
                 path: /secrets/authelia-oidc/identity_providers.oidc.client.ha-mcp.secret
               redirect_uris:
                 - https://ha-mcp.${CLUSTER_DOMAIN}/auth/callback
+              # RFC 8707: MCP clients send resource=https://ha-mcp.<domain>/mcp and
+              # ha-mcp (FastMCP) forwards it upstream. Authelia rejects any resource
+              # not explicitly permitted for the client (invalid_target).
+              audience:
+                - https://ha-mcp.${CLUSTER_DOMAIN}/mcp
               scopes:
                 - openid
                 - profile
