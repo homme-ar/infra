@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: prometheus-pushgateway
-      version: "3.7.*"
+      version: "3.8.*"
       # Reuses the existing prometheus-community HelmRepository
       # (observability/kube-prometheus-stack/repository.yaml).
       sourceRef:
