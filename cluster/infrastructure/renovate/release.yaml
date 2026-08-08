@@ -91,6 +91,7 @@ spec:
             { matchFileNames: ['cluster/apps/media/jellyfin/**'], groupName: 'jellyfin', groupSlug: 'jellyfin' },
             { matchFileNames: ['cluster/apps/media/lingarr/**'], groupName: 'lingarr', groupSlug: 'lingarr' },
             { matchFileNames: ['cluster/apps/media/maintainerr/**'], groupName: 'maintainerr', groupSlug: 'maintainerr' },
+            { matchFileNames: ['cluster/apps/media/nntp-share/**'], groupName: 'nntp-share', groupSlug: 'nntp-share' },
             { matchFileNames: ['cluster/apps/media/seerr/**'], groupName: 'seerr', groupSlug: 'seerr' },
             { matchFileNames: ['cluster/apps/media/lidarr/**'], groupName: 'lidarr', groupSlug: 'lidarr' },
             { matchFileNames: ['cluster/apps/media/prowlarr/**'], groupName: 'prowlarr', groupSlug: 'prowlarr' },

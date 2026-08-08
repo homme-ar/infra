@@ -57,3 +57,5 @@ data:
   LB_POSTGRES_IP: "198.51.100.17"
   # Dedicated LoadBalancer IP for the in-cluster Mosquitto MQTT broker
   LB_MQTT_IP: "198.51.100.18"
+  # Dedicated LoadBalancer IP for the temporary NNTPS share proxy (apps/media/nntp-share)
+  LB_NNTP_IP: "198.51.100.19"

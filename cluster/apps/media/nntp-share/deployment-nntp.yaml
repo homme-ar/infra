@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nntp-proxy
+  namespace: nntp-share
+  labels:
+    app.kubernetes.io/name: nntp-share
+    app.kubernetes.io/component: nntp-proxy
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nntp-share
+      app.kubernetes.io/component: nntp-proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nntp-share
+        app.kubernetes.io/component: nntp-proxy
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+      containers:
+        - name: proxy
+          image: python:3.13-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - python3
+            - /app/nntp_proxy.py
+          ports:
+            - name: nntps
+              containerPort: 8563
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: nntp-share
+          env:
+            - name: UPSTREAM_HOST
+              value: news.newshosting.com
+            - name: UPSTREAM_PORT
+              value: "563"
+            # The provider account allows 100 concurrent connections; the
+            # proxy caps the friend well below that so local SABnzbd keeps
+            # its headroom.
+            - name: MAX_CONNECTIONS
+              value: "30"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            tcpSocket:
+              port: nntps
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: nntps
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: script
+              mountPath: /app/nntp_proxy.py
+              subPath: nntp_proxy.py
+              readOnly: true
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: nntp-proxy-script
+        - name: tls
+          secret:
+            secretName: nntp-tls

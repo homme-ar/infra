@@ -1,0 +1,42 @@
+# nginx config template for the Newznab feed proxy.
+# The official nginx entrypoint runs envsubst on /etc/nginx/templates/*.template
+# before starting; NGINX_ENVSUBST_FILTER in the Deployment restricts substitution
+# to the two secret-injected variables so nginx's own $vars survive untouched.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: feed-nginx-template
+  namespace: nntp-share
+  labels:
+    app.kubernetes.io/name: nntp-share
+    app.kubernetes.io/component: feed-proxy
+data:
+  default.conf.template: |
+    server {
+        listen 8080;
+        server_name _;
+
+        location = /healthz {
+            return 204;
+        }
+
+        # Only the Newznab API endpoint is exposed. It maps to the NZBGeek
+        # indexer feed (indexer id 1) of the in-cluster Prowlarr; search results
+        # and NZB downloads (t=get) are both served through this single route.
+        location = /api {
+            if ($arg_apikey != "${FRIEND_FEED_API_KEY}") {
+                return 401;
+            }
+            # Swap the friend's key for the real Prowlarr API key.
+            set $proxy_args $args;
+            if ($args ~ ^(.*?)apikey=[^&]*(&.*)?$) {
+                set $proxy_args "$1apikey=${PROWLARR_API_KEY}$2";
+            }
+            proxy_pass http://prowlarr.prowlarr.svc.cluster.local/api/v1/indexer/1/newznab?$proxy_args;
+            proxy_set_header Host $proxy_host;
+        }
+
+        location / {
+            return 404;
+        }
+    }

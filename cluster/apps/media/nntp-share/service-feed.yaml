@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: feed-proxy
+  namespace: nntp-share
+  labels:
+    app.kubernetes.io/name: nntp-share
+    app.kubernetes.io/component: feed-proxy
+spec:
+  selector:
+    app.kubernetes.io/name: nntp-share
+    app.kubernetes.io/component: feed-proxy
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
