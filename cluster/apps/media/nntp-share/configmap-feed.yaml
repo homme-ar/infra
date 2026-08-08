@@ -19,6 +19,10 @@ data:
         listen 8080;
         server_name _;
 
+        # Required because proxy_pass below contains a variable ($proxy_args),
+        # which makes nginx resolve the upstream hostname at runtime.
+        resolver 10.96.0.10 valid=30s; # kube-dns (CoreDNS) ClusterIP
+
         location = /healthz {
             return 204;
         }
