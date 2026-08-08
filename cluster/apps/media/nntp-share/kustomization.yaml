@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - configmap-feed.yaml
+  - deployment-feed.yaml
+  - service-feed.yaml
+  - httproute-feed.yaml
+  - configmap-nntp.yaml
+  - deployment-nntp.yaml
+  - service-nntp.yaml
+  - certificate-nntp.yaml
+  - secret.yaml

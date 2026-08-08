@@ -1,0 +1,17 @@
+# TLS cert for the NNTPS proxy pod (the proxy terminates TLS itself; the
+# Gateway only handles HTTP/S). DNS-01 via the existing Cloudflare ClusterIssuer.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nntp-tls
+  namespace: nntp-share
+  labels:
+    app.kubernetes.io/name: nntp-share
+    app.kubernetes.io/component: nntp-proxy
+spec:
+  secretName: nntp-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - "nntp.${CLUSTER_DOMAIN}"

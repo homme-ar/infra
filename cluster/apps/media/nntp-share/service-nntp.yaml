@@ -1,0 +1,23 @@
+# NNTPS entrypoint for the friend: nntp.${CLUSTER_DOMAIN}:563
+# Dedicated LoadBalancer IP announced by Cilium L2; the home router must
+# port-forward tcp/563 to this address (same as 80/443 -> the Gateway).
+apiVersion: v1
+kind: Service
+metadata:
+  name: nntp-proxy
+  namespace: nntp-share
+  labels:
+    app.kubernetes.io/name: nntp-share
+    app.kubernetes.io/component: nntp-proxy
+  annotations:
+    io.cilium/lb-ipam-ips: "${LB_NNTP_IP}"
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: nntp-share
+    app.kubernetes.io/component: nntp-proxy
+  ports:
+    - name: nntps
+      port: 563
+      targetPort: nntps
+      protocol: TCP
