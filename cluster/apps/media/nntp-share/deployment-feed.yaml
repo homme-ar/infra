@@ -6,6 +6,10 @@ metadata:
   labels:
     app.kubernetes.io/name: nntp-share
     app.kubernetes.io/component: feed-proxy
+  annotations:
+    # Restart automatically when the nginx template ConfigMap or the
+    # nntp-share Secret change (config is subPath-mounted, no hot reload).
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: 1
   strategy:
