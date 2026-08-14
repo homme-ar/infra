@@ -29,7 +29,7 @@ spec:
         - name: home-assistant
           # Pinned to the same version as the legacy deployment to reduce
           # variables during migration. Upgrade after the move is verified.
-          image: homeassistant/home-assistant:2026.8.1
+          image: homeassistant/home-assistant:2026.8.2
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
