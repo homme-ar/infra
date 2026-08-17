@@ -3,16 +3,6 @@
 This runbook documents the backup policy, where backups land, how to verify
 them, and how to restore each class of workload.
 
-> **⚠ Longhorn RecurringJobs temporarily disabled (2026-07-29).** V2 (SPDK)
-> backups on Longhorn v1.12.0 flap the shared NVMe-oF controllers of attached
-> volumes during the backup window, causing ext4 emergency read-only remounts
-> (upstream: [longhorn/longhorn#13331](https://github.com/longhorn/longhorn/issues/13331),
-> fixed in v1.12.1). The `backup-daily`/`backup-weekly` jobs in
-> `cluster/infrastructure/storage/longhorn/recurring-jobs.yaml` are commented
-> out until v1.12.1 rolls out — Longhorn volumes have **no backup coverage**
-> in the meantime (CNPG/barman and etcd backups are unaffected).
-> Tracking: [homme-ar/infra#20](https://github.com/homme-ar/infra/issues/20).
-
 ## Overview
 
 All backups land on the QNAP NAS (`10.0.4.1`) over NFS:
