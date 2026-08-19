@@ -114,3 +114,8 @@ spec:
         login: true
         passwordSecret:
           name: n8n-postgres-secret
+      - name: homebox
+        ensure: present
+        login: true
+        passwordSecret:
+          name: homebox-postgres-secret

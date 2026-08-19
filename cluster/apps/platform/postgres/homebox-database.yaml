@@ -1,0 +1,13 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: homebox
+  namespace: postgres
+spec:
+  # Target CNPG cluster (shared with Authelia, Home Assistant and n8n).
+  cluster:
+    name: postgres
+  # Database name inside PostgreSQL — consumed by Homebox in cluster/apps/platform/homebox/.
+  name: homebox
+  # Role that owns this database (declared in cluster.yaml under managed.roles).
+  owner: homebox

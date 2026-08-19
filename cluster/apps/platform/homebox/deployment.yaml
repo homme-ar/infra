@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homebox
+  namespace: homebox
+  labels:
+    app.kubernetes.io/name: homebox
+    app.kubernetes.io/component: server
+spec:
+  replicas: 1
+  # Recreate ensures the RWO Longhorn PVC is released before a new pod
+  # attaches it, preventing multi-attach errors.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: homebox
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: homebox
+    spec:
+      # The upstream image has no USER directive (root by default); /data is
+      # the only writable path the app needs and is chowned via fsGroup.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: homebox
+          image: ghcr.io/sysadminsmedia/homebox:0.26.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7745
+              protocol: TCP
+          env:
+            - name: HBOX_MODE
+              value: production
+            # Explicit storage paths: the image defaults resolve relative to
+            # WORKDIR /app, which is NOT the mounted volume.
+            - name: HBOX_STORAGE_CONN_STRING
+              value: "file:///data?no_tmp_dir=true"
+            - name: HBOX_STORAGE_PREFIX_PATH
+              value: ""
+            # Database: shared CNPG cluster (see cluster/apps/platform/postgres/).
+            - name: HBOX_DATABASE_DRIVER
+              value: postgres
+            - name: HBOX_DATABASE_HOST
+              value: postgres-rw.postgres.svc.cluster.local
+            - name: HBOX_DATABASE_PORT
+              value: "5432"
+            - name: HBOX_DATABASE_USERNAME
+              value: homebox
+            - name: HBOX_DATABASE_DATABASE
+              value: homebox
+            # Plain TCP in-cluster; the CNPG service does not terminate TLS.
+            - name: HBOX_DATABASE_SSL_MODE
+              value: disable
+            - name: HBOX_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homebox-secret
+                  key: HBOX_DATABASE_PASSWORD
+            # OIDC SSO against Authelia (client `homebox` in
+            # cluster/apps/platform/authelia/release.yaml). Local
+            # username/password login is disabled.
+            - name: HBOX_OIDC_ENABLED
+              value: "true"
+            - name: HBOX_OIDC_ISSUER_URL
+              value: "https://auth.${CLUSTER_DOMAIN}"
+            - name: HBOX_OIDC_CLIENT_ID
+              value: homebox
+            - name: HBOX_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: homebox-secret
+                  key: HBOX_OIDC_CLIENT_SECRET
+            - name: HBOX_OIDC_AUTO_REDIRECT
+              value: "true"
+            - name: HBOX_OPTIONS_ALLOW_LOCAL_LOGIN
+              value: "false"
+            - name: HBOX_OPTIONS_TRUST_PROXY
+              value: "true"
+            # Bare hostname, no protocol (per Homebox OIDC docs) — used for
+            # the OIDC redirect URL.
+            - name: HBOX_OPTIONS_HOSTNAME
+              value: "homebox-apps.${CLUSTER_DOMAIN}"
+            # Registration only gates local-account creation; with local login
+            # disabled it must stay on so the first OIDC login can provision
+            # the user account.
+            - name: HBOX_OPTIONS_ALLOW_REGISTRATION
+              value: "true"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /api/v1/status
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/status
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: homebox-data

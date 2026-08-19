@@ -130,6 +130,13 @@ spec:
           url: http://waha.waha.svc.cluster.local
           conditions:
             - "[STATUS] == 200"
+        # Homebox uses OIDC against Authelia, so the external URL would
+        # redirect to the IdP; check the in-cluster Service health endpoint.
+        - name: Homebox
+          group: Platform
+          url: http://homebox.homebox.svc.cluster.local/api/v1/status
+          conditions:
+            - "[STATUS] == 200"
         # ── Media ───────────────────────────────────────────────────────
         - name: Jellyfin
           group: Media

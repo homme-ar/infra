@@ -102,6 +102,7 @@ spec:
             { matchFileNames: ['cluster/apps/media/subgen/**'], groupName: 'subgen', groupSlug: 'subgen' },
             { matchFileNames: ['cluster/apps/platform/authelia/**'], groupName: 'authelia', groupSlug: 'authelia' },
             { matchFileNames: ['cluster/apps/platform/headlamp/**'], groupName: 'headlamp', groupSlug: 'headlamp' },
+            { matchFileNames: ['cluster/apps/platform/homebox/**'], groupName: 'homebox', groupSlug: 'homebox' },
             { matchFileNames: ['cluster/apps/platform/homepage/**'], groupName: 'homepage', groupSlug: 'homepage' },
             { matchFileNames: ['cluster/apps/platform/index/**'], groupName: 'index', groupSlug: 'index' },
             { matchFileNames: ['cluster/apps/platform/ittools/**'], groupName: 'ittools', groupSlug: 'ittools' },
