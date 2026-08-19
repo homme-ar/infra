@@ -122,9 +122,11 @@ spec:
         timeout: '60 seconds'
         selection_criteria:
           user_verification: preferred
-      # OpenID Connect identity provider. Used by ha-mcp (cluster/apps/iot/ha-mcp)
-      # as an access gate; ha-mcp handles Dynamic Client Registration for MCP
-      # clients itself, so Authelia only ever sees this single static client.
+      # OpenID Connect identity provider. Clients: ha-mcp
+      # (cluster/apps/iot/ha-mcp — access gate; ha-mcp handles Dynamic Client
+      # Registration for MCP clients itself, so Authelia only ever sees that
+      # single static client) and homebox (cluster/apps/platform/homebox —
+      # OIDC SSO login).
       identity_providers:
         oidc:
           enabled: true
@@ -175,5 +177,22 @@ spec:
               # ha-mcp (FastMCP) validates JWT access tokens by default; the
               # chart default ('none') would issue opaque tokens instead.
               access_token_signed_response_alg: RS256
+            - client_id: homebox
+              client_name: Homebox
+              # PBKDF2 digest read from the authelia-oidc secret; the plaintext
+              # lives in the homebox namespace secret (HBOX_OIDC_CLIENT_SECRET).
+              client_secret:
+                path: /secrets/authelia-oidc/identity_providers.oidc.client.homebox.secret
+              redirect_uris:
+                - https://homebox-apps.${CLUSTER_DOMAIN}/api/v1/users/login/oidc/callback
+              scopes:
+                - openid
+                - profile
+                - email
+              grant_types:
+                - authorization_code
+              response_types:
+                - code
+              authorization_policy: two_factor
     service:
       port: 80

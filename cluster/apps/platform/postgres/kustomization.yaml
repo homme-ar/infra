@@ -6,10 +6,12 @@ resources:
   - authelia-secret.yaml
   - home-assistant-secret.yaml
   - n8n-secret.yaml
+  - homebox-secret.yaml
   - backup-secret.yaml
   - cluster.yaml
   - scheduledbackup.yaml
   - authelia-database.yaml
   - home-assistant-database.yaml
   - n8n-database.yaml
+  - homebox-database.yaml
   - service.yaml

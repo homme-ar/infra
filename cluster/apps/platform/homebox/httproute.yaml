@@ -1,0 +1,31 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: homebox
+  namespace: homebox
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://homebox-apps.${CLUSTER_DOMAIN}"
+    gethomepage.dev/group: Tools
+    gethomepage.dev/weight: "30"
+    gethomepage.dev/name: Homebox
+    gethomepage.dev/icon: homebox.png
+    gethomepage.dev/description: Home inventory manager
+spec:
+  parentRefs:
+    - name: envoy-gateway
+      namespace: kube-system
+      sectionName: https
+  hostnames:
+    - "homebox-apps.${CLUSTER_DOMAIN}"
+  rules:
+    # No Authelia ExternalAuth filter here: Homebox authenticates users itself
+    # via OIDC SSO against Authelia (see HBOX_OIDC_* env vars in
+    # deployment.yaml and the `homebox` client in the Authelia release).
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: homebox
+          port: 80
