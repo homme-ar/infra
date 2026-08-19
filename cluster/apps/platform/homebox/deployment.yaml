@@ -38,6 +38,13 @@ spec:
           env:
             - name: HBOX_MODE
               value: production
+            # Secret used to hash API keys; required since v0.26 (32+ bytes).
+            # Rotating it invalidates all issued API keys — never change it.
+            - name: HBOX_AUTH_API_KEY_PEPPER
+              valueFrom:
+                secretKeyRef:
+                  name: homebox-secret
+                  key: HBOX_AUTH_API_KEY_PEPPER
             # Explicit storage paths: the image defaults resolve relative to
             # WORKDIR /app, which is NOT the mounted volume.
             - name: HBOX_STORAGE_CONN_STRING
