@@ -11,15 +11,17 @@ data:
     mqtt:
       enabled: false
 
-    # Two USB Coral TPUs. Frigate runs one detector process per device and
-    # feeds all cameras from a common detection queue across both.
+    # USB Coral TPUs. Frigate runs one detector process per device and feeds
+    # all cameras from a common detection queue. NOTE: a configured detector
+    # whose device is missing makes Frigate exit (crash loop) — coral2 is
+    # commented out until the second Coral enumerates on the USB bus.
     detectors:
       coral1:
         type: edgetpu
         device: usb:0
-      coral2:
-        type: edgetpu
-        device: usb:1
+      # coral2:
+      #   type: edgetpu
+      #   device: usb:1
 
     # Intel N100 iGPU (VA-API) for ffmpeg decode/scale of all streams.
     ffmpeg:
