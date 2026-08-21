@@ -4,3 +4,6 @@ metadata:
   name: frigate
   labels:
     app.kubernetes.io/name: frigate
+    # Frigate needs a privileged container (USB Coral via /dev/bus/usb,
+    # VA-API via /dev/dri hostPaths) — exempt from the baseline PSS.
+    pod-security.kubernetes.io/enforce: privileged
