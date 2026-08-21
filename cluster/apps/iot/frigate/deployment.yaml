@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frigate
+  namespace: frigate
+  labels:
+    app.kubernetes.io/name: frigate
+    app.kubernetes.io/component: server
+  annotations:
+    # Config is mounted via subPath, so Flux updates do not hot-reload;
+    # Reloader restarts Frigate when the ConfigMap/Secret change.
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 1
+  # Recreate ensures the RWO Longhorn PVC is released before a new pod
+  # attaches it, preventing multi-attach errors and SQLite corruption.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frigate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: frigate
+    spec:
+      # Dedicated NVR node (see talos/patches/nodes/ser-n100wk1-dedicated.yaml).
+      nodeSelector:
+        homme.ar/role: nvr
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: nvr
+          effect: NoSchedule
+      containers:
+        - name: frigate
+          image: ghcr.io/blakeblackshear/frigate:0.17.2
+          imagePullPolicy: IfNotPresent
+          # Required for USB Coral access through the /dev/bus/usb hostPath
+          # (libusb needs device cgroup access) and for /dev/dri VA-API.
+          securityContext:
+            privileged: true
+          ports:
+            - name: internal
+              containerPort: 5000
+              protocol: TCP
+            - name: http
+              containerPort: 8971
+              protocol: TCP
+          env:
+            - name: TZ
+              value: America/Argentina/Buenos_Aires
+          envFrom:
+            - secretRef:
+                name: frigate-secret
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 4Gi
+          # Probes hit the internal unauthenticated port.
+          livenessProbe:
+            httpGet:
+              path: /api/version
+              port: internal
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/version
+              port: internal
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            # Recordings, clips and snapshots go straight to the QNAP NFS share.
+            - name: media
+              mountPath: /media/frigate
+            - name: cache
+              mountPath: /tmp/cache
+            - name: config-yml
+              mountPath: /config/config.yml
+              subPath: config.yml
+            - name: usb
+              mountPath: /dev/bus/usb
+            - name: dri
+              mountPath: /dev/dri
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: frigate-config
+        - name: media
+          persistentVolumeClaim:
+            claimName: frigate-nas
+        # Frigate requires /tmp/cache on a RAM disk for ffmpeg segment scratch.
+        - name: cache
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
+        - name: config-yml
+          configMap:
+            name: frigate-config
+        - name: usb
+          hostPath:
+            path: /dev/bus/usb
+        - name: dri
+          hostPath:
+            path: /dev/dri
