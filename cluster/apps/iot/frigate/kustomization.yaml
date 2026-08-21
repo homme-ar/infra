@@ -7,7 +7,6 @@ resources:
   - namespace.yaml
   - pv-nas.yaml
   - pvc-nas.yaml
-  - pvc-config.yaml
   - configmap.yaml
   - secret.yaml
   - deployment.yaml
