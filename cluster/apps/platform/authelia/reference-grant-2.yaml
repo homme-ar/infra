@@ -1,0 +1,16 @@
+# The ReferenceGrant CRD caps spec.from at 16 entries, so additional
+# namespaces get their own grant instead of growing the main one.
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: authelia-httproute-grant-2
+  namespace: authelia
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: frigate
+  to:
+    - group: ""
+      kind: Service
+      name: authelia
