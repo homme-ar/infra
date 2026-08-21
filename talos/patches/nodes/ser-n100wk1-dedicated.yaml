@@ -1,0 +1,10 @@
+# Dedicated NVR node: only workloads tolerating dedicated=nvr:NoSchedule
+# (i.e. Frigate) plus system DaemonSets may schedule here.
+# The Longhorn label keeps Longhorn from creating a default disk on this node,
+# so its local disk and I/O stay free for Frigate.
+machine:
+  nodeLabels:
+    example.com/role: nvr
+    node.longhorn.io/create-default-disk: "false"
+  nodeTaints:
+    dedicated: "nvr:NoSchedule"

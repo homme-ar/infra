@@ -32,7 +32,9 @@ spec:
       enabled: true
     externalIPs:
       enabled: true
-    devices: ${NETWORK_INTERFACE}
+    # Per-node NIC names differ (MS-A2: enp5s0f0np0, UN100C worker: enp3s0);
+    # each Cilium agent binds the one that exists on its node.
+    devices: "${NETWORK_INTERFACE} enp3s0"
     k8sClientRateLimit:
       qps: 50
       burst: 200
