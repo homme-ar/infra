@@ -8,3 +8,9 @@ machine:
     node.longhorn.io/create-default-disk: "false"
   nodeTaints:
     dedicated: "nvr:NoSchedule"
+  # The control-plane patch sets this for the MS-A2 nodes; the worker needs it
+  # too, otherwise its self-signed kubelet serving cert lacks the node IP SAN
+  # and metrics-server refuses to scrape it (x509 IP SAN error).
+  kubelet:
+    extraArgs:
+      rotate-server-certificates: "true"
