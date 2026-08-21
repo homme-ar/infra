@@ -32,16 +32,18 @@ data:
     # self-signed cert (tls.enabled defaults to true in 0.17).
     tls:
       enabled: false
-    # The UI is reached over HTTPS through the Gateway, so cookies must carry
-    # the Secure flag even though the backend hop is plain HTTP.
+    # Authelia at the gateway is the only auth door: Frigate's native auth is
+    # disabled because proxy.header_map is only honored when it is. Direct
+    # in-cluster access (no headers) falls back to the viewer role.
     auth:
-      cookie_secure: true
+      enabled: false
 
     # SSO via Authelia at the gateway: trust the identity headers forwarded
     # by the ExternalAuth filter (allowedResponseHeaders in httproute.yaml).
     # role_map values must match the group names in the Authelia users
     # database (the SOPS-encrypted authelia-users secret).
     proxy:
+      default_role: viewer
       header_map:
         user: remote-user
         role: remote-groups
