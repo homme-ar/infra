@@ -74,6 +74,26 @@ nodes:
             - siderolabs/iscsi-tools
             - siderolabs/util-linux-tools
 
+  - hostname: ser-n100wk1
+    ipAddress: 10.0.20.5
+    controlPlane: false
+    installDiskSelector:
+      model: "VICKTER*"
+    networkInterfaces:
+      - interface: enp3s0
+        dhcp: true
+        addresses:
+          - 10.0.20.5/16
+    schematic:
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/intel-ucode
+            - siderolabs/i915
+            - siderolabs/util-linux-tools
+    patches:
+      - "@./patches/nodes/ser-n100wk1-dedicated.yaml"
+
 controlPlane:
   patches:
     - "@./patches/global/storage.yaml"
