@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frigate-config
+  namespace: frigate
+  labels:
+    app.kubernetes.io/name: frigate
+    app.kubernetes.io/component: server
+data:
+  config.yml: |
+    mqtt:
+      enabled: false
+
+    # Two USB Coral TPUs. Frigate runs one detector process per device and
+    # feeds all cameras from a common detection queue across both.
+    detectors:
+      coral1:
+        type: edgetpu
+        device: usb:0
+      coral2:
+        type: edgetpu
+        device: usb:1
+
+    # Intel N100 iGPU (VA-API) for ffmpeg decode/scale of all streams.
+    ffmpeg:
+      hwaccel_args: preset-vaapi
+
+    # The Gateway terminates TLS publicly; keep the internal authenticated
+    # port 8971 as plain HTTP so the HTTPRoute backend does not hit Frigate's
+    # self-signed cert (tls.enabled defaults to true in 0.17).
+    tls:
+      enabled: false
+    # The UI is reached over HTTPS through the Gateway, so cookies must carry
+    # the Secure flag even though the backend hop is plain HTTP.
+    auth:
+      cookie_secure: true
+
+    # SSO via Authelia at the gateway: trust the identity headers forwarded
+    # by the ExternalAuth filter (allowedResponseHeaders in httproute.yaml).
+    # role_map values must match the group names in the Authelia users
+    # database (the SOPS-encrypted authelia-users secret).
+    proxy:
+      header_map:
+        user: remote-user
+        role: remote-groups
+        role_map:
+          admin:
+            - admins
+          viewer:
+            - users
+      logout_url: https://auth.${CLUSTER_DOMAIN}/logout
+
+    # 0.17 record schema: continuous segments retained 30 days, segments with
+    # alerts/detections retained 60 days. All of it lives on the NAS.
+    record:
+      enabled: true
+      continuous:
+        days: 30
+      alerts:
+        retain:
+          days: 60
+      detections:
+        retain:
+          days: 60
+
+    # Detection on the low-res sub streams at their native resolution.
+    detect:
+      enabled: true
+      fps: 5
+
+    objects:
+      track:
+        - person
+        - car
+        - dog
+        - cat
+
+    cameras:
+      # Reolink Doorbell PoE (H.264)
+      doorbell:
+        enabled: true
+        ffmpeg:
+          inputs:
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@10.0.5.2:554/h264Preview_01_main
+              roles: [record]
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@10.0.5.2:554/h264Preview_01_sub
+              roles: [detect]
+      # Reolink 811A #1 (4K H.265)
+      front:
+        enabled: true
+        ffmpeg:
+          inputs:
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@10.0.5.3:554/h265Preview_01_main
+              roles: [record]
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@10.0.5.3:554/h265Preview_01_sub
+              roles: [detect]
+      # Reolink 811A #2 (4K H.265)
+      back:
+        enabled: true
+        ffmpeg:
+          inputs:
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@10.0.5.4:554/h265Preview_01_main
+              roles: [record]
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@10.0.5.4:554/h265Preview_01_sub
+              roles: [detect]
+      # Reolink Duo 3 PoE (dual-lens 180 panorama, single combined stream)
+      duo3:
+        enabled: true
+        ffmpeg:
+          inputs:
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@10.0.5.5:554/h265Preview_01_main
+              roles: [record]
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@10.0.5.5:554/h265Preview_01_sub
+              roles: [detect]
+      # Reolink Duo 2 PoE (dual-lens 180 panorama, single combined stream)
+      duo2:
+        enabled: true
+        ffmpeg:
+          inputs:
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@10.0.5.6:554/h265Preview_01_main
+              roles: [record]
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@10.0.5.6:554/h265Preview_01_sub
+              roles: [detect]

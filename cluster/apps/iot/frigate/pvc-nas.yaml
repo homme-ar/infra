@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frigate-nas
+  namespace: frigate
+  labels:
+    app.kubernetes.io/name: frigate
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: frigate-nas
+  resources:
+    requests:
+      storage: 1Pi
