@@ -19,6 +19,9 @@ spec:
       namespace: zigbee2mqtt
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
+      namespace: frigate
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
       namespace: observability
     - group: gateway.networking.k8s.io
       kind: HTTPRoute

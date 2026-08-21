@@ -199,6 +199,15 @@ spec:
           url: http://zigbee2mqtt.zigbee2mqtt.svc.cluster.local
           conditions:
             - "[STATUS] == 200"
+        - name: Frigate
+          group: IoT
+          url: http://frigate.frigate.svc.cluster.local
+          conditions:
+            # The authenticated UI redirects to /login (302) when probed
+            # without a session, so accept any non-error status. The
+            # in-cluster URL intentionally bypasses Authelia (the public
+            # auth chain is covered by the Authelia endpoint).
+            - "[STATUS] < 400"
         # ── Infrastructure ──────────────────────────────────────────────
         - name: Kubernetes API
           group: Infrastructure
