@@ -93,9 +93,14 @@ spec:
             - name: dri
               mountPath: /dev/dri
       volumes:
+        # Config + SQLite DB live on the node's local disk (Longhorn cannot
+        # attach volumes on this node: its manager is excluded by the
+        # dedicated taint / create-default-disk=false label). Authoritative
+        # config is the ConfigMap in git; the DB is regenerable.
         - name: config
-          persistentVolumeClaim:
-            claimName: frigate-config
+          hostPath:
+            path: /var/lib/frigate
+            type: DirectoryOrCreate
         - name: media
           persistentVolumeClaim:
             claimName: frigate-nas
