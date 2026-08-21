@@ -85,6 +85,8 @@ spec:
               mountPath: /media/frigate
             - name: cache
               mountPath: /tmp/cache
+            - name: shm
+              mountPath: /dev/shm
             - name: config-yml
               mountPath: /config/config.yml
               subPath: config.yml
@@ -109,6 +111,11 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 1Gi
+        # Default 64Mi shm is too small for 5 cameras; Frigate warns below ~206Mi.
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 512Mi
         - name: config-yml
           configMap:
             name: frigate-config
