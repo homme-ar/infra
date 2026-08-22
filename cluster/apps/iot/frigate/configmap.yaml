@@ -23,6 +23,17 @@ data:
         type: edgetpu
         device: usb:1
 
+    # YOLOv9-s compiled for EdgeTPU (320x320, INT8): more accurate than the
+    # default MobileDet. Files live on the node-local hostPath (/config is the
+    # ConfigMap mount, read-only). Labelmap is the fixed 17-class COCO subset
+    # the model was trained on — it cannot be extended.
+    model:
+      model_type: yolo-generic
+      width: 320
+      height: 320
+      path: /config/model_cache/yolov9-s-relu6-best_320_int8_edgetpu.tflite
+      labelmap_path: /config/model_cache/labels-coco17.txt
+
     # Intel N100 iGPU (VA-API) for ffmpeg decode/scale of all streams.
     ffmpeg:
       hwaccel_args: preset-vaapi
@@ -75,12 +86,22 @@ data:
       enabled: true
       fps: 5
 
+    # Tracked objects: subset of the model's 17-class labelmap (train, boat,
+    # sheep, elephant and bear excluded as irrelevant for this location).
     objects:
       track:
         - person
+        - bicycle
         - car
-        - dog
+        - motorcycle
+        - airplane
+        - bus
+        - truck
+        - bird
         - cat
+        - dog
+        - horse
+        - cow
 
     cameras:
       # Reolink Doorbell PoE (H.264)
