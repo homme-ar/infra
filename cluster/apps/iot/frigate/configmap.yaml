@@ -54,20 +54,21 @@ data:
             - users
       logout_url: https://auth.${CLUSTER_DOMAIN}/logout
 
-    # 0.17 record schema: continuous segments retained 30 days, segments with
-    # alerts/detections retained 60 days. All of it lives on the NAS.
+    # 0.17 record schema: continuous segments retained 3 days, segments with
+    # motion 7 days, segments with alerts/detections 30 days. All of it lives
+    # on the NAS (~366 GB/day measured across all cameras -> ~2-3 TB total).
     record:
       enabled: true
       continuous:
-        days: 7
+        days: 3
       motion:
-        days: 14
+        days: 7
       alerts:
         retain:
-          days: 60
+          days: 30
       detections:
         retain:
-          days: 60
+          days: 30
 
     # Detection on the low-res sub streams at their native resolution.
     detect:
