@@ -13,15 +13,15 @@ data:
 
     # USB Coral TPUs. Frigate runs one detector process per device and feeds
     # all cameras from a common detection queue. NOTE: a configured detector
-    # whose device is missing makes Frigate exit (crash loop) — coral2 is
-    # commented out until the second Coral enumerates on the USB bus.
+    # whose device is missing makes Frigate exit (crash loop) — if a Coral
+    # dies, comment it out before committing.
     detectors:
       coral1:
         type: edgetpu
         device: usb:0
-      # coral2:
-      #   type: edgetpu
-      #   device: usb:1
+      coral2:
+        type: edgetpu
+        device: usb:1
 
     # Intel N100 iGPU (VA-API) for ffmpeg decode/scale of all streams.
     ffmpeg:
@@ -59,7 +59,9 @@ data:
     record:
       enabled: true
       continuous:
-        days: 30
+        days: 7
+      motion:
+        days: 14
       alerts:
         retain:
           days: 60
@@ -81,7 +83,7 @@ data:
 
     cameras:
       # Reolink Doorbell PoE (H.264)
-      doorbell:
+      fre_cam1:
         enabled: true
         ffmpeg:
           inputs:
@@ -90,7 +92,7 @@ data:
             - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.22:554/h264Preview_01_sub
               roles: [detect]
       # Reolink 811A #1 (4K H.265)
-      front:
+      fre_cam2:
         enabled: true
         ffmpeg:
           inputs:
@@ -99,7 +101,7 @@ data:
             - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.23:554/h265Preview_01_sub
               roles: [detect]
       # Reolink 811A #2 (4K H.265)
-      back:
+      fre_cam3:
         enabled: true
         ffmpeg:
           inputs:
@@ -108,7 +110,7 @@ data:
             - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.24:554/h265Preview_01_sub
               roles: [detect]
       # Reolink Duo 3 PoE (dual-lens 180 panorama, single combined stream)
-      duo3:
+      pag_cam1:
         enabled: true
         ffmpeg:
           inputs:
@@ -117,7 +119,7 @@ data:
             - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.25:554/h265Preview_01_sub
               roles: [detect]
       # Reolink Duo 2 PoE (dual-lens 180 panorama, single combined stream)
-      duo2:
+      pag_cam2:
         enabled: true
         ffmpeg:
           inputs:
