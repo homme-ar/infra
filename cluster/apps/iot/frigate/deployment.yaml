@@ -57,12 +57,13 @@ spec:
             requests:
               cpu: 500m
               memory: 1Gi
-            # The node (16 GB, N100 4c/4t) is dedicated to Frigate. Headroom
-            # is needed for the go2rtc opus transcodes, WebRTC/MSE sessions
-            # and recording-cache spikes (4Gi was OOMKilled in practice).
+            # The node (16 GB, N100 4c/4t) is dedicated to Frigate. No CPU
+            # limit: throttling hurts more than bursting helps on a dedicated
+            # node. Memory keeps a high cap (14Gi) purely as an OOM guardrail
+            # — a container OOMKill restarts Frigate cleanly, a node-level
+            # OOM could take down Cilium/system DaemonSets instead.
             limits:
-              cpu: "6"
-              memory: 8Gi
+              memory: 14Gi
           # Probes hit the internal unauthenticated port.
           livenessProbe:
             httpGet:
