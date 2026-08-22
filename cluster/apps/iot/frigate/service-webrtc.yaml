@@ -1,0 +1,26 @@
+# go2rtc WebRTC entrypoint for live-view two-way talk: browsers (and the
+# WireGuard peers) connect directly to this address on tcp+udp/8555, matching
+# the webrtc.candidates entry in the Frigate config.
+apiVersion: v1
+kind: Service
+metadata:
+  name: frigate-webrtc
+  namespace: frigate
+  labels:
+    app.kubernetes.io/name: frigate
+    app.kubernetes.io/component: server
+  annotations:
+    io.cilium/lb-ipam-ips: "${LB_FRIGATE_WEBRTC_IP}"
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: frigate
+  ports:
+    - name: webrtc-tcp
+      port: 8555
+      targetPort: 8555
+      protocol: TCP
+    - name: webrtc-udp
+      port: 8555
+      targetPort: 8555
+      protocol: UDP

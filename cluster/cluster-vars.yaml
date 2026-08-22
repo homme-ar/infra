@@ -59,3 +59,5 @@ data:
   LB_MQTT_IP: "10.0.22.2"
   # Dedicated LoadBalancer IP for the temporary NNTPS share proxy (apps/media/nntp-share)
   LB_NNTP_IP: "10.0.22.3"
+  # Dedicated LoadBalancer IP for Frigate's go2rtc WebRTC (two-way talk), tcp+udp 8555
+  LB_FRIGATE_WEBRTC_IP: "10.0.22.4"
