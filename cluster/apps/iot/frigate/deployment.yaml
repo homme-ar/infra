@@ -57,9 +57,12 @@ spec:
             requests:
               cpu: 500m
               memory: 1Gi
+            # The node (16 GB, N100 4c/4t) is dedicated to Frigate. Headroom
+            # is needed for the go2rtc opus transcodes, WebRTC/MSE sessions
+            # and recording-cache spikes (4Gi was OOMKilled in practice).
             limits:
-              cpu: "4"
-              memory: 4Gi
+              cpu: "6"
+              memory: 8Gi
           # Probes hit the internal unauthenticated port.
           livenessProbe:
             httpGet:
