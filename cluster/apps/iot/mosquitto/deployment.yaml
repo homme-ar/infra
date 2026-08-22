@@ -19,6 +19,10 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: mosquitto
+      # passwd is mounted via subPath, so secret updates do not hot-reload —
+      # let Reloader restart the broker when the ConfigMap/Secret change.
+      annotations:
+        reloader.stakater.com/auto: "true"
     spec:
       # The official eclipse-mosquitto Alpine image runs as user mosquitto (uid/gid 1883).
       securityContext:
