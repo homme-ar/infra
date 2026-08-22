@@ -3,7 +3,12 @@ kind: CiliumL2AnnouncementPolicy
 metadata:
   name: l2-advertisement
 spec:
+  # NIC names differ per node (MS-A2: ${NETWORK_INTERFACE}, UN100C worker:
+  # enp3s0). Nodes ignore interfaces they do not have, but a node holding the
+  # announcement lease whose NIC is missing here silently stops answering ARP
+  # for the service IP (this bit frigate-webrtc on ser-n100wk1).
   interfaces:
     - ${NETWORK_INTERFACE}
+    - enp3s0
   externalIPs: true
   loadBalancerIPs: true
