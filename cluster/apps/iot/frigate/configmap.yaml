@@ -8,8 +8,16 @@ metadata:
     app.kubernetes.io/component: server
 data:
   config.yml: |
+    # MQTT (in-cluster Mosquitto): feeds the Home Assistant Frigate
+    # integration — per-camera object sensors, review events and the
+    # detect/record/snapshots switches. Dedicated `frigate` user, see the
+    # mosquitto passwd secret.
     mqtt:
-      enabled: false
+      enabled: true
+      host: mosquitto.mosquitto
+      port: 1883
+      user: "{FRIGATE_MQTT_USER}"
+      password: "{FRIGATE_MQTT_PASSWORD}"
 
     # USB Coral TPUs. Frigate runs one detector process per device and feeds
     # all cameras from a common detection queue. NOTE: a configured detector
