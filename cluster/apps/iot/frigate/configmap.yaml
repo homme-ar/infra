@@ -103,49 +103,132 @@ data:
         - horse
         - cow
 
+    # go2rtc restream: single connection per camera stream, enables audio in
+    # live view (MSE needs AAC — all cameras already send AAC) and two-way
+    # talk. The primary RTSP source must stay non-prefixed (no "ffmpeg:") so
+    # go2rtc owns the stream and can negotiate the backchannel for two-way
+    # audio; the ffmpeg secondary only adds an opus track for WebRTC.
+    # Stream names must match the camera names for the UI integration.
+    go2rtc:
+      streams:
+        fre_cam1:
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.22:554/h264Preview_01_main
+          - "ffmpeg:fre_cam1#audio=opus"
+        fre_cam1_sub:
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.22:554/h264Preview_01_sub
+        fre_cam2:
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.23:554/h265Preview_01_main
+          - "ffmpeg:fre_cam2#audio=opus"
+        fre_cam2_sub:
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.23:554/h265Preview_01_sub
+        fre_cam3:
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.24:554/h265Preview_01_main
+          - "ffmpeg:fre_cam3#audio=opus"
+        fre_cam3_sub:
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.24:554/h265Preview_01_sub
+        pag_cam1:
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.25:554/h265Preview_01_main
+          - "ffmpeg:pag_cam1#audio=opus"
+        pag_cam1_sub:
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.25:554/h265Preview_01_sub
+        pag_cam2:
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.26:554/h265Preview_01_main
+          - "ffmpeg:pag_cam2#audio=opus"
+        pag_cam2_sub:
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.26:554/h265Preview_01_sub
+      # WebRTC (required for two-way talk) needs a direct TCP/UDP connection
+      # to go2rtc on 8555: the frigate-webrtc LoadBalancer Service announces
+      # this IP on the LAN (also reachable over WireGuard).
+      webrtc:
+        candidates:
+          - ${LB_FRIGATE_WEBRTC_IP}:8555
+
     cameras:
-      # Reolink Doorbell PoE (H.264)
+      # Reolink Doorbell PoE (H.264 + AAC)
       fre_cam1:
         enabled: true
         ffmpeg:
+          output_args:
+            record: preset-record-generic-audio-copy
           inputs:
-            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.22:554/h264Preview_01_main
+            - path: rtsp://127.0.0.1:8554/fre_cam1
+              input_args: preset-rtsp-restream
               roles: [record]
-            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.22:554/h264Preview_01_sub
+            - path: rtsp://127.0.0.1:8554/fre_cam1_sub
+              input_args: preset-rtsp-restream
               roles: [detect]
-      # Reolink 811A #1 (4K H.265)
+        live:
+          streams:
+            Main: fre_cam1
+            Sub: fre_cam1_sub
+      # Reolink 811A #1 (4K; main stream configured as H.264 in the camera)
       fre_cam2:
         enabled: true
         ffmpeg:
+          output_args:
+            record: preset-record-generic-audio-copy
           inputs:
-            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.23:554/h265Preview_01_main
+            - path: rtsp://127.0.0.1:8554/fre_cam2
+              input_args: preset-rtsp-restream
               roles: [record]
-            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.23:554/h265Preview_01_sub
+            - path: rtsp://127.0.0.1:8554/fre_cam2_sub
+              input_args: preset-rtsp-restream
               roles: [detect]
+        live:
+          streams:
+            Main: fre_cam2
+            Sub: fre_cam2_sub
       # Reolink 811A #2 (4K H.265)
       fre_cam3:
         enabled: true
         ffmpeg:
+          apple_compatibility: true # H.265: adds hvc1 tag for Safari playback
+          output_args:
+            record: preset-record-generic-audio-copy
           inputs:
-            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.24:554/h265Preview_01_main
+            - path: rtsp://127.0.0.1:8554/fre_cam3
+              input_args: preset-rtsp-restream
               roles: [record]
-            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.24:554/h265Preview_01_sub
+            - path: rtsp://127.0.0.1:8554/fre_cam3_sub
+              input_args: preset-rtsp-restream
               roles: [detect]
+        live:
+          streams:
+            Main: fre_cam3
+            Sub: fre_cam3_sub
       # Reolink Duo 3 PoE (dual-lens 180 panorama, single combined stream)
       pag_cam1:
         enabled: true
         ffmpeg:
+          apple_compatibility: true
+          output_args:
+            record: preset-record-generic-audio-copy
           inputs:
-            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.25:554/h265Preview_01_main
+            - path: rtsp://127.0.0.1:8554/pag_cam1
+              input_args: preset-rtsp-restream
               roles: [record]
-            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.25:554/h265Preview_01_sub
+            - path: rtsp://127.0.0.1:8554/pag_cam1_sub
+              input_args: preset-rtsp-restream
               roles: [detect]
+        live:
+          streams:
+            Main: pag_cam1
+            Sub: pag_cam1_sub
       # Reolink Duo 2 PoE (dual-lens 180 panorama, single combined stream)
       pag_cam2:
         enabled: true
         ffmpeg:
+          apple_compatibility: true
+          output_args:
+            record: preset-record-generic-audio-copy
           inputs:
-            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.26:554/h265Preview_01_main
+            - path: rtsp://127.0.0.1:8554/pag_cam2
+              input_args: preset-rtsp-restream
               roles: [record]
-            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.26:554/h265Preview_01_sub
+            - path: rtsp://127.0.0.1:8554/pag_cam2_sub
+              input_args: preset-rtsp-restream
               roles: [detect]
+        live:
+          streams:
+            Main: pag_cam2
+            Sub: pag_cam2_sub

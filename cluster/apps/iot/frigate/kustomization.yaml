@@ -11,4 +11,5 @@ resources:
   - secret.yaml
   - deployment.yaml
   - service.yaml
+  - service-webrtc.yaml
   - httproute.yaml
