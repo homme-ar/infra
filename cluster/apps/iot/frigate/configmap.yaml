@@ -54,17 +54,6 @@ data:
             - users
       logout_url: https://auth.${CLUSTER_DOMAIN}/logout
 
-    # go2rtc restream used only as the record source for the Duo 3. That
-    # camera's RTSP main stream is encoded rotated 90° (2160x7680 vertical,
-    # a known Reolink quirk with no camera-side fix) and browsers refuse to
-    # decode it (height > 4096). go2rtc transcodes it in hardware (VA-API on
-    # the N100 iGPU) to a horizontal 3840x1080 H.264 stream that any browser
-    # can play back from the recordings page.
-    go2rtc:
-      streams:
-        duo3_record:
-          - "ffmpeg:rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.25:554/h265Preview_01_main#video=h264#rotate=90#scale=3840:1080#hardware=vaapi"
-
     # 0.17 record schema: continuous segments retained 30 days, segments with
     # alerts/detections retained 60 days. All of it lives on the NAS.
     record:
@@ -118,15 +107,12 @@ data:
               roles: [record]
             - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.24:554/h265Preview_01_sub
               roles: [detect]
-      # Reolink Duo 3 PoE (dual-lens 180 panorama, single combined stream).
-      # Record pulls the transcoded go2rtc restream above (see go2rtc comment);
-      # detect keeps using the direct low-res sub stream.
+      # Reolink Duo 3 PoE (dual-lens 180 panorama, single combined stream)
       duo3:
         enabled: true
         ffmpeg:
           inputs:
-            - path: rtsp://127.0.0.1:8554/duo3_record
-              input_args: preset-rtsp-restream
+            - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.25:554/h265Preview_01_main
               roles: [record]
             - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.25:554/h265Preview_01_sub
               roles: [detect]
