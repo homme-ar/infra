@@ -118,9 +118,10 @@ data:
     # errors and watchdog restarts on all cameras) with an inline opus track
     # for WebRTC; the plain RTSP secondary only exists so go2rtc owns a
     # non-ffmpeg source and can negotiate the two-way audio backchannel.
-    # Exceptions: the H.265 mains (fre_cam3, pag_cam1, pag_cam2) stay
-    # RTSP-only — enhanced-FLV H.265 needs ffmpeg 8.0 (Frigate ships 7.0) and
-    # browsers cannot play HEVC anyway, so those streams serve record only.
+    # Exceptions: the H.265 mains (pag_cam1, pag_cam2 — the Duo cameras do
+    # not offer H.264 on the main stream) stay RTSP-only — enhanced-FLV
+    # H.265 needs ffmpeg 8.0 (Frigate ships 7.0) and browsers cannot play
+    # HEVC anyway, so those streams serve record only.
     # Stream names must match the camera names for the UI integration.
     go2rtc:
       streams:
@@ -132,15 +133,16 @@ data:
           - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.22:554/h264Preview_01_sub
         fre_cam2:
           - "ffmpeg:https://192.0.2.23/flv?port=1935&app=bcs&stream=channel0_main.bcs&user={FRIGATE_RTSP_USER}&password={FRIGATE_RTSP_PASSWORD}#video=copy#audio=copy#audio=opus"
-          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.23:554/h265Preview_01_main
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.23:554/h264Preview_01_main
         fre_cam2_sub:
           - "ffmpeg:https://192.0.2.23/flv?port=1935&app=bcs&stream=channel0_ext.bcs&user={FRIGATE_RTSP_USER}&password={FRIGATE_RTSP_PASSWORD}#video=copy#audio=copy#audio=opus"
-          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.23:554/h265Preview_01_sub
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.23:554/h264Preview_01_sub
         fre_cam3:
-          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.24:554/h265Preview_01_main
+          - "ffmpeg:https://192.0.2.24/flv?port=1935&app=bcs&stream=channel0_main.bcs&user={FRIGATE_RTSP_USER}&password={FRIGATE_RTSP_PASSWORD}#video=copy#audio=copy#audio=opus"
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.24:554/h264Preview_01_main
         fre_cam3_sub:
           - "ffmpeg:https://192.0.2.24/flv?port=1935&app=bcs&stream=channel0_ext.bcs&user={FRIGATE_RTSP_USER}&password={FRIGATE_RTSP_PASSWORD}#video=copy#audio=copy#audio=opus"
-          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.24:554/h265Preview_01_sub
+          - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.24:554/h264Preview_01_sub
         pag_cam1:
           - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.0.2.25:554/h265Preview_01_main
         pag_cam1_sub:
