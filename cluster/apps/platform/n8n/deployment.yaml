@@ -30,7 +30,7 @@ spec:
         - name: n8n
           # Pinned to the same version as the legacy deployment to reduce
           # variables during migration. Upgrade after the move is verified.
-          image: n8nio/n8n:2.36.5
+          image: n8nio/n8n:2.37.4
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
