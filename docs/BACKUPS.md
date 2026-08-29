@@ -81,6 +81,12 @@ These were applied manually once (documented for cluster rebuilds):
      kubectl -n longhorn-system label volume "$vol" recurring-job-group.longhorn.io/backup=enabled --overwrite
    done
    ```
+3. **V2 instance-manager convergence after the v1.12.1 upgrade** (2026-08-23):
+   the chart upgrade alone did not replace the running v2 instance-managers
+   (they are only swapped once they hold zero instances), so the #13331 fix
+   stayed inactive and backups kept forcing ext4 read-only remounts. All
+   workloads were bounced once to drain every volume; the v1.12.0 IMs were
+   auto-deleted and replaced by v1.12.1. See the troubleshooting section below.
 
 ### CNPG policy details
 
@@ -126,6 +132,50 @@ kubectl describe cluster postgres -n postgres | grep -A5 "Continuous Backup"
 kubectl get jobs -n backup
 kubectl logs -n backup -l app.kubernetes.io/name=etcd-backup --tail=20
 ```
+
+## Troubleshooting: read-only filesystems during backups (v2 data engine)
+
+Symptom: after a backup window, app pods keep running but their Longhorn
+mounts are dead — writes fail with `Read-only file system` / EIO and the
+mount table shows `emergency_ro`. Root cause (Longhorn ≤ v1.12.0,
+https://github.com/longhorn/longhorn/issues/13331): the temporary NVMe/TCP
+snapshot path created for a backup could flap the volume's live frontend; the
+kernel ext4 then aborts its journal and remounts read-only.
+
+Detection:
+
+```bash
+# In each suspect pod (mount shows emergency_ro instead of plain rw):
+kubectl -n <ns> exec <pod> -- sh -c 'grep longhorn /proc/mounts'
+# On the nodes (journal aborts + RO remounts during the backup window):
+talosctl -n <node-ip> dmesg | grep -E 'Remounting filesystem read-only|Aborting journal'
+# Backup side effect: snapshots of already-RO volumes fail with
+# "failed to suspend linear dm device ... Read-only file system"
+kubectl -n longhorn-system logs ds/longhorn-manager --since=12h | grep -B2 'Read-only file system'
+```
+
+Recovery per workload (the stale dm device only clears on detach):
+
+```bash
+kubectl -n <ns> scale deploy <app> --replicas=0
+# wait for the volume to detach:
+kubectl -n longhorn-system get volume <pvc-...> -o jsonpath='{.status.state}'
+kubectl -n <ns> scale deploy <app> --replicas=1
+```
+
+Prevention: after ANY Longhorn chart upgrade, confirm the running v2
+instance-managers actually moved to the new version — they are only replaced
+when drained to zero instances, so attached volumes keep the old IM (and its
+bugs) alive indefinitely:
+
+```bash
+kubectl -n longhorn-system get instancemanagers.longhorn.io \
+  -o custom-columns=NODE:.spec.nodeID,ENGINE:.spec.dataEngine,IMAGE:.spec.image,STATE:.status.currentState
+# every v2 row must show the new image + running; the old one must be gone
+```
+
+If an old IM survives, bounce the remaining workloads holding volumes on that
+node (scale to 0 → wait for detach → scale back) until it is replaced.
 
 ## Restore procedures
 
