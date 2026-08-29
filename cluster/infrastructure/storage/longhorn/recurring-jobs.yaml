@@ -9,6 +9,17 @@
 # read-only remounts, crash-looping pods). Fixed upstream in v1.12.1:
 # https://github.com/longhorn/longhorn/issues/13331
 # Re-enabled 2026-08-17 after the v1.12.1 rollout (homme-ar/infra#20).
+#
+# GOTCHA (hit 2026-08-22/23): the Helm upgrade to v1.12.1 did NOT activate the
+# fix — the v2 instance-managers kept running v1.12.0 because they are only
+# replaced once they hold zero instances, and the RO remounts kept happening
+# on every backup window. Fixed 2026-08-23 by draining all volumes (full
+# workload bounce) so the v1.12.0 IMs were auto-deleted and replaced.
+# After ANY Longhorn upgrade, verify the running v2 IMs match the chart version:
+#   kubectl -n longhorn-system get instancemanagers.longhorn.io \
+#     -o custom-columns=NODE:.spec.nodeID,ENGINE:.spec.dataEngine,IMAGE:.spec.image,STATE:.status.currentState
+# See docs/BACKUPS.md "Read-only filesystems during backups" for detection and
+# recovery procedures.
 apiVersion: longhorn.io/v1beta2
 kind: RecurringJob
 metadata:
