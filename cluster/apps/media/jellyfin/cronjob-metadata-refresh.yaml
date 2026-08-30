@@ -32,7 +32,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: refresh
-              image: python:3.13.13-alpine3.22
+              image: python:3.14.5-alpine3.22
               imagePullPolicy: IfNotPresent
               env:
                 - name: JELLYFIN_API_KEY
