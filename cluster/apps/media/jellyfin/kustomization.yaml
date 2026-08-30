@@ -11,3 +11,5 @@ resources:
   - deployment.yaml
   - service.yaml
   - httproute.yaml
+  - cronjob-metadata-refresh.yaml
+  - metadata-refresh-secret.yaml
