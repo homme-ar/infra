@@ -5,6 +5,8 @@
 # periodically finds items still missing metadata and forces a FullRefresh.
 #
 # Runs every 4 hours. The Jellyfin API key lives in metadata-refresh-secret.yaml.
+# Python image because it ships urllib+json in stdlib: nothing to install, so
+# the container can stay fully non-root (apk add would need root).
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -30,7 +32,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: refresh
-              image: alpine:3.24
+              image: python:3.13.13-alpine3.22
               imagePullPolicy: IfNotPresent
               env:
                 - name: JELLYFIN_API_KEY
@@ -39,34 +41,48 @@ spec:
                       name: jellyfin-metadata-refresh
                       key: JELLYFIN_API_KEY
               command:
-                - /bin/sh
+                - python3
                 - -c
                 - |
-                  set -e
-                  apk add --no-cache -q curl jq
-                  BASE="http://jellyfin.jellyfin.svc.cluster.local"
-                  AUTH="X-Emby-Token: $${JELLYFIN_API_KEY}"
+                  import json
+                  import os
+                  import time
+                  import urllib.request
+
+                  BASE = "http://jellyfin.jellyfin.svc.cluster.local"
+                  KEY = os.environ["JELLYFIN_API_KEY"]
+
+
+                  def api(path, post=False):
+                      req = urllib.request.Request(
+                          BASE + path,
+                          method="POST" if post else "GET",
+                          headers={"X-Emby-Token": KEY},
+                      )
+                      with urllib.request.urlopen(req, timeout=30) as resp:
+                          return None if post else json.load(resp)
+
 
                   # Root items (movies/series) without a TMDB id were never
                   # identified. Recursive so seasons/episodes inherit the fix.
-                  ROOTS=$(curl -sfS -H "$${AUTH}" "$${BASE}/Items?Recursive=true&IncludeItemTypes=Movie,Series&HasTmdbId=false&Fields=ProviderIds" | jq -r '.Items[].Id')
-                  for ID in $${ROOTS}; do
-                    echo "Refreshing root item $${ID}"
-                    curl -sfS -o /dev/null -X POST -H "$${AUTH}" "$${BASE}/Items/$${ID}/Refresh?recursive=true&metadataRefreshMode=FullRefresh&imageRefreshMode=FullRefresh&replaceAllMetadata=false&replaceAllImages=false"
-                    sleep 2
-                  done
+                  roots = api("/Items?Recursive=true&IncludeItemTypes=Movie,Series&HasTmdbId=false&Fields=ProviderIds")["Items"]
+                  for item in roots:
+                      print(f"Refreshing root item {item['Id']} ({item['Name']})", flush=True)
+                      api(f"/Items/{item['Id']}/Refresh?recursive=true&metadataRefreshMode=FullRefresh&imageRefreshMode=FullRefresh&replaceAllMetadata=false&replaceAllImages=false", post=True)
+                      time.sleep(2)
 
                   # Episodes that still have no metadata at all (no provider
                   # ids, no overview). Items genuinely absent from TMDB simply
                   # come back empty again — one cheap search per run.
-                  EPS=$(curl -sfS -H "$${AUTH}" "$${BASE}/Items?Recursive=true&IncludeItemTypes=Episode&HasTmdbId=false&HasTvdbId=false&Fields=ProviderIds,Overview&Limit=500" | jq -r '.Items[] | select((.Overview // "") | length == 0) | .Id')
-                  for ID in $${EPS}; do
-                    echo "Refreshing episode $${ID}"
-                    curl -sfS -o /dev/null -X POST -H "$${AUTH}" "$${BASE}/Items/$${ID}/Refresh?metadataRefreshMode=FullRefresh&imageRefreshMode=FullRefresh&replaceAllMetadata=false&replaceAllImages=false"
-                    sleep 2
-                  done
+                  episodes = api("/Items?Recursive=true&IncludeItemTypes=Episode&HasTmdbId=false&HasTvdbId=false&Fields=ProviderIds,Overview&Limit=500")["Items"]
+                  for item in episodes:
+                      if item.get("Overview"):
+                          continue
+                      print(f"Refreshing episode {item['Id']}", flush=True)
+                      api(f"/Items/{item['Id']}/Refresh?metadataRefreshMode=FullRefresh&imageRefreshMode=FullRefresh&replaceAllMetadata=false&replaceAllImages=false", post=True)
+                      time.sleep(2)
 
-                  echo "Done."
+                  print(f"Done. roots={len(roots)} episodes={len(episodes)}", flush=True)
               securityContext:
                 runAsNonRoot: true
                 runAsUser: 1000
