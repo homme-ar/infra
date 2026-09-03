@@ -29,7 +29,7 @@ spec:
         - name: zigbee2mqtt
           # Pinned to the same version as the legacy deployment to reduce
           # variables during the migration.
-          image: koenkk/zigbee2mqtt:2.14.0
+          image: koenkk/zigbee2mqtt:2.14.1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
