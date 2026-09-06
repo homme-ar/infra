@@ -26,7 +26,7 @@ spec:
         fsGroup: 999
       containers:
         - name: ha-mcp
-          image: ghcr.io/homeassistant-ai/ha-mcp:8.4.1
+          image: ghcr.io/homeassistant-ai/ha-mcp:8.4.3
           imagePullPolicy: IfNotPresent
           # OIDC mode: access gated by Authelia; all authenticated requests
           # share the server-side Home Assistant token.
