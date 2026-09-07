@@ -50,8 +50,11 @@ spec:
   # the actual dataset down to ~11GB. Shrinking a CNPG Cluster in-place is not
   # supported (webhook + Kubernetes both reject PVC size reduction), so this
   # required destroy + logical restore of homeassistant/authelia DBs.
+  # Bumped to 160Gi on 2026-09-07 to un-wedge postgres-2: a versitygw outage
+  # blocked WAL archiving for 15 days, pg_wal filled the 150Gi PVC, and CNPG
+  # refuses to start the instance until the PVC group is enlarged.
   storage:
-    size: 150Gi
+    size: 160Gi
     storageClass: longhorn-singlenode
 
   # Rolling update strategy — standby updated first, then primary

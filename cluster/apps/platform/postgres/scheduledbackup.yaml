@@ -7,8 +7,11 @@ metadata:
   name: postgres-weekly
   namespace: postgres
 spec:
-  # Sundays at 02:00
-  schedule: "0 2 * * * 0"
+  # 6-field cron WITH seconds (CNPG's webhook only accepts this form):
+  # second 0, minute 0, hour 2, every Sunday. Beware: "0 2 * * * 0" looks
+  # like "Sundays at 02:00" in 5-field cron but is parsed as second=0,
+  # minute=2, every hour — it fired 24 backups per Sunday until 2026-08-23.
+  schedule: "0 0 2 * * 0"
   backupOwnerReference: self
   cluster:
     name: postgres
