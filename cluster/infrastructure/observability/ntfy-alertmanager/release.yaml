@@ -34,8 +34,6 @@ spec:
       existingSecret: ntfy-alertmanager-config
     # The bridge only listens in-cluster (Alertmanager -> bridge -> ntfy), so
     # no basic auth on the webhook endpoint.
-    podLabels:
-      app.kubernetes.io/name: ntfy-alertmanager
     securityContext:
       allowPrivilegeEscalation: false
       capabilities:
