@@ -4,6 +4,7 @@ resources:
   - repository.yaml
   - release.yaml
   - grafana-admin-secret.sops.yaml
+  - alertmanager-ntfy-secret.yaml
   - httproute-prometheus.yaml
   - httproute-alertmanager.yaml
   - httproute-grafana.yaml
