@@ -34,6 +34,10 @@ spec:
       existingSecret: ntfy-alertmanager-config
     # The bridge only listens in-cluster (Alertmanager -> bridge -> ntfy), so
     # no basic auth on the webhook endpoint.
+    # With existingSecret the chart cannot hash the config into the pod spec,
+    # so Reloader restarts the bridge when the SOPS config secret changes.
+    podAnnotations:
+      reloader.stakater.com/auto: "true"
     securityContext:
       allowPrivilegeEscalation: false
       capabilities:
