@@ -3,10 +3,10 @@
 # archive PUT failed for 15 days with no alert, and pg_wal filled the
 # primary's PVC (see docs/BACKUPS.md "CNPG Not enough disk space").
 #
-# Notification path: Prometheus evaluates these rules -> firing alerts are
-# polled by the "Postgres backup alerts" Gatus endpoint (gatus HelmRelease,
-# Infrastructure group) -> NTFY `uptime` topic. Alertmanager has no receivers
-# configured, so the rules alone do NOT notify.
+# Notification path: every rule here carries `channel: ntfy` -> Alertmanager
+# routes it to the private ntfy `alerts` topic via webhook (see the
+# alertmanager config in kube-prometheus-stack/release.yaml). Deliberately NOT
+# on the public Gatus status page: backup/storage internals are private.
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -26,6 +26,7 @@ spec:
           for: 5m
           labels:
             severity: critical
+            channel: ntfy
           annotations:
             summary: "WAL archiving failing on {{ $labels.pod }}"
             description: >-
@@ -40,6 +41,7 @@ spec:
           for: 2h
           labels:
             severity: warning
+            channel: ntfy
           annotations:
             summary: "WAL archive backlog on {{ $labels.pod }} ({{ $value }} files)"
             description: >-
@@ -52,6 +54,7 @@ spec:
           for: 1h
           labels:
             severity: critical
+            channel: ntfy
           annotations:
             summary: "No successful PostgreSQL base backup in 8+ days"
             description: >-
@@ -68,6 +71,7 @@ spec:
           for: 30m
           labels:
             severity: critical
+            channel: ntfy
           annotations:
             summary: "versitygw-meta PVC above 80% inode usage"
             description: >-
@@ -83,6 +87,7 @@ spec:
           for: 30m
           labels:
             severity: warning
+            channel: ntfy
           annotations:
             summary: "PostgreSQL PVC {{ $labels.persistentvolumeclaim }} above 85% full"
             description: >-

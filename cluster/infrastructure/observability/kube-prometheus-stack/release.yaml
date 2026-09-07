@@ -145,7 +145,40 @@ spec:
 
     # ── Alertmanager ─────────────────────────────────────────────────────────
     alertmanager:
+      # Private ops alerts (backups, storage internals — things that should not
+      # show up on the public Gatus status page) are routed to the private ntfy
+      # `alerts` topic. Opt-in per rule with the `channel: ntfy` label (see
+      # observability/prometheusrules/). Everything else falls through to the
+      # null receiver; user-facing alerting stays on Gatus -> ntfy `uptime`.
+      config:
+        route:
+          receiver: "null"
+          group_by: ["alertname", "namespace"]
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 4h
+          routes:
+            - matchers:
+                - channel = "ntfy"
+              receiver: ntfy
+        receivers:
+          - name: "null"
+          # Alertmanager cannot format its payload for ntfy, so the raw webhook
+          # JSON lands as the message body — noisy but complete. The token file
+          # comes from the mounted alertmanager-ntfy secret below; the ntfy
+          # `alertmanager` user has write-only access to the `alerts` topic.
+          - name: ntfy
+            webhook_configs:
+              - url: http://ntfy.ntfy.svc.cluster.local/alerts
+                http_config:
+                  authorization:
+                    type: Bearer
+                    credentials_file: /etc/alertmanager/secrets/alertmanager-ntfy/token
       alertmanagerSpec:
+        secrets:
+          # SOPS-encrypted ntfy bearer token (alertmanager-ntfy-secret.yaml),
+          # mounted at /etc/alertmanager/secrets/alertmanager-ntfy/.
+          - alertmanager-ntfy
         storage:
           volumeClaimTemplate:
             metadata:
