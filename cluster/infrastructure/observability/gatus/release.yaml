@@ -236,6 +236,17 @@ spec:
           url: tcp://${LB_POSTGRES_IP}:5432
           conditions:
             - "[CONNECTED] == true"
+        # Polls Prometheus for firing alerts from the postgres-backup
+        # PrometheusRule (observability/prometheusrules/) and notifies via the
+        # default NTFY alerting — Alertmanager itself has no receivers. The
+        # `or vector(0)` keeps a single result row when nothing is firing.
+        - name: Postgres backup alerts
+          group: Infrastructure
+          interval: 2m
+          url: "http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090/api/v1/query?query=count%28ALERTS%7Balertname%3D~%22PostgresWal.*%7CPostgresBackup.*%7CVersitygwMeta.*%7CPostgresVolume.*%22%2Calertstate%3D%22firing%22%7D%3D%3D1%29%20or%20vector%280%29"
+          conditions:
+            - "[STATUS] == 200"
+            - "[BODY].data.result.0.value.1 == \"0\""
         - name: Mosquitto (MQTT)
           group: Infrastructure
           url: tcp://${LB_MQTT_IP}:1883

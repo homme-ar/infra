@@ -204,6 +204,29 @@ spec:
       - kind: ConfigMap
         name: cluster-vars
 ---
+# PrometheusRules (alert definitions). Same ordering constraint as the
+# monitors: the Prometheus Operator CRDs must exist first. Firing alerts are
+# surfaced to NTFY via the "Postgres backup alerts" Gatus endpoint, which
+# polls the Prometheus query API (Alertmanager has no receivers configured).
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-infrastructure-observability-prometheusrules
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./cluster/infrastructure/observability/prometheusrules
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: cluster-infrastructure-observability-prometheus
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-vars
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
