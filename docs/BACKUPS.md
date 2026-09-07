@@ -177,6 +177,40 @@ kubectl -n longhorn-system get instancemanagers.longhorn.io \
 If an old IM survives, bounce the remaining workloads holding volumes on that
 node (scale to 0 → wait for detach → scale back) until it is replaced.
 
+## Troubleshooting: CNPG "Not enough disk space" / WAL archiving silently broken
+
+Symptom (seen 2026-09-07): CNPG primary in CrashLoopBackOff, Cluster phase
+`Not enough disk space`, and **no failover** — that is by design: the
+operator's `ensure_sufficient_disk_space` gate blocks the whole reconcile
+loop until the PVC is enlarged (it also runs BEFORE the PVC-resize logic, so
+bumping `spec.storage.size` alone deadlocks: patch the PVC request manually
+to the same value, then the gate passes and the instance starts).
+
+Chain to check, in order:
+
+```bash
+# 1. Is archiving broken? (failed_count growing, last_archived_time stale)
+kubectl -n postgres exec postgres-1 -c postgres -- psql "host=/controller/run user=postgres dbname=postgres" \
+  -Atc "select archived_count, failed_count, now() - last_archived_time from pg_stat_archiver;"
+# 2. Is versitygw rejecting PUTs? (507 InsufficientStorage = /meta out of
+#    inodes — versitygw writes ~3 sidecar files per object; check df -i, not df -h)
+kubectl -n backup logs deploy/versitygw | grep PUT | tail
+kubectl -n backup exec deploy/versitygw -- df -i /meta
+# 3. pg_wal piling up on the primary = archiving failing (a replica that
+#    streams fine does NOT prevent this; only successful archiving frees WAL)
+```
+
+Fix: enlarge `versitygw-meta` (ext4 resize adds inodes) + enlarge the CNPG
+PVCs (see above). Once Postgres starts, the archiver drains the pg_wal
+backlog on its own (~1 segment/s) and the disk empties at the next
+checkpoints.
+
+Related gotcha: CNPG `ScheduledBackup.spec.schedule` is a **6-field cron
+with seconds** and the webhook rejects 5-field expressions. `0 2 * * * 0`
+does NOT mean "Sundays 02:00" — it means "minute 2 of every hour on Sunday"
+(24 backups per Sunday, which is what inflated the versitygw meta inode
+count in the first place).
+
 ## Restore procedures
 
 ### Longhorn volume
