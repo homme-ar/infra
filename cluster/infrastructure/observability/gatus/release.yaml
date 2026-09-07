@@ -67,6 +67,9 @@ spec:
           # token is merged in from the gatus-values secret (see valuesFrom).
           priority: 4
           click: "https://status.${CLUSTER_DOMAIN}"
+          # Only provides defaults: Gatus does NOT alert unless each endpoint
+          # also declares `alerts: [{type: ntfy}]` (see "Setting a default
+          # alert" in the Gatus docs).
           default-alert:
             enabled: true
             failure-threshold: 3
@@ -85,51 +88,71 @@ spec:
           url: https://${CLUSTER_DOMAIN}
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Authelia
           group: Platform
           url: https://auth.${CLUSTER_DOMAIN}/api/health
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: NTFY
           group: Platform
           url: https://notify.${CLUSTER_DOMAIN}/v1/health
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: n8n
           group: Platform
           url: https://n8n-apps.${CLUSTER_DOMAIN}/healthz
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Vaultwarden
           group: Platform
           url: https://claves-apps.${CLUSTER_DOMAIN}/alive
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: IT Tools
           group: Platform
           url: https://ittools-apps.${CLUSTER_DOMAIN}
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: LibreSpeed
           group: Platform
           url: https://speed-apps.${CLUSTER_DOMAIN}
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Homepage
           group: Platform
           url: http://homepage.homepage.svc.cluster.local
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Headlamp
           group: Platform
           url: http://headlamp.headlamp.svc.cluster.local
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: WAHA
           group: Platform
           url: http://waha.waha.svc.cluster.local
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         # Homebox uses OIDC against Authelia, so the external URL would
         # redirect to the IdP; check the in-cluster Service health endpoint.
         - name: Homebox
@@ -137,68 +160,94 @@ spec:
           url: http://homebox.homebox.svc.cluster.local/api/v1/status
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         # ── Media ───────────────────────────────────────────────────────
         - name: Jellyfin
           group: Media
           url: https://jellyfin-apps.${CLUSTER_DOMAIN}/health
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Seerr
           group: Media
           url: https://seerr-apps.${CLUSTER_DOMAIN}/api/v1/status
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Sonarr
           group: Media
           url: http://sonarr.sonarr.svc.cluster.local/ping
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Radarr
           group: Media
           url: http://radarr.radarr.svc.cluster.local/ping
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Lidarr
           group: Media
           url: http://lidarr.lidarr.svc.cluster.local/ping
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Prowlarr
           group: Media
           url: http://prowlarr.prowlarr.svc.cluster.local/ping
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Bazarr
           group: Media
           url: http://bazarr.bazarr.svc.cluster.local
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: SABnzbd
           group: Media
           url: http://sabnzbd.sabnzbd.svc.cluster.local/
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Maintainerr
           group: Media
           url: http://maintainerr.maintainerr.svc.cluster.local/login
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         # ── IoT ─────────────────────────────────────────────────────────
         - name: Home Assistant
           group: IoT
           url: https://ha.${CLUSTER_DOMAIN}
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: ESPHome
           group: IoT
           url: http://esphome.esphome.svc.cluster.local
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Zigbee2MQTT
           group: IoT
           url: http://zigbee2mqtt.zigbee2mqtt.svc.cluster.local
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Frigate
           group: IoT
           url: http://frigate.frigate.svc.cluster.local
@@ -208,6 +257,8 @@ spec:
             # in-cluster URL intentionally bypasses Authelia (the public
             # auth chain is covered by the Authelia endpoint).
             - "[STATUS] < 400"
+          alerts:
+            - type: ntfy
         # ── Infrastructure ──────────────────────────────────────────────
         - name: Kubernetes API
           group: Infrastructure
@@ -218,6 +269,8 @@ spec:
           # enough to prove the API endpoint and TLS handshake are healthy.
           conditions:
             - "[STATUS] == 401"
+          alerts:
+            - type: ntfy
         - name: AdGuard DNS
           group: Infrastructure
           url: ${SER_DNS1_IP}
@@ -226,16 +279,22 @@ spec:
             query-type: A
           conditions:
             - "[DNS_RCODE] == NOERROR"
+          alerts:
+            - type: ntfy
         - name: NAS (NFS)
           group: Infrastructure
           url: tcp://${NAS_IP}:2049
           conditions:
             - "[CONNECTED] == true"
+          alerts:
+            - type: ntfy
         - name: PostgreSQL (CNPG)
           group: Infrastructure
           url: tcp://${LB_POSTGRES_IP}:5432
           conditions:
             - "[CONNECTED] == true"
+          alerts:
+            - type: ntfy
         # Polls Prometheus for firing alerts from the postgres-backup
         # PrometheusRule (observability/prometheusrules/) and notifies via the
         # default NTFY alerting — Alertmanager itself has no receivers. The
@@ -249,18 +308,26 @@ spec:
           conditions:
             - "[STATUS] == 200"
             - "len([BODY].data.result) == 0"
+          alerts:
+            - type: ntfy
         - name: Mosquitto (MQTT)
           group: Infrastructure
           url: tcp://${LB_MQTT_IP}:1883
           conditions:
             - "[CONNECTED] == true"
+          alerts:
+            - type: ntfy
         - name: Grafana
           group: Infrastructure
           url: http://kube-prometheus-stack-grafana.observability.svc.cluster.local/api/health
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
         - name: Longhorn UI
           group: Infrastructure
           url: http://longhorn-frontend.longhorn-system.svc.cluster.local
           conditions:
             - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
