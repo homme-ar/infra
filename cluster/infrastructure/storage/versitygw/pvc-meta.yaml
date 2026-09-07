@@ -2,6 +2,10 @@
 # does not support xattrs, so versitygw keeps object metadata (ETags,
 # multipart state) here instead. Not labeled for backup: losing it only
 # affects metadata of in-flight/older uploads, not the backup data itself.
+# Sized for inode count, not bytes: versitygw writes ~3 tiny sidecar files
+# per stored object, and on 2026-09-07 the 2Gi volume ran out of inodes
+# (131k), silently breaking WAL archiving for 15 days until the primary's
+# pg_wal filled its own PVC. ext4 online resize adds inodes proportionally.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -16,4 +20,4 @@ spec:
   storageClassName: ${STORAGE_CLASS_SINGLENODE}
   resources:
     requests:
-      storage: 2Gi
+      storage: 8Gi
