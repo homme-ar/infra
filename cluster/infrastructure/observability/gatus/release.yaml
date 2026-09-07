@@ -260,6 +260,17 @@ spec:
           alerts:
             - type: ntfy
         # ── Infrastructure ──────────────────────────────────────────────
+        # TEMPORARY: always-failing endpoint to verify NTFY alerting
+        # end-to-end. Remove once the notification is confirmed.
+        - name: NTFY alerting self-test
+          group: Infrastructure
+          url: http://gatus-alert-self-test.nonexistent.svc.cluster.local
+          conditions:
+            - "[STATUS] == 200"
+          alerts:
+            - type: ntfy
+              failure-threshold: 1
+              description: "Self-test endpoint, safe to ignore"
         - name: Kubernetes API
           group: Infrastructure
           url: https://10.0.20.1:6443/healthz
