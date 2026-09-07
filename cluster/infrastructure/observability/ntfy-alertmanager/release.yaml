@@ -1,0 +1,51 @@
+# Bridge between Alertmanager and ntfy (xenrox/ntfy-alertmanager): receives the
+# webhook from Alertmanager and publishes a formatted message (title, priority
+# by severity, tags, markdown body) to the private ntfy `alerts` topic —
+# Alertmanager alone can only POST its raw JSON payload.
+# The FULL bridge config (scfg, includes the ntfy token) lives in the
+# SOPS-encrypted ntfy-alertmanager-config secret; the chart renders no config
+# of its own (existingSecret) so no credentials land in Helm values.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ntfy-alertmanager
+  namespace: observability
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: alertmanager-ntfy
+      version: "0.3.*"
+      sourceRef:
+        kind: HelmRepository
+        name: kriegalex
+        namespace: flux-system
+      interval: 12h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    # Deterministic resource names (Service ntfy-alertmanager.observability).
+    fullnameOverride: ntfy-alertmanager
+    ntfyAlertmanager:
+      existingSecret: ntfy-alertmanager-config
+    # The bridge only listens in-cluster (Alertmanager -> bridge -> ntfy), so
+    # no basic auth on the webhook endpoint.
+    podLabels:
+      app.kubernetes.io/name: ntfy-alertmanager
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi

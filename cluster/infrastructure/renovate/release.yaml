@@ -126,6 +126,7 @@ spec:
             { matchFileNames: ['cluster/infrastructure/observability/kube-prometheus-stack/**'], groupName: 'kube-prometheus-stack', groupSlug: 'kube-prometheus-stack' },
             { matchFileNames: ['cluster/infrastructure/observability/metrics-server/**'], groupName: 'metrics-server', groupSlug: 'metrics-server' },
             { matchFileNames: ['cluster/infrastructure/observability/node-feature-discovery/**'], groupName: 'node-feature-discovery', groupSlug: 'node-feature-discovery' },
+            { matchFileNames: ['cluster/infrastructure/observability/ntfy-alertmanager/**'], groupName: 'ntfy-alertmanager', groupSlug: 'ntfy-alertmanager' },
             { matchFileNames: ['cluster/infrastructure/observability/pushgateway/**'], groupName: 'pushgateway', groupSlug: 'pushgateway' },
             { matchFileNames: ['cluster/infrastructure/observability/servicemonitors/**'], groupName: 'servicemonitors', groupSlug: 'servicemonitors' },
             { matchFileNames: ['cluster/infrastructure/renovate/**'], groupName: 'renovate', groupSlug: 'renovate' },

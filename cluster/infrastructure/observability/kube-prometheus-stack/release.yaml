@@ -163,22 +163,15 @@ spec:
               receiver: ntfy
         receivers:
           - name: "null"
-          # Alertmanager cannot format its payload for ntfy, so the raw webhook
-          # JSON lands as the message body — noisy but complete. The token file
-          # comes from the mounted alertmanager-ntfy secret below; the ntfy
-          # `alertmanager` user has write-only access to the `alerts` topic.
+          # Alerts go to the ntfy-alertmanager bridge (observability/
+          # ntfy-alertmanager/), which formats the raw webhook JSON into
+          # readable notifications on the private ntfy `alerts` topic. The
+          # bridge holds the ntfy token itself (SOPS secret), so no auth or
+          # mounted secrets are needed on this side.
           - name: ntfy
             webhook_configs:
-              - url: http://ntfy.ntfy.svc.cluster.local/alerts
-                http_config:
-                  authorization:
-                    type: Bearer
-                    credentials_file: /etc/alertmanager/secrets/alertmanager-ntfy/token
+              - url: http://ntfy-alertmanager.observability.svc.cluster.local
       alertmanagerSpec:
-        secrets:
-          # SOPS-encrypted ntfy bearer token (alertmanager-ntfy-secret.yaml),
-          # mounted at /etc/alertmanager/secrets/alertmanager-ntfy/.
-          - alertmanager-ntfy
         storage:
           volumeClaimTemplate:
             metadata:
