@@ -1,0 +1,90 @@
+# Alerting rules for the CNPG PostgreSQL backup chain. These exist because of
+# the 2026-09-07 incident: versitygw's meta PVC ran out of inodes, every WAL
+# archive PUT failed for 15 days with no alert, and pg_wal filled the
+# primary's PVC (see docs/BACKUPS.md "CNPG Not enough disk space").
+#
+# Notification path: Prometheus evaluates these rules -> firing alerts are
+# polled by the "Postgres backup alerts" Gatus endpoint (gatus HelmRelease,
+# Infrastructure group) -> NTFY `uptime` topic. Alertmanager has no receivers
+# configured, so the rules alone do NOT notify.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: postgres-backup
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: prometheus-rules
+    app.kubernetes.io/component: postgres-backup
+spec:
+  groups:
+    - name: postgres-backup
+      rules:
+        # THE alert that would have caught the 2026-09-07 incident on day one:
+        # pg_stat_archiver counts every archive_command failure.
+        - alert: PostgresWalArchivingFailing
+          expr: increase(cnpg_pg_stat_archiver_failed_count[15m]) > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "WAL archiving failing on {{ $labels.pod }}"
+            description: >-
+              archive_command (barman -> versitygw) is failing. Unarchived WAL
+              accumulates in pg_wal until the instance PVC fills and CNPG
+              refuses to start PostgreSQL (no failover by design).
+              Runbook: docs/BACKUPS.md "CNPG Not enough disk space".
+        # Catches a stuck (not erroring) archiver: files queued for archival
+        # should be near zero. Baseline after recovery is < 10.
+        - alert: PostgresWalArchiveBacklog
+          expr: cnpg_collector_pg_wal_archive_status{value="ready"} > 200
+          for: 2h
+          labels:
+            severity: warning
+          annotations:
+            summary: "WAL archive backlog on {{ $labels.pod }} ({{ $value }} files)"
+            description: >-
+              More than 200 WAL segments are waiting to be archived. Either the
+              archiver cannot keep up or uploads are failing silently.
+        # Weekly ScheduledBackup + 1 day of slack. Fires when the metric is 0
+        # (no successful backup in the catalog), as during the incident.
+        - alert: PostgresBackupMissing
+          expr: time() - max(cnpg_collector_last_available_backup_timestamp) > 691200
+          for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: "No successful PostgreSQL base backup in 8+ days"
+            description: >-
+              The last available barman backup is older than the weekly
+              schedule plus slack (or none exists). Check the ScheduledBackup,
+              Backup CRs stuck in pending, and versitygw PUT errors.
+        # versitygw stores ~3 tiny sidecar files per S3 object in /meta: it
+        # exhausts INODES long before bytes. A full /meta makes every backup
+        # and WAL upload fail with 507 InsufficientStorage.
+        - alert: VersitygwMetaInodesHigh
+          expr: >-
+            kubelet_volume_stats_inodes_used{namespace="backup",persistentvolumeclaim="versitygw-meta"}
+            / kubelet_volume_stats_inodes{namespace="backup",persistentvolumeclaim="versitygw-meta"} > 0.80
+          for: 30m
+          labels:
+            severity: critical
+          annotations:
+            summary: "versitygw-meta PVC above 80% inode usage"
+            description: >-
+              Inode exhaustion breaks all S3 writes (backups + WAL archiving).
+              Prune stale objects/sidecars or enlarge the PVC (ext4 resize adds
+              inodes).
+        # CNPG keeps a full primary down until the PVC is enlarged and does not
+        # fail over — warn well before the volume is full.
+        - alert: PostgresVolumeAlmostFull
+          expr: >-
+            kubelet_volume_stats_used_bytes{namespace="postgres"}
+            / kubelet_volume_stats_capacity_bytes{namespace="postgres"} > 0.85
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PostgreSQL PVC {{ $labels.persistentvolumeclaim }} above 85% full"
+            description: >-
+              Enlarge spec.storage.size AND patch the PVC request to the same
+              value (the CNPG disk-space gate runs before its resize logic).
