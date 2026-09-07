@@ -1,0 +1,8 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: kriegalex
+  namespace: flux-system
+spec:
+  interval: 24h
+  url: https://kriegalex.github.io/k8s-charts

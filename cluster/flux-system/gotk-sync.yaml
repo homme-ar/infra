@@ -227,6 +227,33 @@ spec:
       - kind: ConfigMap
         name: cluster-vars
 ---
+# Alertmanager -> ntfy bridge (formats the raw webhook JSON into readable ntfy
+# notifications on the private `alerts` topic). Deployed after Prometheus so
+# Alertmanager exists to point at it; the webhook URL is wired in the
+# kube-prometheus-stack HelmRelease values.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-infrastructure-observability-ntfy-alertmanager
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./cluster/infrastructure/observability/ntfy-alertmanager
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: cluster-infrastructure-observability-prometheus
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-vars
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
