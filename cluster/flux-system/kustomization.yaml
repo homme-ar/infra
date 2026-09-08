@@ -4,4 +4,5 @@ resources:
   - gotk-components.yaml
   - gotk-sync.yaml
   - ../cluster-vars.yaml
+  - ../cluster-vars-private-secret.yaml
   - webhook/

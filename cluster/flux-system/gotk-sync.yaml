@@ -37,6 +37,8 @@ spec:
     substituteFrom:
       - kind: ConfigMap
         name: cluster-vars
+      - kind: ConfigMap
+        name: cluster-vars-private
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -58,6 +60,8 @@ spec:
     substituteFrom:
       - kind: ConfigMap
         name: cluster-vars
+      - kind: ConfigMap
+        name: cluster-vars-private
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -86,6 +90,8 @@ spec:
     substituteFrom:
       - kind: ConfigMap
         name: cluster-vars
+      - kind: ConfigMap
+        name: cluster-vars-private
 ---
 # Dedicated Kustomization for the CloudNativePG operator.
 # Runs after cluster-infrastructure and waits for the HelmRelease to be healthy
@@ -117,6 +123,8 @@ spec:
     substituteFrom:
       - kind: ConfigMap
         name: cluster-vars
+      - kind: ConfigMap
+        name: cluster-vars-private
 ---
 # Dedicated Kustomization for the Wireguard operator instance + peers.
 # Runs after cluster-infrastructure and waits for the wireguard-operator
@@ -149,6 +157,8 @@ spec:
     substituteFrom:
       - kind: ConfigMap
         name: cluster-vars
+      - kind: ConfigMap
+        name: cluster-vars-private
 ---
 # Dedicated Kustomization for kube-prometheus-stack.
 # Runs after cluster-infrastructure and waits for the HelmRelease to be healthy
@@ -181,6 +191,8 @@ spec:
     substituteFrom:
       - kind: ConfigMap
         name: cluster-vars
+      - kind: ConfigMap
+        name: cluster-vars-private
 ---
 # ServiceMonitors and PodMonitors for existing cluster components.
 # Must run AFTER kube-prometheus-stack so that the Prometheus Operator CRDs
@@ -203,6 +215,8 @@ spec:
     substituteFrom:
       - kind: ConfigMap
         name: cluster-vars
+      - kind: ConfigMap
+        name: cluster-vars-private
 ---
 # PrometheusRules (alert definitions). Same ordering constraint as the
 # monitors: the Prometheus Operator CRDs must exist first. Firing alerts are
@@ -226,6 +240,8 @@ spec:
     substituteFrom:
       - kind: ConfigMap
         name: cluster-vars
+      - kind: ConfigMap
+        name: cluster-vars-private
 ---
 # Alertmanager -> ntfy bridge (formats the raw webhook JSON into readable ntfy
 # notifications on the private `alerts` topic). Deployed after Prometheus so
@@ -253,6 +269,8 @@ spec:
     substituteFrom:
       - kind: ConfigMap
         name: cluster-vars
+      - kind: ConfigMap
+        name: cluster-vars-private
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -281,3 +299,5 @@ spec:
     substituteFrom:
       - kind: ConfigMap
         name: cluster-vars
+      - kind: ConfigMap
+        name: cluster-vars-private
