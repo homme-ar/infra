@@ -61,7 +61,7 @@
     extraGroups = [ "wheel" ];
     # TODO: replace with your own SSH public key before provisioning.
     openssh.authorizedKeys.keys = [
-      "sk-ecdsa-sha2-nistp256@openssh.com AAAAInNrLWVjZHNhLXNoYTItbmlzdHAyNTZAb3BlbnNzaC5jb20AAAAIbmlzdHAyNTYAAABBBH6E72Ri4/T+D5K6eA6Gzq70UCGUhUUoaBumY3E1RhBAlJXiwqLGebFn1dtQqT2ebJE+8Xkv2T6tOW1iS7DmTvMAAAAbc3NoOmNhdHJpZWxtdWxsZXJAZ21haWwuY29t catrielmuller@ofcpc1"
+      "sk-ecdsa-sha2-nistp256@openssh.com AAAAInNrLWVjZHNhLXNoYTItbmlzdHAyNTZAb3BlbnNzaC5jb20AAAAIbmlzdHAyNTYAAABBBH6E72Ri4/T+D5K6eA6Gzq70UCGUhUUoaBumY3E1RhBAlJXiwqLGebFn1dtQqT2ebJE+8Xkv2T6tOW1iS7DmTvMAAAAbc3NoOmNhdHJpZWxtdWxsZXJAZ21haWwuY29t"
     ];
   };
 
@@ -72,8 +72,9 @@
   # Polls this repository and switches to the nixosConfiguration matching the
   # host name. The flake lives in the `nixos/` subdirectory of the repository.
   #
-  # The repository is private: comin authenticates with a shared, read-only
-  # GitHub deploy key. The private key is stored sops-encrypted in
+  # The repository is public, so the deploy key is technically redundant, but
+  # comin still authenticates with a shared, read-only GitHub deploy key. The
+  # private key is stored sops-encrypted in
   # nixos/secrets/secrets.yaml (comin_deploy_key) and baked into the SD image
   # at build time (see nixos/flake.nix), so hosts can pull from their very
   # first boot. The public key (comin_deploy_key_pub) must be added once as a
