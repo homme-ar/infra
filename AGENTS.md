@@ -82,6 +82,11 @@ talosctl health
 
 ### Talos (node-level) workflow
 
+`talos/talconfig.yaml` uses `${TALOS_VIP}` / `${TALOS_NODE_*_IP}` environment
+variable substitution (talhelper envsubst) for node IPs and the VIP — the real
+values live in `env.sops.yaml` and are exported by direnv. If you edit
+`env.sops.yaml`, run `direnv reload` before `talhelper genconfig`.
+
 ```bash
 # Regenerate node manifests + talosconfig after editing talconfig.yaml
 talhelper genconfig                 # decrypts talsecret.sops.yaml in memory

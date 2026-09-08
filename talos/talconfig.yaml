@@ -1,14 +1,14 @@
 clusterName: homme-cluster
 talosVersion: v1.13.6
 kubernetesVersion: v1.36.0
-endpoint: https://192.0.2.1:6443
+endpoint: https://${TALOS_VIP}:6443
 allowSchedulingOnMasters: true
 cniConfig:
   name: none
 
 nodes:
   - hostname: ser-msa2cp1
-    ipAddress: 192.0.2.2
+    ipAddress: ${TALOS_NODE_CP1_IP}
     controlPlane: true
     installDiskSelector:
       model: "FORESEE*"
@@ -16,9 +16,9 @@ nodes:
       - interface: enp5s0f0np0
         dhcp: true
         addresses:
-          - 192.0.2.2/16
+          - ${TALOS_NODE_CP1_IP}/16
         vip:
-          ip: 192.0.2.1
+          ip: ${TALOS_VIP}
     schematic:
       customization:
         systemExtensions:
@@ -33,7 +33,7 @@ nodes:
       - "@./patches/nodes/ser-msa2cp1-gpu.yaml"
 
   - hostname: ser-msa2cp2
-    ipAddress: 192.0.2.3
+    ipAddress: ${TALOS_NODE_CP2_IP}
     controlPlane: true
     installDiskSelector:
       model: "FORESEE*"
@@ -41,9 +41,9 @@ nodes:
       - interface: enp5s0f0np0
         dhcp: true
         addresses:
-          - 192.0.2.3/16
+          - ${TALOS_NODE_CP2_IP}/16
         vip:
-          ip: 192.0.2.1
+          ip: ${TALOS_VIP}
     schematic:
       customization:
         systemExtensions:
@@ -54,7 +54,7 @@ nodes:
             - siderolabs/util-linux-tools
 
   - hostname: ser-msa2cp3
-    ipAddress: 192.0.2.4
+    ipAddress: ${TALOS_NODE_CP3_IP}
     controlPlane: true
     installDiskSelector:
       model: "FORESEE*"
@@ -62,9 +62,9 @@ nodes:
       - interface: enp5s0f0np0
         dhcp: true
         addresses:
-          - 192.0.2.4/16
+          - ${TALOS_NODE_CP3_IP}/16
         vip:
-          ip: 192.0.2.1
+          ip: ${TALOS_VIP}
     schematic:
       customization:
         systemExtensions:
@@ -75,7 +75,7 @@ nodes:
             - siderolabs/util-linux-tools
 
   - hostname: ser-n100wk1
-    ipAddress: 192.0.2.5
+    ipAddress: ${TALOS_NODE_WK1_IP}
     controlPlane: false
     installDiskSelector:
       model: "VICKTER*"
@@ -83,7 +83,7 @@ nodes:
       - interface: enp3s0
         dhcp: true
         addresses:
-          - 192.0.2.5/16
+          - ${TALOS_NODE_WK1_IP}/16
     schematic:
       customization:
         systemExtensions:
