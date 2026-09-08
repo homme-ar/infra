@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - phone-1.yaml
-  - laptop-1.yaml
   - phone-2.yaml
-  - laptop-2.yaml
   - phone-3.yaml
+  - laptop-1.yaml
+  - laptop-2.yaml
