@@ -4,7 +4,7 @@
 # so its local disk and I/O stay free for Frigate.
 machine:
   nodeLabels:
-    example.com/role: nvr
+    role: nvr
     node.longhorn.io/create-default-disk: "false"
   nodeTaints:
     dedicated: "nvr:NoSchedule"

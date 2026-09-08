@@ -26,7 +26,7 @@ spec:
     spec:
       # Dedicated NVR node (see talos/patches/nodes/ser-n100wk1-dedicated.yaml).
       nodeSelector:
-        example.com/role: nvr
+        role: nvr
       tolerations:
         - key: dedicated
           operator: Equal
