@@ -41,6 +41,9 @@
               yq-go
               jq
 
+              # Git history rewriting (anonymization / secret purging)
+              git-filter-repo
+
               # WireGuard peer config utilities
               qrencode
 
