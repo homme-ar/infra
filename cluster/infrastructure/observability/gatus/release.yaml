@@ -262,7 +262,7 @@ spec:
         # ── Infrastructure ──────────────────────────────────────────────
         - name: Kubernetes API
           group: Infrastructure
-          url: https://192.0.2.1:6443/healthz
+          url: https://${TALOS_VIP}:6443/healthz
           client:
             insecure: true
           # Talos disables anonymous auth, so /healthz answers 401 — that is

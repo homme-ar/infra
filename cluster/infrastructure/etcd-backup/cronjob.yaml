@@ -62,7 +62,7 @@ spec:
                   TS=$(date +%F-%H%M)
                   OUT="/out/etcd-snapshot-$${TS}.db"
                   # Try each control-plane node until one answers
-                  for NODE in 192.0.2.2 192.0.2.3 192.0.2.4; do
+                  for NODE in ${TALOS_NODE_CP1_IP} ${TALOS_NODE_CP2_IP} ${TALOS_NODE_CP3_IP}; do
                     echo "Attempting etcd snapshot from $${NODE}..."
                     if /tools/talosctl --talosconfig /secrets/talosconfig -n "$${NODE}" -e "$${NODE}" etcd snapshot "$${OUT}"; then
                       echo "Snapshot saved: $${OUT}"

@@ -100,11 +100,11 @@ spec:
           # MailerSend — STARTTLS on port 587
           address: 'submission://smtp.mailersend.net:587'
           timeout: '5 seconds'
-          username: smtp-user@example.com
-          sender: '"Authelia" <mail@example.com>'
+          username: ${SMTP_USERNAME}
+          sender: '"Authelia" <mail@${CLUSTER_DOMAIN}>'
           identifier: auth.${CLUSTER_DOMAIN}
           subject: "[Authelia] {title}"
-          startup_check_address: admin@example.com
+          startup_check_address: ${ACME_EMAIL}
           disable_require_tls: false
           disable_html_emails: true
           tls:

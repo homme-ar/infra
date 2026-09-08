@@ -1,63 +1,25 @@
 # Cluster-wide variables for Flux post-build variable substitution.
 # Add spec.postBuild.substituteFrom referencing this ConfigMap on every Kustomization
 # that needs substitution. Reference variables in manifests with ${VARIABLE_NAME}.
+#
+# Sensitive values (domain, IPs, email) are NOT defined here — they live in the
+# SOPS-encrypted cluster-vars-private ConfigMap (cluster-vars-private-secret.yaml),
+# listed after this one in every substituteFrom so its values win. Flux runs
+# substitution in strict mode: a missing variable fails the Kustomization loudly.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cluster-vars
   namespace: flux-system
 data:
-  # ── Domain ────────────────────────────────────────────────────────────────
-  CLUSTER_DOMAIN: "example.com"
-  # Domain with dots replaced by dashes; used for resource names (e.g. TLS secret)
-  CLUSTER_DOMAIN_SLUG: "homme-ar"
-
-  # ── ACME / Let's Encrypt ───────────────────────────────────────────────────
-  ACME_EMAIL: "admin@example.com"
-
   # ── Network interface (physical NIC used for L2 announcements / Cilium) ───
   NETWORK_INTERFACE: "enp5s0f0np0"
-
-  # ── Load-balancer IP pool ─────────────────────────────────────────────────
-  LB_POOL_START: "198.51.100.1"
-  LB_POOL_END: "198.51.100.254"
-
-  # ── Specific LB IPs reserved for well-known services ──────────────────────
-  # Wildcard DNS answer IP (same as pool start / gateway IP)
-  LB_WILDCARD_IP: "198.51.100.1"
-
-  # ── Auxiliary NixOS hosts (Raspberry Pi, DHCP reservations) ───────────────
-  # AdGuard Home DNS server
-  SER_DNS1_IP: "192.0.2.11"
-  # GPS-disciplined NTP stratum 1 server
-  SER_NTP1_IP: "192.0.2.12"
-  # apcupsd server for the APC Smart-UPS
-  SER_UPS1_IP: "192.0.2.13"
-
-  # ── OCI cloud hosts ───────────────────────────────────────────────────────
-  OCI_CLOUD_IP: "203.0.113.10"
 
   # ── Storage ───────────────────────────────────────────────────────────────
   STORAGE_CLASS: "longhorn"
   # Single-replica StorageClass for databases (CNPG handles HA via streaming replication)
   STORAGE_CLASS_SINGLENODE: "longhorn-singlenode"
 
-  # ── NAS (QNAP) ────────────────────────────────────────────────────────────
-  # IP of the QNAP NAS exporting the media share over NFS — set before commit
-  NAS_IP: "192.0.2.20"
-  # NFS export path on the QNAP (single share mounted as /data in media pods)
+  # ── NAS ───────────────────────────────────────────────────────────────────
+  # NFS export path on the NAS (single share mounted as /data in media pods)
   NAS_SHARE_PATH: "/homme"
-
-  # ── VPN LoadBalancer IP ───────────────────────────────────────────────────
-  # Dedicated LoadBalancer IP for the WireGuard VPN (managed by wireguard-operator)
-  LB_VPN_IP: "198.51.100.2"
-
-  # ── Database / Broker LoadBalancer IPs ───────────────────────────────────
-  # Dedicated LoadBalancer IP for the in-cluster PostgreSQL primary (CNPG)
-  LB_POSTGRES_IP: "198.51.100.17"
-  # Dedicated LoadBalancer IP for the in-cluster Mosquitto MQTT broker
-  LB_MQTT_IP: "198.51.100.18"
-  # Dedicated LoadBalancer IP for the temporary NNTPS share proxy (apps/media/nntp-share)
-  LB_NNTP_IP: "198.51.100.19"
-  # Dedicated LoadBalancer IP for Frigate's go2rtc WebRTC (two-way talk), tcp+udp 8555
-  LB_FRIGATE_WEBRTC_IP: "198.51.100.20"

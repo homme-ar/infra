@@ -16,10 +16,10 @@ data:
     theme: dark
     color: slate
     language: es
-    logo: https://example.com/assets/logo/black.svg
-    favicon: https://example.com/assets/favicon/main.png
+    logo: https://${CLUSTER_DOMAIN}/assets/logo/black.svg
+    favicon: https://${CLUSTER_DOMAIN}/assets/favicon/main.png
     background:
-      image: https://example.com/assets/background/main.jpg
+      image: https://${CLUSTER_DOMAIN}/assets/background/main.jpg
       blur: sm
       saturate: 50
       brightness: 50
@@ -64,60 +64,60 @@ data:
     - Networking:
         - Unifi Controller:
             icon: unifi.png
-            href: https://192.0.2.254/
+            href: https://${UNIFI_IP}/
             description: Network controller
             weight: 10
             widget:
               type: unifi
-              url: https://192.0.2.254
+              url: https://${UNIFI_IP}
               username: "{{HOMEPAGE_VAR_UNIFI_USERNAME}}"
               password: "{{HOMEPAGE_VAR_UNIFI_PASSWORD}}"
         - AdGuard DNS:
             icon: adguard-home.png
-            href: http://192.0.2.11/
+            href: http://${SER_DNS1_IP}/
             description: DNS server (ser-dns1)
             weight: 20
             widget:
               type: adguard
-              url: http://192.0.2.11
+              url: http://${SER_DNS1_IP}
               username: "{{HOMEPAGE_VAR_ADGUARD_USERNAME}}"
               password: "{{HOMEPAGE_VAR_ADGUARD_PASSWORD}}"
     - IoT:
         - SLZB-06 Coordinator:
             icon: zigbee.png
-            href: http://192.0.2.31/
+            href: http://${SLZB06_COORDINATOR_IP}/
             description: Zigbee coordinator
             weight: 40
         - SLZB-06 Router:
             icon: zigbee.png
-            href: http://192.0.2.32/
+            href: http://${SLZB06_ROUTER_IP}/
             description: Zigbee router
             weight: 50
         - OpenTherm Gateway:
             icon: mdi-thermostat
-            href: http://192.0.2.41/
+            href: http://${OPENTHERM_GW_IP}/
             description: Boiler gateway
             weight: 60
         - Solar Logger:
             icon: mdi-solar-power
-            href: http://192.0.2.42/
+            href: http://${SOLAR_LOGGER_IP}/
             description: Solar generation monitor
             weight: 70
     - Security:
         - Reolink NVR:
             icon: reolink.png
-            href: http://192.0.2.21/
+            href: http://${REOLINK_NVR_IP}/
             description: Camera NVR
             weight: 20
     - Infrastructure:
         - QNAP NAS:
             icon: qnap.png
-            href: http://192.0.2.20/cgi-bin/
+            href: http://${NAS_IP}/cgi-bin/
             description: NAS management
             weight: 10
             widget:
               type: qnap
-              url: http://192.0.2.20
+              url: http://${NAS_IP}
               username: "{{HOMEPAGE_VAR_QNAP_USERNAME}}"
               password: "{{HOMEPAGE_VAR_QNAP_PASSWORD}}"
     - Tools:

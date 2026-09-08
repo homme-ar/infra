@@ -30,7 +30,7 @@ spec:
       v2DataEngine: true
       # Backup target: QNAP NAS over NFS. No credential secret needed for NFS.
       # Note the Longhorn URL format requires ":" after the host.
-      backupTarget: "nfs://192.0.2.20:/backup/longhorn"
+      backupTarget: "nfs://${NAS_IP}:/backup/longhorn"
       backupstorePollInterval: 300
     persistence:
       dataEngine: v2
