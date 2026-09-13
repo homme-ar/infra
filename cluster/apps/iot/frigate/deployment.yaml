@@ -34,7 +34,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: frigate
-          image: ghcr.io/blakeblackshear/frigate:0.17.2
+          image: ghcr.io/blakeblackshear/frigate:0.18.0
           imagePullPolicy: IfNotPresent
           # Required for USB Coral access through the /dev/bus/usb hostPath
           # (libusb needs device cgroup access) and for /dev/dri VA-API.
