@@ -86,6 +86,44 @@ spec:
               readOnly: true
             - name: transcode
               mountPath: /config/data/transcodes
+        # Prunes Live TV guide poster caches: every daily "Refresh Guide" task
+        # drops ~4k new poster.jpg dirs into /config/data/metadata/livetv and
+        # Jellyfin never deletes them (~0.5 GB/day — this filled the PVC once
+        # already). Entries older than the 7-day guide window are unreachable
+        # from the UI, so deleting them is safe. Runs as a sidecar because the
+        # RWO Longhorn PVC cannot be mounted by a separate CronJob pod.
+        - name: livetv-guide-prune
+          image: alpine:3.24
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              while :; do
+                echo "Pruning livetv guide posters older than 7 days..."
+                # rm -rf per dir, not find -delete: -delete skips dirs whose
+                # contents didn't match -mtime and leaves "not empty" errors.
+                find /config/data/metadata/livetv -mindepth 1 -maxdepth 1 -type d -mtime +7 -exec rm -rf {} +
+                echo "Prune done."
+                sleep 86400
+              done
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
       volumes:
         - name: config
           persistentVolumeClaim:
