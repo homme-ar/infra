@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: echomuse-data
+  namespace: echomuse
+  labels:
+    app.kubernetes.io/name: echomuse
+    app.kubernetes.io/component: storage
+    # Include this volume in the Longhorn NAS backup jobs (see docs/BACKUPS.md)
+    recurring-job-group.longhorn.io/backup: enabled
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ${STORAGE_CLASS}
+  resources:
+    requests:
+      # SQLite database (devices, users, config) plus the device-link TLS CA.
+      storage: 2Gi

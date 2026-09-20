@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: echomuse
+  namespace: echomuse
+  labels:
+    app.kubernetes.io/name: echomuse
+  annotations:
+    # Reserve a dedicated LB IP for the controller (Cilium L2 announcement).
+    # The Echo Dots, Home Assistant (ESPHome ports) and LAN browsers all use
+    # this stable address instead of a node IP. LAN-only: the dashboard is
+    # deliberately NOT exposed through the Gateway.
+    io.cilium/lb-ipam-ips: "${LB_ECHOMUSE_IP}"
+spec:
+  type: LoadBalancer
+  # Cluster policy allows any node to receive and forward traffic regardless
+  # of where the echomuse pod is scheduled (required for Cilium L2 VIP).
+  externalTrafficPolicy: Cluster
+  selector:
+    app.kubernetes.io/name: echomuse
+  ports:
+    # Device WebSocket planes (/control, /data, /shell)
+    - name: device-ws
+      port: 8767
+      targetPort: device-ws
+      protocol: TCP
+    # Same planes wrapped in TLS with the controller's private CA
+    - name: device-wss
+      port: 8770
+      targetPort: device-wss
+      protocol: TCP
+    # HTTP API + dashboard
+    - name: http
+      port: 8768
+      targetPort: http
+      protocol: TCP
+    # ESPHome native API, one port per device (EM_ESPHOME_PORT_BASE=16001).
+    # Extend this list (and the btproxy one, base+1000) when adding a 6th Dot.
+    - name: esphome-16001
+      port: 16001
+      targetPort: 16001
+      protocol: TCP
+    - name: esphome-16002
+      port: 16002
+      targetPort: 16002
+      protocol: TCP
+    - name: esphome-16003
+      port: 16003
+      targetPort: 16003
+      protocol: TCP
+    - name: esphome-16004
+      port: 16004
+      targetPort: 16004
+      protocol: TCP
+    - name: esphome-16005
+      port: 16005
+      targetPort: 16005
+      protocol: TCP
+    # Bluetooth proxies live at base+1000
+    - name: btproxy-17001
+      port: 17001
+      targetPort: 17001
+      protocol: TCP
+    - name: btproxy-17002
+      port: 17002
+      targetPort: 17002
+      protocol: TCP
+    - name: btproxy-17003
+      port: 17003
+      targetPort: 17003
+      protocol: TCP
+    - name: btproxy-17004
+      port: 17004
+      targetPort: 17004
+      protocol: TCP
+    - name: btproxy-17005
+      port: 17005
+      targetPort: 17005
+      protocol: TCP

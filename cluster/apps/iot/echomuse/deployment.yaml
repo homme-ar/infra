@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echomuse
+  namespace: echomuse
+  labels:
+    app.kubernetes.io/name: echomuse
+spec:
+  replicas: 1
+  # Recreate ensures the RWO Longhorn PVC is released before a new pod attaches
+  # it, preventing multi-attach errors during rollouts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: echomuse
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: echomuse
+    spec:
+      # hostNetwork is required (mirrors the upstream `network_mode: host`):
+      # the Echo Dots discover the controller over mDNS multicast, which
+      # Cilium does not forward across the pod network boundary. Everything
+      # else (device WebSockets, ESPHome ports, dashboard) is reached via the
+      # stable LoadBalancer IP, so the pod itself is free to run on any node.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: echomuse-controller
+          image: ghcr.io/wilbowes/echomuse-controller:2.16.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            # Device WebSocket planes (/control, /data, /shell)
+            - name: device-ws
+              containerPort: 8767
+              protocol: TCP
+            # Same planes wrapped in TLS with the controller's private CA
+            - name: device-wss
+              containerPort: 8770
+              protocol: TCP
+            # HTTP API + dashboard
+            - name: http
+              containerPort: 8768
+              protocol: TCP
+          env:
+            - name: SERVER_HOST
+              value: "0.0.0.0"
+            - name: SERVER_PORT
+              value: "8767"
+            - name: SERVER_TLS_PORT
+              value: "8770"
+            - name: API_PORT
+              value: "8768"
+            # The controller's LoadBalancer IP: advertised over mDNS and used
+            # by the Dots to connect. Stable regardless of the pod's node.
+            - name: SERVER_IP
+              value: "${LB_ECHOMUSE_IP}"
+            - name: MDNS_NAME
+              value: echomuse
+            - name: EM_ESPHOME_PORT_BASE
+              value: "16001"
+            - name: DB_PATH
+              value: /app/data/echomuse.db
+            - name: DEVICE_APPROVAL
+              value: strict
+            - name: TZ
+              value: America/Argentina/Buenos_Aires
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: echomuse-data

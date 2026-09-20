@@ -82,6 +82,7 @@ spec:
             // Constrain lidarr to the current 3.x stable stream.
             { matchPackageNames: ['lscr.io/linuxserver/lidarr'], allowedVersions: '/^3\\./' },
             { matchFileNames: ['cluster/apps/ai/ollama/**'], groupName: 'ollama', groupSlug: 'ollama' },
+            { matchFileNames: ['cluster/apps/iot/echomuse/**'], groupName: 'echomuse', groupSlug: 'echomuse' },
             { matchFileNames: ['cluster/apps/iot/esphome/**'], groupName: 'esphome', groupSlug: 'esphome' },
             { matchFileNames: ['cluster/apps/iot/frigate/**'], groupName: 'frigate', groupSlug: 'frigate' },
             { matchFileNames: ['cluster/apps/iot/ha-mcp/**'], groupName: 'ha-mcp', groupSlug: 'ha-mcp' },
