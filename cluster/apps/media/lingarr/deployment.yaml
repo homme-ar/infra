@@ -47,7 +47,7 @@ spec:
               value: http://sonarr.sonarr.svc.cluster.local
             # Local AI translation via Ollama's OpenAI-compatible chat API.
             # Lingarr treats any endpoint ending in "completions" as chat;
-            # qwen2.5 follows instructions far better through its chat
+            # qwen follows instructions far better through its chat
             # template than through raw /api/generate completions.
             # Single value, NOT a JSON array: /api/translate/languages passes
             # this raw to the service factory, which only matches bare names.
@@ -60,9 +60,11 @@ spec:
             - name: LOCAL_AI_ENDPOINT
               value: http://ollama.ollama.svc.cluster.local:11434/v1/chat/completions
             - name: LOCAL_AI_MODEL
-              value: qwen2.5:7b
+              value: qwen3:4b-instruct
             # Rioplatense prompt with few-shot examples: the examples are what
-            # make qwen2.5:7b preserve <i> tags and use voseo consistently.
+            # make the model preserve <i> tags and use voseo consistently
+            # (tuned originally on qwen2.5:7b; re-validate output if the model
+            # changes again).
             # Avoid negated rules ("never use Mexican slang") — they degrade
             # small-model output. Temperature is pinned to 0.2 in the chat
             # request template (DB-only setting, see docs/AI-SUBTITLES.md).
