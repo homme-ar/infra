@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: whisper-config
+  namespace: voice
+  labels:
+    app.kubernetes.io/name: whisper
+    app.kubernetes.io/component: storage
+  # No recurring-job-group.longhorn.io/backup label: this is a regenerable
+  # model cache (re-downloaded from HuggingFace on first start).
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ${STORAGE_CLASS_SINGLENODE}
+  resources:
+    requests:
+      storage: 10Gi

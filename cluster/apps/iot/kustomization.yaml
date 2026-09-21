@@ -7,4 +7,5 @@ resources:
   - ha-mcp
   - home-assistant
   - mosquitto
+  - voice
   - zigbee2mqtt
