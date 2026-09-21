@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: piper
+  namespace: voice
+  labels:
+    app.kubernetes.io/name: piper
+    app.kubernetes.io/component: tts
+spec:
+  replicas: 1
+  # Recreate ensures the RWO PVC is released before a new pod attaches it,
+  # preventing multi-attach errors during rollouts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: piper
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: piper
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: piper
+          image: lscr.io/linuxserver/piper:1.4.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: wyoming
+              containerPort: 10200
+              protocol: TCP
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: America/Argentina/Buenos_Aires
+            # Peninsular-Spanish medium voice; the model downloads to the
+            # config PVC on first start. Alternatives: es_ES-davefx-medium,
+            # es_MX-ald-medium.
+            - name: PIPER_VOICE
+              value: es_ES-sharvard-medium
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          livenessProbe:
+            tcpSocket:
+              port: wyoming
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: wyoming
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: piper-config

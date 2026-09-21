@@ -2,6 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
+  - piper-deployment.yaml
+  - piper-pvc.yaml
+  - piper-service.yaml
   - whisper-deployment.yaml
-  - whisper-service.yaml
   - whisper-pvc.yaml
+  - whisper-service.yaml
