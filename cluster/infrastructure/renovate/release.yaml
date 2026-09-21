@@ -88,6 +88,7 @@ spec:
             { matchFileNames: ['cluster/apps/iot/ha-mcp/**'], groupName: 'ha-mcp', groupSlug: 'ha-mcp' },
             { matchFileNames: ['cluster/apps/iot/home-assistant/**'], groupName: 'home-assistant', groupSlug: 'home-assistant' },
             { matchFileNames: ['cluster/apps/iot/mosquitto/**'], groupName: 'mosquitto', groupSlug: 'mosquitto' },
+            { matchFileNames: ['cluster/apps/iot/voice/**'], groupName: 'voice', groupSlug: 'voice' },
             { matchFileNames: ['cluster/apps/iot/zigbee2mqtt/**'], groupName: 'zigbee2mqtt', groupSlug: 'zigbee2mqtt' },
             { matchFileNames: ['cluster/apps/media/bazarr/**'], groupName: 'bazarr', groupSlug: 'bazarr' },
             { matchFileNames: ['cluster/apps/media/jellyfin/**'], groupName: 'jellyfin', groupSlug: 'jellyfin' },
