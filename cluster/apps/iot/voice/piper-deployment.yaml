@@ -24,7 +24,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: piper
-          image: lscr.io/linuxserver/piper:1.4.0
+          image: lscr.io/linuxserver/piper:1.6.3
           imagePullPolicy: IfNotPresent
           ports:
             - name: wyoming
