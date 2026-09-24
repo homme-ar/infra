@@ -28,7 +28,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: echomuse-controller
-          image: ghcr.io/wilbowes/echomuse-controller:2.16.0
+          image: ghcr.io/wilbowes/echomuse-controller:2.24.1
           imagePullPolicy: IfNotPresent
           ports:
             # Device WebSocket planes (/control, /data, /shell)
