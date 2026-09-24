@@ -27,7 +27,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: prowlarr
-          image: lscr.io/linuxserver/prowlarr:2.5.2
+          image: lscr.io/linuxserver/prowlarr:2.6.5
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
