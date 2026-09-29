@@ -37,6 +37,19 @@ spec:
     csi:
       # Talos Linux stores kubelet state inside /var/lib/kubelet
       kubeletRootDir: "/var/lib/kubelet"
+    networkPolicies:
+      # The chart's internal NetworkPolicies (restrictInternalTraffic, default-on since
+      # 1.12.1) block port 9500 for everything except Longhorn's own pods — including the
+      # Prometheus scrape from the `observability/longhorn` ServiceMonitor. Chart >= 1.13.0
+      # knob to punch a hole just for the Prometheus pods.
+      metricsScrapeSources:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+              app.kubernetes.io/instance: kube-prometheus-stack-prometheus
     ingress:
       # Disable embedded ingress in favor of Gateway API HTTPRoute
       enabled: false
