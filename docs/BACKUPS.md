@@ -87,6 +87,17 @@ These were applied manually once (documented for cluster rebuilds):
    stayed inactive and backups kept forcing ext4 read-only remounts. All
    workloads were bounced once to drain every volume; the v1.12.0 IMs were
    auto-deleted and replaced by v1.12.1. See the troubleshooting section below.
+4. **Offline upgrade to v1.13.0** (2026-09-29): V2 live upgrade requires
+   upgrading **from ≥ v1.12.2** (not released at the time), so the upgrade was
+   done offline: Flux kustomizations suspended (`cluster-apps`,
+   `cluster-infrastructure`, `cluster-infrastructure-observability-prometheus`),
+   all Longhorn-backed workloads scaled to 0 (incl. CNPG operator to stop pod
+   recreation), merge + reconcile once every volume was `detached`, then
+   everything scaled back. All IMs converged to v1.13.0 automatically. Gotchas
+   seen: force-deleting a pod leaves a stale CSI `VolumeAttachment` object
+   (delete it to release the volume), and the force-killed CNPG primary came
+   back with its volume mounted **read-only** (same `emergency_ro` symptom as
+   below) — fixed by a full detach/reattach cycle with the operator stopped.
 
 ### CNPG policy details
 
@@ -176,6 +187,15 @@ kubectl -n longhorn-system get instancemanagers.longhorn.io \
 
 If an old IM survives, bounce the remaining workloads holding volumes on that
 node (scale to 0 → wait for detach → scale back) until it is replaced.
+
+Since Longhorn v1.13.0, V2 instance-managers support **live upgrade** (one node
+at a time, volumes stay attached) when upgrading from ≥ v1.12.2: after the
+manager upgrade, enable the `allow-instance-manager-automatic-upgrade` setting
+for V2 (disabled by default) and watch
+`kubectl -n longhorn-system get instancemanagerupgrades`. Prerequisites: no
+ublk/sharded volumes, healthy replicas on ≥2 nodes — **single-replica volumes
+(`longhorn-singlenode`) never qualify** and still need the detach dance above.
+See https://longhorn.io/docs/1.13.0/deploy/upgrade/v2-instance-upgrade/.
 
 ## Troubleshooting: CNPG "Not enough disk space" / WAL archiving silently broken
 
