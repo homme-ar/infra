@@ -25,6 +25,13 @@ spec:
   values:
     gatewayAPI:
       enabled: true
+    # Pin the agent<->envoy xDS protocol to ADS. Chart 1.20.4 dropped the
+    # "ads" default from the envoyXdsMode helper, and the helm upgrade left a
+    # stale `envoy-xds-mode: ads` key in the cilium-config ConfigMap while
+    # re-rendering the envoy bootstrap without adsConfig — envoy could not
+    # subscribe to LDS/CDS and the Gateway stopped serving traffic.
+    envoy:
+      xdsMode: ads
     ipam:
       mode: kubernetes
     kubeProxyReplacement: true
