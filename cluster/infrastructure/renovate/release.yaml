@@ -31,7 +31,7 @@ spec:
       # container can pipe the structured Renovate logs through it.
       initContainers:
         - name: renovate-metrics
-          image: ghcr.io/raffis/renovate-metrics:v0.0.15
+          image: ghcr.io/raffis/renovate-metrics:v0.0.16
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c", "cp /usr/bin/renovate-metrics /shared/renovate-metrics"]
           securityContext:
