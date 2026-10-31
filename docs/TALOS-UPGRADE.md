@@ -7,7 +7,8 @@ cluster runs three control-plane nodes (`ser-msa2cp1..3`) and one worker
 ## Scope and supported path
 
 - Upgrade the OS only. `kubernetesVersion` stays pinned in
-  `talos/talconfig.yaml`; a Talos upgrade never changes Kubernetes.
+  `talos/talconfig.yaml`; a Talos upgrade never changes Kubernetes. The
+  Kubernetes upgrade procedure is a separate runbook: `docs/KUBERNETES-UPGRADE.md`.
 - Always upgrade to the latest patch of every intermediate minor first, then
   jump to the next minor. Current path:
 
