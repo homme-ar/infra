@@ -37,8 +37,8 @@ spec:
                 - -c
                 - |
                   set -e
-                  wget -q https://github.com/siderolabs/talos/releases/download/v1.13.6/talosctl-linux-amd64 -O /tools/talosctl
-                  echo "540c5e7cb0d3fa3a9b2e1c717ced212727b73bcaf0cf9cf9ba2472ec381041d4  /tools/talosctl" | sha256sum -c -
+                  wget -q https://github.com/siderolabs/talos/releases/download/v1.13.12/talosctl-linux-amd64 -O /tools/talosctl
+                  echo "4ce4218764c24d6a6bd561097199b60ed8619db073792fce5b7cfce7fa8d12fc  /tools/talosctl" | sha256sum -c -
                   chmod +x /tools/talosctl
               volumeMounts:
                 - name: tools

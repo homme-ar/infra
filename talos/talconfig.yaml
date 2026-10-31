@@ -1,5 +1,5 @@
 clusterName: homme-cluster
-talosVersion: v1.13.6
+talosVersion: v1.13.12
 kubernetesVersion: v1.36.0
 endpoint: https://${TALOS_VIP}:6443
 allowSchedulingOnMasters: true
