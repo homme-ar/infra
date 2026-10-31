@@ -1,0 +1,7 @@
+# kube-proxy is replaced by Cilium (kubeProxyReplacement). Talos 1.14 configures
+# kube-proxy through the KubeProxyConfig multi-document kind instead of the
+# deprecated v1alpha1 `.machine.cluster.proxy` field. Talos merges this document
+# into the generated KubeProxyConfig, so only the `enabled` flag is set here.
+apiVersion: v1alpha1
+kind: KubeProxyConfig
+enabled: false

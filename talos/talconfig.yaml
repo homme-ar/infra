@@ -1,5 +1,5 @@
 clusterName: homme-cluster
-talosVersion: v1.13.12
+talosVersion: v1.14.5
 kubernetesVersion: v1.36.0
 endpoint: https://${TALOS_VIP}:6443
 allowSchedulingOnMasters: true
@@ -97,13 +97,12 @@ nodes:
 controlPlane:
   patches:
     - "@./patches/global/storage.yaml"
+    # CNI is expressed by `cniConfig: name: none` above, which renders no CNI
+    # document (Talos 1.14 multi-document config). kube-proxy disabling lives in
+    # its own patch document because talhelper rejects the v1alpha1
+    # `.machine.cluster.network` / `.machine.cluster.proxy` fields on 1.14.
+    - "@./patches/global/kube-proxy-disabled.yaml"
     - |-
-      cluster:
-        network:
-          cni:
-            name: none
-        proxy:
-          disabled: true
       machine:
         features:
           kubePrism:
