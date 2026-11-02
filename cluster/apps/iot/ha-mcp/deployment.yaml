@@ -68,6 +68,15 @@ spec:
             # not needed in this deployment.
             - name: HA_MCP_DISABLE_SETTINGS_UI
               value: "true"
+            # FastMCP's OAuth proxy state (dynamic client registrations,
+            # upstream token sets, JTI mappings) defaults to
+            # ~/.local/share/fastmcp, i.e. the container's writable layer: it
+            # is wiped on every pod restart and all previously issued MCP
+            # tokens turn into "JTI mapping not found" 401s. Keep it on the
+            # PVC (the encryption key derives from OIDC_CLIENT_SECRET, so the
+            # store stays readable across restarts).
+            - name: FASTMCP_HOME
+              value: "/home/mcpuser/.ha-mcp/fastmcp"
           resources:
             requests:
               cpu: 100m
