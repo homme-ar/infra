@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: adguard-exporter
-          image: ghcr.io/henrywhitaker3/adguard-exporter:v1.2.1
+          image: ghcr.io/henrywhitaker3/adguard-exporter:v1.2.3
           imagePullPolicy: IfNotPresent
           env:
             - name: ADGUARD_SERVERS
