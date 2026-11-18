@@ -32,7 +32,7 @@ spec:
         fsGroup: 1883
       containers:
         - name: mosquitto
-          image: eclipse-mosquitto:2.1.2-alpine
+          image: eclipse-mosquitto:2.1.4-alpine
           imagePullPolicy: IfNotPresent
           ports:
             - name: mqtt
