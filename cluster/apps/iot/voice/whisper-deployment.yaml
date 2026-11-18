@@ -27,7 +27,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: whisper
-          image: lscr.io/linuxserver/faster-whisper:3.8.1-gpu
+          image: lscr.io/linuxserver/faster-whisper:3.9.0-gpu
           imagePullPolicy: IfNotPresent
           ports:
             - name: wyoming
