@@ -43,5 +43,15 @@ spec:
     # Add pod/namespace labels to GPU metrics so VRAM/utilization can be
     # attributed to ollama, subgen and jellyfin. The chart creates the
     # ClusterRole/ClusterRoleBinding (pods read) automatically.
-    kubernetes:
-      enablePodLabels: true
+    #
+    # Chart 4.9 replaced the flat `kubernetes.enablePodLabels` value with the
+    # exporter's v2 config format (kubernetes.rbac.create stays where it was).
+    # Pod labels now require an explicit RE2 allowlist; ".*" keeps every label,
+    # matching the 4.8 behaviour.
+    config:
+      sources:
+        kubernetes:
+          pod_labels:
+            enabled: true
+            allow:
+              - ".*"
