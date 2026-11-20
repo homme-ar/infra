@@ -172,12 +172,17 @@ idle; jellyfin transcodes on demand).
 Key queries (VRAM values are in MiB; the card has 12288 MiB total):
 
 ```promql
-DCGM_FI_DEV_FB_USED                                  # VRAM used (MiB)
-DCGM_FI_DEV_FB_FREE                                  # VRAM free (MiB)
-DCGM_FI_DEV_GPU_UTIL                                 # SM utilization (%)
-DCGM_FI_DEV_GPU_TEMP                                 # temperature (C)
-count by (namespace, pod) (DCGM_FI_DEV_GPU_UTIL{pod!=""})  # pods holding the GPU
+DCGM_FI_DEV_FB_USED_BYTES / 1024 / 1024             # VRAM used (MiB)
+DCGM_FI_DEV_FB_FREE_BYTES / 1024 / 1024             # VRAM free (MiB)
+DCGM_FI_DEV_GPU_UTIL_RATIO * 100                    # SM utilization (%)
+DCGM_FI_DEV_GPU_TEMP_CELSIUS                        # temperature (C)
+count by (namespace, pod) (DCGM_FI_DEV_FB_USED_BYTES{pod!=""})  # pods holding the GPU
 ```
+
+(Metric names follow the exporter's unit-suffixed schema, which chart 4.9 made
+the default: values are bytes, ratios 0-1 and hertz. The pre-4.9 names —
+`DCGM_FI_DEV_FB_USED`, `DCGM_FI_DEV_GPU_UTIL`, `DCGM_FI_DEV_GPU_TEMP`, ... —
+no longer exist.)
 
 If the dashboard or queries return nothing, check the exporter pod first:
 `kubectl --kubeconfig talos/clusterconfig/kubeconfig logs -n observability -l app.kubernetes.io/name=dcgm-exporter`.
@@ -188,7 +193,7 @@ If the dashboard or queries return nothing, check the exporter pod first:
 |---|---|
 | Subarr job fails / "Issues" bucket | Subarr → Queue → row details; `kubectl logs -n subgen deploy/subgen` |
 | Subgen slow on first job | Model download (~3GB) into `subgen-models` PVC — happens once |
-| VRAM pressure (A2000 12GB shared) | Grafana DCGM dashboard or `DCGM_FI_DEV_FB_USED` in Prometheus (see section 8); subgen frees VRAM when idle, Ollama keeps qwen2.5 resident (~4.7GB) on purpose |
+| VRAM pressure (A2000 12GB shared) | Grafana DCGM dashboard or `DCGM_FI_DEV_FB_USED_BYTES` in Prometheus (see section 8); subgen frees VRAM when idle, Ollama keeps qwen2.5 resident (~4.7GB) on purpose |
 | Lingarr "Invalid or empty response from generate API" | A chat-style request template (`"messages"`) configured while the endpoint is `/api/generate` — Ollama answers `done_reason:"load"` with an empty body. Use the `/v1/chat/completions` endpoint (see section 6) or clear the generate template; then requeue the failed jobs |
 | Lingarr hallucinates / invents content | Temperature too high (Ollama default is 0.8) or missing few-shot examples in the AI prompt — both are pinned in section 6 |
 | Lingarr translation errors | Lingarr UI jobs page; verify Ollama: `kubectl exec -n ollama deploy/ollama -- ollama list` |
