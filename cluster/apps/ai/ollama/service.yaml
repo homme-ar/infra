@@ -1,3 +1,9 @@
+# LAN-only entrypoint for external clients (e.g. the live-tarot dev stack):
+# http://${LB_OLLAMA_IP}:11434. The IP comes from the Cilium LB pool and is
+# announced via L2 on the LAN, exactly like mosquitto/postgres. This is
+# deliberately not behind the Gateway: Ollama has no authentication and must
+# never be reachable from the Internet (do not port-forward it on the router).
+# In-cluster clients keep using http://ollama.ollama.svc.cluster.local:11434.
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,8 +12,10 @@ metadata:
   labels:
     app.kubernetes.io/name: ollama
     app.kubernetes.io/component: server
+  annotations:
+    io.cilium/lb-ipam-ips: "${LB_OLLAMA_IP}"
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
     - name: http
       port: 11434

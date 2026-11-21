@@ -1,3 +1,7 @@
+# LAN-only entrypoint for external Wyoming/TCP clients (e.g. the live-tarot dev
+# stack): ${LB_PIPER_IP}:10200. Wyoming is raw TCP, so it cannot go through the
+# Gateway/HTTPRoute; the dedicated LoadBalancer IP is announced via L2 on the
+# LAN. Home Assistant keeps using piper.voice.svc.cluster.local:10200.
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,8 +10,10 @@ metadata:
   labels:
     app.kubernetes.io/name: piper
     app.kubernetes.io/component: tts
+  annotations:
+    io.cilium/lb-ipam-ips: "${LB_PIPER_IP}"
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
     - name: wyoming
       port: 10200
