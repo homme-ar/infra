@@ -72,7 +72,7 @@ spec:
             - name: OLLAMA_URL
               value: http://ollama.ollama.svc.cluster.local:11434
             - name: OLLAMA_MODEL
-              value: qwen3.5:4b
+              value: huihui_ai/qwen3.5-abliterated:4B
             # Authelia owns authentication at the gateway.
             - name: SUBARR_AUTH_DISABLED
               value: "1"

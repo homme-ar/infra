@@ -169,7 +169,7 @@ Whisper-provider bottleneck) — Subarr is the only Subgen client.
   itself cannot translate English audio to Spanish (its `translate` task only
   outputs English), which is why this second step exists.
 - **ollama** (`cluster/apps/ai/ollama`, internal only): runs the shared
-  `qwen3.5:4b` model on the GPU. `OLLAMA_KEEP_ALIVE=-1` keeps it resident
+  `huihui_ai/qwen3.5-abliterated:4B` model on the GPU. `OLLAMA_KEEP_ALIVE=-1` keeps it resident
   (~4-5GB) so Lingarr, Home Assistant and the tarot app share one warm model;
   it still leaves room for Jellyfin NVENC and Whisper.
 
@@ -180,7 +180,7 @@ PVCs (`/config`, `/app/config`) — never on NFS.
 ### Post-deploy one-time steps
 
 1. **Pull the shared translation model**:
-   `kubectl exec -n ollama deploy/ollama -- ollama pull qwen3.5:4b`
+   `kubectl exec -n ollama deploy/ollama -- ollama pull huihui_ai/qwen3.5-abliterated:4B`
 2. **API keys**: fill real values into the SOPS secrets
    (`sops cluster/apps/media/subarr/secret.yaml`,
    `sops cluster/apps/media/lingarr/secret.yaml`) — Sonarr/Radarr/Bazarr keys

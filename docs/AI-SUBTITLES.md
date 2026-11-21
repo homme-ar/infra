@@ -10,7 +10,7 @@ Overview of the flow:
 ```
 Sonarr/Radarr/Bazarr ─→ Subarr (finds real gaps, queues work)
                             └─→ Subgen (Whisper, writes .<lang>.srt next to media)
-                                     └─→ Lingarr (translates to .es.srt via Ollama qwen3.5:4b)
+                                     └─→ Lingarr (translates to .es.srt via Ollama huihui_ai/qwen3.5-abliterated:4B)
 ```
 
 Bazarr never talks to Subgen — Subarr is the only Subgen client.
@@ -53,16 +53,16 @@ kubectl --kubeconfig talos/clusterconfig/kubeconfig rollout restart -n lingarr d
 
 ## 3. Verify Ollama (already done at deploy time)
 
-The shared `qwen3.5:4b` model persists on the `ollama-models` Longhorn PVC.
+The shared `huihui_ai/qwen3.5-abliterated:4B` model persists on the `ollama-models` Longhorn PVC.
 After a model change, pull it once into the running pod. Sanity check:
 
 ```bash
-kubectl --kubeconfig talos/clusterconfig/kubeconfig exec -n ollama deploy/ollama -- ollama pull qwen3.5:4b
+kubectl --kubeconfig talos/clusterconfig/kubeconfig exec -n ollama deploy/ollama -- ollama pull huihui_ai/qwen3.5-abliterated:4B
 kubectl --kubeconfig talos/clusterconfig/kubeconfig exec -n ollama deploy/ollama -- ollama list
-# Expected: qwen3.5:4b listed
+# Expected: huihui_ai/qwen3.5-abliterated:4B listed
 ```
 
-`OLLAMA_KEEP_ALIVE=-1` keeps `qwen3.5:4b` resident in VRAM (~4-5GB of the
+`OLLAMA_KEEP_ALIVE=-1` keeps `huihui_ai/qwen3.5-abliterated:4B` resident in VRAM (~4-5GB of the
 A2000's 12GB, weights + projector + 4k context). Do NOT lower this to a short
 TTL: Ollama returns HTTP 200 with an empty response for requests that arrive
 while the model loads/unloads (ollama/ollama#16326), and Lingarr aborts the
@@ -119,9 +119,9 @@ DB settings at every pod startup — change them in Git, never in the UI:
 - Radarr/Sonarr URLs + API keys (keys from the secret)
 - Translation service: `SERVICE_TYPE=localai`,
   `LOCAL_AI_ENDPOINT=http://ollama.ollama.svc.cluster.local:11434/v1/chat/completions`,
-  `LOCAL_AI_MODEL=qwen3.5:4b`
+  `LOCAL_AI_MODEL=huihui_ai/qwen3.5-abliterated:4B`
 - `AI_PROMPT`: Rioplatense prompt with few-shot examples (the examples are
-  what make qwen3.5:4b preserve `<i>` tags and use voseo consistently; avoid
+  what make huihui_ai/qwen3.5-abliterated:4B preserve `<i>` tags and use voseo consistently; avoid
   phrasing rules as negations — "never use Mexican slang" measurably degrades
   output)
 - Source language: English (`en`); Target language: Spanish (`es`)
@@ -147,7 +147,7 @@ In the UI:
 
 1. Confirm Radarr and Sonarr show as connected.
 2. Confirm the `localai` translation service reports healthy (it will load
-   `qwen3.5:4b` into VRAM on first use — the first translation is slow while
+   `huihui_ai/qwen3.5-abliterated:4B` into VRAM on first use — the first translation is slow while
    the model loads; afterwards it stays resident).
 3. Review the automation/schedule settings so Lingarr periodically picks up
    new `.en` subtitles found by Radarr/Sonarr and translates them to `es`.
@@ -170,7 +170,7 @@ The RTX A2000 on `ser-msa2cp1` is scraped every 30s by dcgm-exporter
 `dcgm-exporter` in `observability`). Metrics land in Prometheus and are shown
 in the "NVIDIA DCGM Exporter" dashboard in Grafana. The exporter adds
 `pod`/`namespace` labels, so usage can be attributed to the GPU consumers
-(ollama keeps `qwen3.5:4b` resident ~4-5GB on purpose; subgen frees VRAM when
+(ollama keeps `huihui_ai/qwen3.5-abliterated:4B` resident ~4-5GB on purpose; subgen frees VRAM when
 idle; jellyfin transcodes on demand).
 
 Key queries (VRAM values are in MiB; the card has 12288 MiB total):
@@ -197,7 +197,7 @@ If the dashboard or queries return nothing, check the exporter pod first:
 |---|---|
 | Subarr job fails / "Issues" bucket | Subarr → Queue → row details; `kubectl logs -n subgen deploy/subgen` |
 | Subgen slow on first job | Model download (~3GB) into `subgen-models` PVC — happens once |
-| VRAM pressure (A2000 12GB shared) | Grafana DCGM dashboard or `DCGM_FI_DEV_FB_USED_BYTES` in Prometheus (see section 8); subgen frees VRAM when idle, Ollama keeps qwen2.5 resident (~4.7GB) on purpose |
+| VRAM pressure (A2000 12GB shared) | Grafana DCGM dashboard or `DCGM_FI_DEV_FB_USED_BYTES` in Prometheus (see section 8); subgen frees VRAM when idle, Ollama keeps huihui_ai/qwen3.5-abliterated:4B resident (~4-5GB) on purpose |
 | Lingarr "Invalid or empty response from generate API" | A chat-style request template (`"messages"`) configured while the endpoint is `/api/generate` — Ollama answers `done_reason:"load"` with an empty body. Use the `/v1/chat/completions` endpoint (see section 6) or clear the generate template; then requeue the failed jobs |
 | Lingarr hallucinates / invents content | Temperature too high (Ollama default is 0.8) or missing few-shot examples in the AI prompt — both are pinned in section 6 |
 | Lingarr translation errors | Lingarr UI jobs page; verify Ollama: `kubectl exec -n ollama deploy/ollama -- ollama list` |
