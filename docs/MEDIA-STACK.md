@@ -168,9 +168,10 @@ Whisper-provider bottleneck) — Subarr is the only Subgen client.
   subtitles to Spanish using Ollama's OpenAI-compatible endpoint. Whisper
   itself cannot translate English audio to Spanish (its `translate` task only
   outputs English), which is why this second step exists.
-- **ollama** (`cluster/apps/ai/ollama`, internal only): runs `aya:8b` on the
-  GPU. `OLLAMA_KEEP_ALIVE=1m` unloads the model from VRAM after 1 minute idle,
-  so the 12GB A2000 stays available for Jellyfin NVENC and Whisper.
+- **ollama** (`cluster/apps/ai/ollama`, internal only): runs the shared
+  `qwen3.5:4b` model on the GPU. `OLLAMA_KEEP_ALIVE=-1` keeps it resident
+  (~4-5GB) so Lingarr, Home Assistant and the tarot app share one warm model;
+  it still leaves room for Jellyfin NVENC and Whisper.
 
 All four pods mount the same NFS share at `/data`, so no path mapping is
 needed anywhere. Subarr's and Lingarr's SQLite databases live on Longhorn
@@ -178,8 +179,8 @@ PVCs (`/config`, `/app/config`) — never on NFS.
 
 ### Post-deploy one-time steps
 
-1. **Pull the translation model**:
-   `kubectl exec -n ollama deploy/ollama -- ollama pull aya:8b`
+1. **Pull the shared translation model**:
+   `kubectl exec -n ollama deploy/ollama -- ollama pull qwen3.5:4b`
 2. **API keys**: fill real values into the SOPS secrets
    (`sops cluster/apps/media/subarr/secret.yaml`,
    `sops cluster/apps/media/lingarr/secret.yaml`) — Sonarr/Radarr/Bazarr keys

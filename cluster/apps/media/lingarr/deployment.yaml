@@ -60,11 +60,11 @@ spec:
             - name: LOCAL_AI_ENDPOINT
               value: http://ollama.ollama.svc.cluster.local:11434/v1/chat/completions
             - name: LOCAL_AI_MODEL
-              value: qwen3:4b-instruct
+              value: qwen3.5:4b
             # Rioplatense prompt with few-shot examples: the examples are what
             # make the model preserve <i> tags and use voseo consistently
-            # (tuned originally on qwen2.5:7b; re-validate output if the model
-            # changes again).
+            # (tuned originally on qwen2.5:7b; re-validate <i>/voseo output
+            # after the qwen3.5:4b switch).
             # Avoid negated rules ("never use Mexican slang") — they degrade
             # small-model output. Temperature is pinned to 0.2 in the chat
             # request template (DB-only setting, see docs/AI-SUBTITLES.md).

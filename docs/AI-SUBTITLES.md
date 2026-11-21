@@ -10,7 +10,7 @@ Overview of the flow:
 ```
 Sonarr/Radarr/Bazarr ─→ Subarr (finds real gaps, queues work)
                             └─→ Subgen (Whisper, writes .<lang>.srt next to media)
-                                     └─→ Lingarr (translates to .es.srt via Ollama qwen3:4b-instruct)
+                                     └─→ Lingarr (translates to .es.srt via Ollama qwen3.5:4b)
 ```
 
 Bazarr never talks to Subgen — Subarr is the only Subgen client.
@@ -53,20 +53,24 @@ kubectl --kubeconfig talos/clusterconfig/kubeconfig rollout restart -n lingarr d
 
 ## 3. Verify Ollama (already done at deploy time)
 
-The `qwen3:4b-instruct` model was pulled during deployment and persists on the
-`ollama-models` Longhorn PVC. Sanity check:
+The shared `qwen3.5:4b` model persists on the `ollama-models` Longhorn PVC.
+After a model change, pull it once into the running pod. Sanity check:
 
 ```bash
+kubectl --kubeconfig talos/clusterconfig/kubeconfig exec -n ollama deploy/ollama -- ollama pull qwen3.5:4b
 kubectl --kubeconfig talos/clusterconfig/kubeconfig exec -n ollama deploy/ollama -- ollama list
-# Expected: qwen3:4b-instruct listed
+# Expected: qwen3.5:4b listed
 ```
 
-Nothing else to configure: `OLLAMA_KEEP_ALIVE=-1` keeps `qwen3:4b-instruct` resident in
-VRAM (~4.7GB of the A2000's 12GB). Do NOT lower this to a short TTL: Ollama
-returns HTTP 200 with an empty response for requests that arrive while the
-model loads/unloads (ollama/ollama#16326), and Lingarr aborts the whole job on
-the first empty response. `OLLAMA_MAX_LOADED_MODELS=1` keeps a single model
-resident at a time.
+`OLLAMA_KEEP_ALIVE=-1` keeps `qwen3.5:4b` resident in VRAM (~4-5GB of the
+A2000's 12GB, weights + projector + 4k context). Do NOT lower this to a short
+TTL: Ollama returns HTTP 200 with an empty response for requests that arrive
+while the model loads/unloads (ollama/ollama#16326), and Lingarr aborts the
+whole job on the first empty response. `OLLAMA_MAX_LOADED_MODELS=1` keeps a
+single model resident at a time.
+
+After changing the shared tag, update the Home Assistant Ollama conversation
+agent (UI, not git) and re-validate Lingarr's `<i>`/voseo output.
 
 ## 4. Verify Subgen
 
@@ -115,21 +119,21 @@ DB settings at every pod startup — change them in Git, never in the UI:
 - Radarr/Sonarr URLs + API keys (keys from the secret)
 - Translation service: `SERVICE_TYPE=localai`,
   `LOCAL_AI_ENDPOINT=http://ollama.ollama.svc.cluster.local:11434/v1/chat/completions`,
-  `LOCAL_AI_MODEL=qwen3:4b-instruct`
+  `LOCAL_AI_MODEL=qwen3.5:4b`
 - `AI_PROMPT`: Rioplatense prompt with few-shot examples (the examples are
-  what make qwen3:4b-instruct preserve `<i>` tags and use voseo consistently; avoid
+  what make qwen3.5:4b preserve `<i>` tags and use voseo consistently; avoid
   phrasing rules as negations — "never use Mexican slang" measurably degrades
   output)
 - Source language: English (`en`); Target language: Spanish (`es`)
 - SQLite DB on the Longhorn PVC at `/app/config`
 
 The OpenAI-compatible chat endpoint is used on purpose (Lingarr treats any
-endpoint ending in `completions` as chat): qwen2.5 follows instructions far
+endpoint ending in `completions` as chat): qwen3.5 follows instructions far
 better through its chat template than through raw `/api/generate` completions.
 
 The ONE setting that still lives only in the DB (no env var exists) is the
 **chat request template** (Settings → Request Templates). It must include a
-low temperature — 7B models hallucinate at Ollama's default 0.8:
+low temperature — small models hallucinate at Ollama's default 0.8:
 
 ```json
 {"model":"{model}","messages":[{"role":"system","content":"{systemPrompt}"},{"role":"user","content":"{userMessage}"}],"stream":false,"temperature":0.2}
@@ -143,7 +147,7 @@ In the UI:
 
 1. Confirm Radarr and Sonarr show as connected.
 2. Confirm the `localai` translation service reports healthy (it will load
-   `qwen3:4b-instruct` into VRAM on first use — the first translation is slow while
+   `qwen3.5:4b` into VRAM on first use — the first translation is slow while
    the model loads; afterwards it stays resident).
 3. Review the automation/schedule settings so Lingarr periodically picks up
    new `.en` subtitles found by Radarr/Sonarr and translates them to `es`.
@@ -166,7 +170,7 @@ The RTX A2000 on `ser-msa2cp1` is scraped every 30s by dcgm-exporter
 `dcgm-exporter` in `observability`). Metrics land in Prometheus and are shown
 in the "NVIDIA DCGM Exporter" dashboard in Grafana. The exporter adds
 `pod`/`namespace` labels, so usage can be attributed to the GPU consumers
-(ollama keeps `qwen3:4b-instruct` resident ~2.5GB on purpose; subgen frees VRAM when
+(ollama keeps `qwen3.5:4b` resident ~4-5GB on purpose; subgen frees VRAM when
 idle; jellyfin transcodes on demand).
 
 Key queries (VRAM values are in MiB; the card has 12288 MiB total):

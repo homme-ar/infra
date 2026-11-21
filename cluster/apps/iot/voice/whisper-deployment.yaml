@@ -41,7 +41,7 @@ spec:
             - name: TZ
               value: America/Argentina/Buenos_Aires
             # medium (~3GB VRAM at fp16): good Spanish accuracy at ~1s
-            # latency. Fits the A2000 alongside qwen2.5:7b (~4.7GB) with
+            # latency. Fits the A2000 alongside qwen3.5:4b (~4-5GB) with
             # headroom for subgen/Jellyfin.
             - name: WHISPER_MODEL
               value: medium
