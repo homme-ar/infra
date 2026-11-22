@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qwen3-tts
+  namespace: voice
+  labels:
+    app.kubernetes.io/name: qwen3-tts
+    app.kubernetes.io/component: tts
+spec:
+  replicas: 1
+  # Recreate ensures the RWO Longhorn PVCs are released before a new pod
+  # attaches them, preventing multi-attach errors during rollouts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: qwen3-tts
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: qwen3-tts
+    spec:
+      # The nvidia.com/gpu request pins scheduling to ser-msa2cp1 (the only
+      # GPU node); the nvidia runtime handler injects the driver libraries.
+      runtimeClassName: nvidia
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
+      containers:
+        - name: qwen3-tts
+          image: vllm/vllm-omni:v0.32.0
+          imagePullPolicy: IfNotPresent
+          # The chart default is 8000; 8091 matches the upstream Qwen3-TTS
+          # example and keeps the port distinct from the other voice services.
+          command:
+            - vllm
+            - serve
+          args:
+            - Qwen/Qwen3-TTS-12Hz-0.6B-Base
+            - --omni
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8091"
+            - --trust-remote-code
+            # The bundled qwen3_tts.yaml allocates 0.3 of the GPU per stage
+            # (0.6 total). The A2000 is shared with Ollama (~6.2Gi resident),
+            # leaving ~6.3Gi free, so cap both stages to ~0.35 total. Raise
+            # these only after stopping Ollama or moving to a dedicated GPU.
+            - --stage-overrides
+            - '{"0": {"gpu_memory_utilization": 0.2}, "1": {"gpu_memory_utilization": 0.15}}'
+          ports:
+            - name: http
+              containerPort: 8091
+              protocol: TCP
+          env:
+            # Model weights are cached on the models PVC, so a restart does
+            # not re-download the ~2.3GiB checkpoint from HuggingFace.
+            - name: HF_HOME
+              value: /models/huggingface
+            - name: HOME
+              value: /models
+            # Uploaded voices persist on the voices PVC. Without this the
+            # registry defaults to ~/.cache (inside the models PVC) and is
+            # lost if that PVC is recreated.
+            - name: SPEAKER_SAMPLES_DIR
+              value: /voices
+            # Re-uploading the same voice name overwrites the previous
+            # artifacts, which keeps the app's boot-time upload idempotent.
+            - name: VLLM_OMNI_SPEAKER_REGISTRATION_POLICY
+              value: overwrite
+          resources:
+            requests:
+              cpu: "4"
+              memory: 16Gi
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "8"
+              memory: 24Gi
+              nvidia.com/gpu: "1"
+          # Cold start includes fetching the ~2.3GiB checkpoint (the ~10GiB
+          # image is pulled before the container starts). 60 x 30s = 30 min.
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: models
+              mountPath: /models
+            - name: voices
+              mountPath: /voices
+            # PyTorch multiprocessing and the shared-memory connector between
+            # the talker and code2wav stages need a large /dev/shm.
+            - name: dshm
+              mountPath: /dev/shm
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: qwen3-tts-models
+        - name: voices
+          persistentVolumeClaim:
+            claimName: qwen3-tts-voices
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 8Gi

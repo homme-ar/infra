@@ -8,3 +8,7 @@ resources:
   - whisper-deployment.yaml
   - whisper-pvc.yaml
   - whisper-service.yaml
+  - qwen3-tts-deployment.yaml
+  - qwen3-tts-pvc-models.yaml
+  - qwen3-tts-pvc-voices.yaml
+  - qwen3-tts-service.yaml

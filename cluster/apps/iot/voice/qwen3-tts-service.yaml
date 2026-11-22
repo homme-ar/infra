@@ -1,0 +1,25 @@
+# LAN-only entrypoint for external clients (e.g. the live-tarot dev stack):
+# http://${LB_QWEN3_TTS_IP}:8091. The IP comes from the Cilium LB pool and is
+# announced via L2 on the LAN, exactly like piper/ollama. This is deliberately
+# not behind the Gateway: the service has no authentication and must never be
+# reachable from the Internet (do not port-forward it on the router).
+# In-cluster clients can use http://qwen3-tts.voice.svc.cluster.local:8091.
+apiVersion: v1
+kind: Service
+metadata:
+  name: qwen3-tts
+  namespace: voice
+  labels:
+    app.kubernetes.io/name: qwen3-tts
+    app.kubernetes.io/component: tts
+  annotations:
+    io.cilium/lb-ipam-ips: "${LB_QWEN3_TTS_IP}"
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 8091
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: qwen3-tts
