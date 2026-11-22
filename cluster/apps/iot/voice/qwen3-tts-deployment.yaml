@@ -8,6 +8,10 @@ metadata:
     app.kubernetes.io/component: tts
 spec:
   replicas: 1
+  # The first start pulls a ~10 GiB image and downloads a ~2.3 GiB checkpoint;
+  # the default 600s progress deadline would mark the rollout failed while the
+  # pod is still legitimately starting.
+  progressDeadlineSeconds: 1800
   # Recreate ensures the RWO Longhorn PVCs are released before a new pod
   # attaches them, preventing multi-attach errors during rollouts.
   strategy:
