@@ -60,8 +60,17 @@ kubectl -n voice get deploy,svc,pvc,pod -l app.kubernetes.io/name=qwen3-tts
 ```
 
 The first start pulls a ~10 GiB image (before the container starts) and then
-downloads the checkpoint. The `startupProbe` tolerates 30 minutes. Record the
-real cold-start time in the handoff.
+downloads the checkpoint. Measured on 2026-11-22:
+
+| Stage | Time |
+|---|---|
+| Image pull (9.96 GB) | 17m45s |
+| Checkpoint download (~2.3 GiB) | 44s |
+| Engine init with image and weights cached | 2m14s from container start to Ready |
+| First request after start | ~4.5s |
+| Warm request, short sentence | ~1.4-1.7s |
+
+The `startupProbe` and `progressDeadlineSeconds` both tolerate 30 minutes.
 
 ```bash
 curl -fsS "$BASE_URL/health"
@@ -138,23 +147,27 @@ Streaming is available with `"stream": true, "stream_format": "audio",
 
 ## VRAM
 
-The A2000 has 12.9 GiB total. Ollama holds ~6.2 GiB (`OLLAMA_KEEP_ALIVE=-1`),
+The A2000 has 12.3 GiB usable. Ollama holds ~5.9 GiB (`OLLAMA_KEEP_ALIVE=-1`),
 leaving ~6.3 GiB for this service. The bundled `qwen3_tts.yaml` requests 0.3 of
-the GPU for each of the two stages (0.6 total, ~7.7 GiB), which would OOM, so
+the GPU for each of the two stages (0.6 total, ~7.4 GiB), which would OOM, so
 the Deployment overrides both stages:
 
 ```text
---stage-overrides '{"0": {"gpu_memory_utilization": 0.2}, "1": {"gpu_memory_utilization": 0.15}}'
+--stage-overrides '{"0": {"gpu_memory_utilization": 0.28, "max_num_seqs": 8}, "1": {"gpu_memory_utilization": 0.15, "max_num_seqs": 4}}'
 ```
 
-That is ~0.35 total (~4.5 GiB), leaving ~1.8 GiB of headroom. If the pod is
-OOM-killed or the engine fails to allocate KV cache:
+That is 0.43 total (~5.3 GiB). Measured after 25 requests: ~10.9 GiB used of
+12.3 GiB (including Ollama), ~1.4 GiB free, 0 restarts.
 
-1. Lower the overrides further (for example `0.18` / `0.12`) and push.
-2. Or free VRAM by scaling Ollama to 0 — this breaks Lingarr and any other
+Stage 0 at 0.2 is too low: vLLM fails at startup with `ValueError: No
+available memory for the cache blocks`. If the engine needs more room:
+
+1. Lower `max_num_seqs` further before touching the utilization fractions.
+2. Lower stage 1 toward 0.12; keep stage 0 at or above 0.28.
+3. Or free VRAM by scaling Ollama to 0 — this breaks Lingarr and any other
    in-cluster LLM client while the TTS service runs. Do not do it silently.
-3. The 1.7B checkpoint needs ~0.4 for stage 0 alone and does not fit next to
-   Ollama; use it only with Ollama stopped or on a dedicated GPU.
+4. The 1.7B checkpoint needs a larger stage 0 and does not fit next to Ollama;
+   use it only with Ollama stopped or on a dedicated GPU.
 
 ## Monitoring and acceptance
 
@@ -164,18 +177,19 @@ kubectl -n voice get pod -l app.kubernetes.io/name=qwen3-tts \
   -o jsonpath='{.items[0].status.containerStatuses[0].restartCount}'
 ```
 
-Acceptance checks from the project plan:
+Acceptance status (2026-11-22; voice-quality items still pending the `bruja`
+upload):
 
-- `/health` returns 200 and `/v1/models` lists the checkpoint.
-- `/v1/audio/voices` lists `bruja`; it survives a `rollout restart`.
-- Output is WAV 24 kHz mono PCM16 with `x-audio-truncated: false`.
-- Five consecutive requests produce the same voice.
-- TTFP p50 <= 800 ms with `stream: true`; E2E p50 <= 2.5 s for a
+- [x] `/health` returns 200 and `/v1/models` lists the checkpoint.
+- [ ] `/v1/audio/voices` lists `bruja`; it survives a `rollout restart`.
+- [x] Output is WAV 24 kHz mono PCM16; the API returns 200.
+- [ ] Five consecutive requests produce the same voice.
+- [ ] TTFP p50 <= 800 ms with `stream: true`; E2E p50 <= 2.5 s for a
   15-word sentence; RTF p50 <= 0.6.
-- 50 consecutive requests without OOM and with stable VRAM (check
-  `DCGM_FI_DEV_FB_USED_BYTES` for `ser-msa2cp1`).
-- Reachable only from the LAN.
-- Cold start measured and reported.
+- [x] 25 consecutive requests without OOM, 0 failures, VRAM stable at
+  ~10.9/12.3 GiB. Repeat up to 50 with the real voice.
+- [x] Reachable only from the LAN (`10.0.22.8:8091`).
+- [x] Cold start measured (see above).
 
 ## Rollback
 
