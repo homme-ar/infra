@@ -48,10 +48,12 @@ spec:
             - --trust-remote-code
             # The bundled qwen3_tts.yaml allocates 0.3 of the GPU per stage
             # (0.6 total). The A2000 is shared with Ollama (~6.2Gi resident),
-            # leaving ~6.3Gi free, so cap both stages to ~0.35 total. Raise
-            # these only after stopping Ollama or moving to a dedicated GPU.
+            # leaving ~6.3Gi free, so the two stages must fit in ~0.45 total.
+            # Stage 0 at 0.2 had no room left for KV cache blocks; 0.28 leaves
+            # ~1Gi of headroom. max_num_seqs is capped because the only client
+            # synthesizes one sentence at a time.
             - --stage-overrides
-            - '{"0": {"gpu_memory_utilization": 0.2}, "1": {"gpu_memory_utilization": 0.15}}'
+            - '{"0": {"gpu_memory_utilization": 0.28, "max_num_seqs": 8}, "1": {"gpu_memory_utilization": 0.15, "max_num_seqs": 4}}'
           ports:
             - name: http
               containerPort: 8091
