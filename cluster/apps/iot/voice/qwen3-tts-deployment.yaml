@@ -31,7 +31,7 @@ spec:
         nvidia.com/gpu.present: "true"
       containers:
         - name: qwen3-tts
-          image: vllm/vllm-omni:v0.32.0
+          image: vllm/vllm-omni:v0.34.0
           imagePullPolicy: IfNotPresent
           # The chart default is 8000; 8091 matches the upstream Qwen3-TTS
           # example and keeps the port distinct from the other voice services.
